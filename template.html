@@ -37,6 +37,7 @@ $(function(){
               .addClass("alert-success")
               .removeClass("alert-danger");
     } catch(e) {
+      console.trace(e);
       $("#output_scala").text("");
       $("#info").text(e)
               .addClass("alert-danger")
