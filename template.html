@@ -32,8 +32,8 @@ $(function(){
   const run = function(){
     try {
       const r = ScalametaAstMain.convert($("#input_scala").val());
-      $("#output_scala").text(r);
-      $("#error").text("");
+      $("#output_scala").text(r.ast);
+      $("#error").text(`ast: ${r.astBuildMs} ms\nfmt: ${r.formatMs} ms`);
     } catch(e) {
       $("#output_scala").text("");
       $("#error").text(e);

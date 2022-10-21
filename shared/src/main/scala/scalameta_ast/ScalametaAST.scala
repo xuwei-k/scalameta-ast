@@ -1,6 +1,7 @@
 package scalameta_ast
 
 import org.scalafmt.config.ScalafmtConfig
+import java.util.Date
 import scala.annotation.tailrec
 import scala.meta._
 import scala.meta.common.Convert
@@ -40,13 +41,28 @@ class ScalametaAST {
     maxColumn = 50,
   )
 
-  def convert(src: String): String = {
+  private def stopwatch[T](block: => T): (T, Long) = {
+    val begin = new Date()
+    val result = block
+    val end = new Date()
+    val diffMs = end.getTime - begin.getTime
+    (result, diffMs)
+  }
+
+  def convert(src: String): Output = {
     val input = convert.apply(src)
     val prefix = "class A {\n"
     val suffix = "}\n"
-    val ast = prefix + loop(input, parsers).structure + suffix
-    val res = org.scalafmt.Scalafmt.format(ast, scalafmtConfig).get
-    res.drop(prefix.length).dropRight(suffix.length)
+
+    val (ast, astBuildMs) = stopwatch {
+      prefix + loop(input, parsers).structure + suffix
+    }
+    val (res, formatMs) = stopwatch {
+      org.scalafmt.Scalafmt.format(ast, scalafmtConfig).get
+    }
+    Output(res.drop(prefix.length).dropRight(suffix.length), astBuildMs, formatMs)
   }
 
 }
+
+case class Output(ast: String, astBuildMs: Long, formatMs: Long)
