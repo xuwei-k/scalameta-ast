@@ -12,7 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
     <div class="container">
       <div class="row">
-        <pre id="error" style="color: red; height: 50px;"></pre>
+        <pre id="info" class="alert"></pre>
       </div>
       <div class="row">
         <div class="col">
@@ -23,7 +23,7 @@
         </div>
       </div>
       <div class="row">
-        <p><a target="_brank" href="https://github.com/xuwei-k/scalameta-ast/tree/a35bf028d37aa66d38f2f72245ee8fc0d3f6849b">https://github.com/xuwei-k/scalameta-ast/tree/a35bf028d37aa66d38f2f72245ee8fc0d3f6849b</a></p>
+        <p><a target="_brank" href="https://github.com/xuwei-k/scalameta-ast/tree/1419673367af1b202e71101434b3345705bb96e8">https://github.com/xuwei-k/scalameta-ast/tree/1419673367af1b202e71101434b3345705bb96e8</a></p>
         <p><a target="_brank" href="https://github.com/scalameta/scalameta/tree/v4.6.0">scalameta 4.6.0</a></p>
       </div>
     </div>
@@ -32,11 +32,15 @@ $(function(){
   const run = function(){
     try {
       const r = ScalametaAstMain.convert($("#input_scala").val());
-      $("#output_scala").text(r);
-      $("#error").text("");
+      $("#output_scala").text(r.ast);
+      $("#info").text(`ast: ${r.astBuildMs} ms\nfmt: ${r.formatMs} ms`)
+              .addClass("alert-success")
+              .removeClass("alert-danger");
     } catch(e) {
       $("#output_scala").text("");
-      $("#error").text(e);
+      $("#info").text(e)
+              .addClass("alert-danger")
+              .removeClass("alert-success");
     }
   };
 
