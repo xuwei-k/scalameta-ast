@@ -1,0 +1,36 @@
+name: CI
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-java@v3
+      with:
+        java-version: 17
+        distribution: temurin
+    - uses: coursier/cache-action@v6
+    - run: sbt -v
+           scalafmtSbtCheck
+           scalafmtCheckAll
+           test
+           genAndCheckHtml
+           genHtmlPublish
+           fullOptJS
+    - run: |
+        mkdir deploy-tmp &&
+        mv index.html ./deploy-tmp/ &&
+        mv ./js/target/scala-2.13/scalameta-ast-opt.js ./deploy-tmp/scalameta-ast.js
+        mv ./js/target/scala-2.13/scalameta-ast-opt.js.map ./deploy-tmp/scalameta-ast-opt.js.map
+    - if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && github.repository_owner == 'xuwei-k' }}
+      uses: JamesIves/github-pages-deploy-action@v4.4.1
+      with:
+        branch: gh-pages
+        folder: deploy-tmp
+        clean: true
