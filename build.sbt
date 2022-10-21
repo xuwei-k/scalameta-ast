@@ -29,7 +29,7 @@ lazy val `scalameta-ast` = crossProject(JSPlatform, JVMPlatform)
   )
   .jsSettings(
     scalaJSLinkerConfig ~= { _.withESFeatures(_.withESVersion(org.scalajs.linker.interface.ESVersion.ES2018)) },
-    libraryDependencies += "com.github.xuwei-k" %%% "scalafmt-core" % "3.6.0-fork-2",
+    libraryDependencies += "com.github.xuwei-k" %%% "scalafmt-core" % "3.6.0-fork-3",
     scalacOptions += {
       val a = (LocalRootProject / baseDirectory).value.toURI.toString
       val g = "https://raw.githubusercontent.com/xuwei-k/scalameta-ast/" + sys.process
