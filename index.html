@@ -23,7 +23,7 @@
         </div>
       </div>
       <div class="row">
-        <p><a target="_brank" href="https://github.com/xuwei-k/scalameta-ast/tree/b2e54be9b6b06252dc9f1f0bf60288f2fddfdca1">https://github.com/xuwei-k/scalameta-ast/tree/b2e54be9b6b06252dc9f1f0bf60288f2fddfdca1</a></p>
+        <p><a target="_brank" href="https://github.com/xuwei-k/scalameta-ast/tree/7a1b7b528af034e9a57254dc6aa963a48947f70f">https://github.com/xuwei-k/scalameta-ast/tree/7a1b7b528af034e9a57254dc6aa963a48947f70f</a></p>
         <p><a target="_brank" href="https://github.com/scalameta/scalameta/tree/v4.6.0">scalameta 4.6.0</a></p>
       </div>
     </div>
@@ -37,6 +37,7 @@ $(function(){
               .addClass("alert-success")
               .removeClass("alert-danger");
     } catch(e) {
+      console.trace(e);
       $("#output_scala").text("");
       $("#info").text(e)
               .addClass("alert-danger")
