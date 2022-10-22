@@ -7,6 +7,7 @@ import scala.meta._
 import scala.meta.common.Convert
 import scala.meta.parsers.Parse
 import scala.meta.parsers.Parsed
+import scala.util.control.NonFatal
 
 class ScalametaAST {
   private val parsers: List[(Parse[Tree], Dialect)] = for {
@@ -58,7 +59,13 @@ class ScalametaAST {
       prefix + loop(input, parsers).structure + suffix
     }
     val (res, formatMs) = stopwatch {
-      org.scalafmt.Scalafmt.format(ast, scalafmtConfig).get
+      try {
+        org.scalafmt.Scalafmt.format(ast, scalafmtConfig).get
+      } catch {
+        case NonFatal(e) =>
+          e.printStackTrace()
+          ast
+      }
     }
     Output(res.drop(prefix.length).dropRight(suffix.length), astBuildMs, formatMs)
   }
