@@ -50,7 +50,7 @@ class ScalametaAST {
     (result, diffMs)
   }
 
-  def convert(src: String): Output = {
+  def convert(src: String, format: Boolean): Output = {
     val input = convert.apply(src)
     val prefix = "class A {\n"
     val suffix = "}\n"
@@ -59,12 +59,16 @@ class ScalametaAST {
       prefix + loop(input, parsers).structure + suffix
     }
     val (res, formatMs) = stopwatch {
-      try {
-        org.scalafmt.Scalafmt.format(ast, scalafmtConfig).get
-      } catch {
-        case NonFatal(e) =>
-          e.printStackTrace()
-          ast
+      if (format) {
+        try {
+          org.scalafmt.Scalafmt.format(ast, scalafmtConfig).get
+        } catch {
+          case NonFatal(e) =>
+            e.printStackTrace()
+            ast
+        }
+      } else {
+        ast
       }
     }
     Output(res.drop(prefix.length).dropRight(suffix.length), astBuildMs, formatMs)

@@ -16,7 +16,18 @@
           <pre id="info" class="alert" style="height: 100px;"></pre>
         </div>
         <div class="col">
-          <button id="copy_button">copy</button>
+          <div class="row">
+            <div>
+              <input type="checkbox" id="format" checked>
+              <label for="format">format by scalafmt</label>
+            </div>
+          </div>
+          <div class="row">
+            <p></p>
+          </div>
+          <div class="row">
+            <button id="copy_button">copy</button>
+          </div>
         </div>
       </div>
       <div class="row">
@@ -41,7 +52,10 @@ $(function(){
 
   const run = function(){
     try {
-      const r = ScalametaAstMain.convert($("#input_scala").val());
+      const r = ScalametaAstMain.convert(
+        $("#input_scala").val(),
+        $("#format").prop("checked") === true
+      );
       $("#output_scala").text(r.ast);
       $("#info").text(`ast: ${r.astBuildMs} ms\nfmt: ${r.formatMs} ms`)
               .addClass("alert-success")
@@ -56,6 +70,10 @@ $(function(){
   };
 
   $("#input_scala").keyup(function(event){
+    run();
+  });
+
+  $("#format").change(function(){
     run();
   });
 
