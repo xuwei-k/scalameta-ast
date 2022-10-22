@@ -5,6 +5,7 @@
     <title>scalameta-ast</title>
     <script type="text/javascript" src="SCALA_META_AST_JAVASCRIPT_URL"></script>
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+    <script type="text/javascript" src="./main.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
   </head>
@@ -43,64 +44,5 @@
         <p><a target="_brank" href="https://github.com/scalameta/scalameta/tree/vSCALA_META_VERSION">scalameta SCALA_META_VERSION</a></p>
       </div>
     </div>
-    <script type="text/javascript">
-$(function(){
-  $("#copy_button").click(function(){
-    $("#output_scala").select();
-    document.execCommand("copy");
-  });
-
-  const run = function(){
-    try {
-      const input = $("#input_scala").val()
-
-      try {
-        localStorage.setItem("source", input);
-      } catch(e) {
-        console.trace(e);
-      }
-
-      const r = ScalametaAstMain.convert(
-        input,
-        $("#format").prop("checked") === true
-      );
-      $("#output_scala").text(r.ast);
-      $("#info").text(`ast: ${r.astBuildMs} ms\nfmt: ${r.formatMs} ms`)
-              .addClass("alert-success")
-              .removeClass("alert-danger");
-    } catch(e) {
-      console.trace(e);
-      $("#output_scala").text("");
-      $("#info").text(e)
-              .addClass("alert-danger")
-              .removeClass("alert-success");
-    }
-  };
-
-  $("#input_scala").keyup(function(event){
-    run();
-  });
-
-  $("#format").change(function(){
-    run();
-    localStorage.setItem("format", ($("#format").prop("checked") === true).toString());
-  });
-
-  $(document).ready(function(){
-    const savedSource = localStorage.getItem("source");
-    if (savedSource != null) {
-      $("#input_scala").val(savedSource);
-    } else {
-      $("#input_scala").val("def a = b");
-    }
-
-    if (localStorage.getItem("format") === "false") {
-      $("#format").prop("checked", false);
-    }
-
-    run();
-  });
-});
-    </script>
   </body>
 </html>
