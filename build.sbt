@@ -18,7 +18,7 @@ lazy val `scalameta-ast` = crossProject(JSPlatform, JVMPlatform)
       "-language:higherKinds",
     ),
     scalacOptions ++= unusedWarnings,
-    watchSources += file("template.html"),
+    watchSources += (LocalRootProject / baseDirectory).value / "template.html",
     libraryDependencies ++= Seq(
       "org.scalameta" %%% "scalameta" % scalametaVersion,
     ),
