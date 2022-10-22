@@ -32,14 +32,14 @@
       </div>
       <div class="row">
         <div class="col">
-          <textarea id="input_scala"  style="width: 100%; height: 800px;">def a = b</textarea>
+          <textarea id="input_scala"  style="width: 100%; height: 800px;"></textarea>
         </div>
         <div class="col">
           <textarea id="output_scala" style="width: 100%; height: 800px;" readonly></textarea>
         </div>
       </div>
       <div class="row">
-        <p><a target="_brank" href="https://github.com/xuwei-k/scalameta-ast/tree/bc3d28215c1d585b51564ef25eb180dc13ebf599">https://github.com/xuwei-k/scalameta-ast/tree/bc3d28215c1d585b51564ef25eb180dc13ebf599</a></p>
+        <p><a target="_brank" href="https://github.com/xuwei-k/scalameta-ast/tree/c6d52c29eaef7f4a6e1bba6e41e5bac65d1ea9e9">https://github.com/xuwei-k/scalameta-ast/tree/c6d52c29eaef7f4a6e1bba6e41e5bac65d1ea9e9</a></p>
         <p><a target="_brank" href="https://github.com/scalameta/scalameta/tree/v4.6.0">scalameta 4.6.0</a></p>
       </div>
     </div>
@@ -52,8 +52,16 @@ $(function(){
 
   const run = function(){
     try {
+      const input = $("#input_scala").val()
+
+      try {
+        localStorage.setItem("source", input);
+      } catch(e) {
+        console.trace(e);
+      }
+
       const r = ScalametaAstMain.convert(
-        $("#input_scala").val(),
+        input,
         $("#format").prop("checked") === true
       );
       $("#output_scala").text(r.ast);
@@ -75,9 +83,21 @@ $(function(){
 
   $("#format").change(function(){
     run();
+    localStorage.setItem("format", ($("#format").prop("checked") === true).toString());
   });
 
   $(document).ready(function(){
+    const savedSource = localStorage.getItem("source");
+    if (savedSource != null) {
+      $("#input_scala").val(savedSource);
+    } else {
+      $("#input_scala").val("def a = b");
+    }
+
+    if (localStorage.getItem("format") === "false") {
+      $("#format").prop("checked", false);
+    }
+
     run();
   });
 });
