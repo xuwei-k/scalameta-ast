@@ -4,6 +4,14 @@ $(function(){
     document.execCommand("copy");
   });
 
+  $("#format_input").click(function(){
+    const input = $("#input_scala").val();
+    const result = ScalametaAstMain.format(input);
+    if (input != result) {
+      $("#input_scala").val(result);
+    }
+  });
+
   const run = function(){
     try {
       const input = $("#input_scala").val()

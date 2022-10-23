@@ -50,28 +50,48 @@ class ScalametaAST {
     (result, diffMs)
   }
 
+  def runFormat(source: String, withWrap: Boolean): String = {
+    try {
+      if (withWrap) {
+        val prefix = "class A {\n"
+        val suffix = "}\n"
+        val x = prefix + source + suffix
+        val res1 = org.scalafmt.Scalafmt.format(x, scalafmtConfig).get
+        val res2 = res1.drop(prefix.length).dropRight(suffix.length)
+        val indent = "  "
+        if (res2.linesIterator.forall(line => line.startsWith(indent) || line.isBlank)) {
+          res2.linesIterator.map(_.drop(indent.length)).mkString("\n")
+        } else {
+          res2
+        }
+      } else {
+        try {
+          org.scalafmt.Scalafmt.format(source, scalafmtConfig).get
+        } catch {
+          case NonFatal(_) =>
+            runFormat(source, withWrap = true)
+        }
+      }
+    } catch {
+      case NonFatal(e) =>
+        e.printStackTrace()
+        source
+    }
+  }
+
   def convert(src: String, format: Boolean): Output = {
     val input = convert.apply(src)
-    val prefix = "class A {\n"
-    val suffix = "}\n"
-
     val (ast, astBuildMs) = stopwatch {
-      prefix + loop(input, parsers).structure + suffix
+      loop(input, parsers).structure
     }
     val (res, formatMs) = stopwatch {
       if (format) {
-        try {
-          org.scalafmt.Scalafmt.format(ast, scalafmtConfig).get
-        } catch {
-          case NonFatal(e) =>
-            e.printStackTrace()
-            ast
-        }
+        runFormat(source = ast, withWrap = true)
       } else {
         ast
       }
     }
-    Output(res.drop(prefix.length).dropRight(suffix.length), astBuildMs, formatMs)
+    Output(res, astBuildMs, formatMs)
   }
 
 }

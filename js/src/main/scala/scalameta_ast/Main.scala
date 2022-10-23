@@ -16,4 +16,9 @@ object Main {
       var formatMs = output.formatMs.toDouble
     }
   }
+
+  @JSExport
+  def format(source: String): String =
+    new ScalametaAST().runFormat(source = source, withWrap = false)
+
 }
