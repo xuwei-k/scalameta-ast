@@ -16,12 +16,6 @@ $(function(){
     try {
       const input = $("#input_scala").val()
 
-      try {
-        localStorage.setItem("source", input);
-      } catch(e) {
-        console.trace(e);
-      }
-
       const r = ScalametaAstMain.convert(
         input,
         $("#format").prop("checked") === true
@@ -30,6 +24,16 @@ $(function(){
       $("#info").text(`ast: ${r.astBuildMs} ms\nfmt: ${r.formatMs} ms`)
               .addClass("alert-success")
               .removeClass("alert-danger");
+
+      const saveLimit = 1024;
+
+      if (input.length < saveLimit) {
+        try {
+          localStorage.setItem("source", input);
+        } catch(e) {
+          console.trace(e);
+        }
+      }
     } catch(e) {
       console.trace(e);
       $("#output_scala").text("");
