@@ -50,28 +50,9 @@ class ScalametaAST {
     (result, diffMs)
   }
 
-  def runFormat(source: String, withWrap: Boolean): String = {
+  def runFormat(source: String): String = {
     try {
-      if (withWrap) {
-        val prefix = "class A {\n"
-        val suffix = "}\n"
-        val x = prefix + source + suffix
-        val res1 = org.scalafmt.Scalafmt.format(x, scalafmtConfig).get
-        val res2 = res1.drop(prefix.length).dropRight(suffix.length)
-        val indent = "  "
-        if (res2.linesIterator.forall(line => line.startsWith(indent) || line.isBlank)) {
-          res2.linesIterator.map(_.drop(indent.length)).mkString("\n")
-        } else {
-          res2
-        }
-      } else {
-        try {
-          org.scalafmt.Scalafmt.format(source, scalafmtConfig).get
-        } catch {
-          case NonFatal(_) =>
-            runFormat(source, withWrap = true)
-        }
-      }
+      org.scalafmt.Scalafmt.format(source, scalafmtConfig).get
     } catch {
       case NonFatal(e) =>
         e.printStackTrace()
@@ -86,7 +67,7 @@ class ScalametaAST {
     }
     val (res, formatMs) = stopwatch {
       if (format) {
-        runFormat(source = ast, withWrap = true)
+        runFormat(source = ast)
       } else {
         ast
       }

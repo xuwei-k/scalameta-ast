@@ -19,6 +19,6 @@ object Main {
 
   @JSExport
   def format(source: String): String =
-    new ScalametaAST().runFormat(source = source, withWrap = false)
+    new ScalametaAST().runFormat(source = source)
 
 }
