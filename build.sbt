@@ -25,7 +25,7 @@ lazy val `scalameta-ast` = crossProject(JSPlatform, JVMPlatform)
     Seq(Compile, Test).flatMap(c => c / console / scalacOptions --= unusedWarnings)
   )
   .jvmSettings(
-    libraryDependencies += "org.scalameta" %%% "scalafmt-core" % "3.6.0",
+    libraryDependencies += "org.scalameta" %%% "scalafmt-core" % "3.6.1",
   )
   .jsSettings(
     scalaJSLinkerConfig ~= { _.withESFeatures(_.withESVersion(org.scalajs.linker.interface.ESVersion.ES2018)) },
