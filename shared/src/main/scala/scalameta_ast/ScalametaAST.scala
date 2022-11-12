@@ -1,5 +1,6 @@
 package scalameta_ast
 
+import metaconfig.Conf
 import org.scalafmt.config.ScalafmtConfig
 import java.util.Date
 import scala.annotation.tailrec
@@ -38,10 +39,6 @@ class ScalametaAST {
 
   private val convert = implicitly[Convert[String, Input]]
 
-  private val scalafmtConfig = ScalafmtConfig.default.copy(
-    maxColumn = 50,
-  )
-
   private def stopwatch[T](block: => T): (T, Long) = {
     val begin = new Date()
     val result = block
@@ -50,9 +47,15 @@ class ScalametaAST {
     (result, diffMs)
   }
 
-  def runFormat(source: String): String = {
+  def runFormat(source: String, scalafmtConfig: Conf): String =
+    runFormat(
+      source = source,
+      conf = metaConfigToScalafmtConfig(scalafmtConfig)
+    )
+
+  private def runFormat(source: String, conf: ScalafmtConfig): String = {
     try {
-      org.scalafmt.Scalafmt.format(source, scalafmtConfig).get
+      org.scalafmt.Scalafmt.format(source, conf).get
     } catch {
       case NonFatal(e) =>
         e.printStackTrace()
@@ -60,14 +63,18 @@ class ScalametaAST {
     }
   }
 
-  def convert(src: String, format: Boolean): Output = {
+  private def metaConfigToScalafmtConfig(conf: Conf): ScalafmtConfig = {
+    ScalafmtConfig.decoder.read(None, conf).get
+  }
+
+  def convert(src: String, format: Boolean, scalafmtConfig: Conf): Output = {
     val input = convert.apply(src)
     val (ast, astBuildMs) = stopwatch {
       loop(input, parsers).structure
     }
     val (res, formatMs) = stopwatch {
       if (format) {
-        runFormat(source = ast)
+        runFormat(source = ast, scalafmtConfig)
       } else {
         ast
       }
