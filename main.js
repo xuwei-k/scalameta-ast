@@ -69,7 +69,7 @@ $(function(){
     if (savedScalafmt != null) {
       $("#scalafmt").val(savedScalafmt);
     } else {
-      $("#scalafmt").val('{\n  "maxColumn" : 50\n}');
+      $("#scalafmt").val('maxColumn = 50');
     }
 
     if (savedSource != null) {
