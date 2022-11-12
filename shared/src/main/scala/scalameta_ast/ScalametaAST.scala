@@ -51,10 +51,10 @@ class ScalametaAST {
     (result, diffMs)
   }
 
-  def runFormat(source: String, scalafmtConfigJsonStr: String): String =
+  def runFormat(source: String, scalafmtConfig: Option[Conf]): String =
     runFormat(
       source = source,
-      conf = scalafmtConfigJsonStringToScalafmtConfig(scalafmtConfigJsonStr)
+      conf = scalafmtConfig.fold(defaultScalafmtConfig)(metaConfigToScalafmtConfig)
     )
 
   private def runFormat(source: String, conf: ScalafmtConfig): String = {
@@ -67,23 +67,17 @@ class ScalametaAST {
     }
   }
 
-  private def scalafmtConfigJsonStringToScalafmtConfig(jsonStr: String): ScalafmtConfig = {
-    if (jsonStr.trim.isEmpty) {
-      defaultScalafmtConfig
-    } else {
-      try {
-        val scalafmtConfig = jsonStringToMetaConfig(jsonStr)
-        ScalafmtConfig.decoder.read(None, scalafmtConfig).get
-      } catch {
-        case NonFatal(e) =>
-          e.printStackTrace()
-          defaultScalafmtConfig
-      }
+  private def metaConfigToScalafmtConfig(conf: Conf): ScalafmtConfig = {
+    try {
+      ScalafmtConfig.decoder.read(None, conf).get
+    } catch {
+      case NonFatal(e) =>
+        e.printStackTrace()
+        defaultScalafmtConfig
     }
   }
 
-  def convert(src: String, format: Boolean, scalafmtConfJsonStr: String): Output = {
-    val scalafmtConfig = scalafmtConfigJsonStringToScalafmtConfig(scalafmtConfJsonStr)
+  def convert(src: String, format: Boolean, scalafmtConfig: Option[Conf]): Output = {
     val input = convert.apply(src)
     val (ast, astBuildMs) = stopwatch {
       loop(input, parsers).structure
@@ -98,21 +92,6 @@ class ScalametaAST {
     Output(res, astBuildMs, formatMs)
   }
 
-  def jsonStringToMetaConfig(jsonString: String): Conf =
-    argonaut.JsonParser.parse(jsonString).fold(e => sys.error(e), argonautToMetaConfig)
-
-  def argonautToMetaConfig(value: argonaut.Json): Conf =
-    value.fold(
-      jsonNull = Conf.Null(),
-      jsonBool = x => Conf.Bool(x),
-      jsonNumber = x => Conf.Num(x.toBigDecimal),
-      jsonString = x => Conf.Str(x),
-      jsonArray = x => Conf.Lst(x.map(argonautToMetaConfig)),
-      jsonObject = x =>
-        Conf.Obj(
-          x.toList.map { case (k, v) => k -> argonautToMetaConfig(v) }
-        )
-    )
 }
 
 case class Output(ast: String, astBuildMs: Long, formatMs: Long)

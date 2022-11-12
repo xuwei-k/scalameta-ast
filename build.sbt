@@ -20,7 +20,6 @@ lazy val `scalameta-ast` = crossProject(JSPlatform, JVMPlatform)
     scalacOptions ++= unusedWarnings,
     watchSources += (LocalRootProject / baseDirectory).value / "template.html",
     libraryDependencies ++= Seq(
-      "io.argonaut" %%% "argonaut" % "6.3.8",
       "org.scalameta" %%% "parsers" % scalametaVersion,
     ),
     Seq(Compile, Test).flatMap(c => c / console / scalacOptions --= unusedWarnings)
