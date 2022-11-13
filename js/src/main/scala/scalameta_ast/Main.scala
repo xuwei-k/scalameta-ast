@@ -1,6 +1,7 @@
 package scalameta_ast
 
 import metaconfig.Conf
+import org.scalafmt.config.ScalafmtConfig
 import scala.annotation.nowarn
 import scala.scalajs.js
 import scala.scalajs.js.annotation._
@@ -29,6 +30,27 @@ object Main {
       source = source,
       scalafmtConfig = convertJsonStringToMeteConfig(scalafmtConfJsonStr)
     )
+
+  @JSExport
+  val defaultScalafmtConfig: String = {
+    js.JSON.stringify(
+      value = js.JSON
+        .parse(
+          ScalafmtConfig.encoder
+            .write(
+              ScalafmtConfig.default.copy(
+                maxColumn = 50,
+                runner =
+                  ScalafmtConfig.default.runner.withDialect(sourcecode.Text(org.scalafmt.config.NamedDialect.scala3))
+              )
+            )
+            .toString
+        )
+        .asInstanceOf[js.Any],
+      replacer = (_, x) => if (x == null) () else x,
+      space = 2
+    )
+  }
 
   private[this] def convertToMetaConfig(input: Any): Conf = input match {
     case x: String =>

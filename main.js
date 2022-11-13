@@ -37,7 +37,7 @@ $(function(){
           console.trace(e);
         }
       }
-      if (scalafmt.length < saveLimit) {
+      if (scalafmt.length < (1024 * 16)) {
         try {
           localStorage.setItem("scalafmt", scalafmt);
         } catch(e) {
@@ -69,7 +69,7 @@ $(function(){
     if (savedScalafmt != null) {
       $("#scalafmt").val(savedScalafmt);
     } else {
-      $("#scalafmt").val('{\n  "maxColumn" : 50\n}');
+      $("#scalafmt").val(ScalametaAstMain.defaultScalafmtConfig);
     }
 
     if (savedSource != null) {
