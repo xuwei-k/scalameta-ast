@@ -69,7 +69,13 @@ $(function(){
     if (savedScalafmt != null) {
       $("#scalafmt").val(savedScalafmt);
     } else {
-      $("#scalafmt").val('{\n  "maxColumn" : 50\n}');
+      const defaultConfig = {
+        maxColumn: 50,
+        runner: {
+          dialect: "Scala3"
+        }
+      };
+      $("#scalafmt").val(JSON.stringify(defaultConfig, null, "  "));
     }
 
     if (savedSource != null) {
