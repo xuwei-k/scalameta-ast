@@ -80,6 +80,13 @@ $(function(){
         maxColumn: 50,
         runner: {
           dialect: "Scala3"
+        },
+        align: {
+          preset: "none"
+        },
+        continuationIndent: {
+          defnSite: 2,
+          extendSite: 2
         }
       };
       $("#scalafmt").val(JSON.stringify(defaultConfig, null, "  "));
