@@ -9,12 +9,13 @@ import scala.scalajs.js.annotation._
 object Main {
   @JSExport
   @nowarn
-  def convert(source: String, format: Boolean, scalafmtConfJsonStr: String): js.Object = {
+  def convert(source: String, format: Boolean, scalafmtConfJsonStr: String, outputType: String): js.Object = {
     val output =
       new ScalametaAST().convert(
         src = source,
         format = format,
-        scalafmtConfig = convertJsonStringToMeteConfig(scalafmtConfJsonStr)
+        scalafmtConfig = convertJsonStringToMeteConfig(scalafmtConfJsonStr),
+        outputType = outputType
       )
     new js.Object {
       var ast = output.ast

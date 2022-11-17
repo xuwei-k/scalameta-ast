@@ -17,11 +17,13 @@ $(function(){
     try {
       const scalafmt = $("#scalafmt").val();
       const input = $("#input_scala").val();
+      const outputType = $("input[name=output_type]:checked").val();
 
       const r = ScalametaAstMain.convert(
         input,
         $("#format").prop("checked") === true,
-        scalafmt
+        scalafmt,
+        outputType === undefined ? "" : outputType
       );
       $("#output_scala").text(r.ast);
       $("#info").text(`ast: ${r.astBuildMs} ms\nfmt: ${r.formatMs} ms`)

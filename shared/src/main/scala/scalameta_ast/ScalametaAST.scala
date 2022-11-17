@@ -67,14 +67,22 @@ class ScalametaAST {
     ScalafmtConfig.decoder.read(None, conf).get
   }
 
-  def convert(src: String, format: Boolean, scalafmtConfig: Conf): Output = {
+  def convert(src: String, format: Boolean, scalafmtConfig: Conf, outputType: String): Output = {
     val input = convert.apply(src)
     val (ast, astBuildMs) = stopwatch {
       loop(input, parsers).structure
     }
     val (res, formatMs) = stopwatch {
       if (format) {
-        runFormat(source = ast, scalafmtConfig)
+        val ast0 = outputType match {
+          case "semantic" =>
+            semantic(ast)
+          case "syntactic" =>
+            syntactic(ast)
+          case _ =>
+            ast
+        }
+        runFormat(source = ast0, scalafmtConfig)
       } else {
         ast
       }
@@ -82,6 +90,39 @@ class ScalametaAST {
     Output(res, astBuildMs, formatMs)
   }
 
+  private def syntactic(x: String): String = {
+    s"""import scala.meta._
+       |import scalafix.Patch
+       |import scalafix.v1.SyntacticDocument
+       |import scalafix.v1.SyntacticRule
+       |
+       |class Example extends SyntacticRule("Example") {
+       |  override def fix(implicit doc: SyntacticDocument): Patch = {
+       |    doc.tree.collect {
+       |      case ${x} =>
+       |        Patch.empty
+       |    }.asPatch
+       |  }
+       |}
+       |""".stripMargin
+  }
+
+  private def semantic(x: String): String = {
+    s"""import scala.meta._
+       |import scalafix.Patch
+       |import scalafix.v1.SemanticDocument
+       |import scalafix.v1.SemanticRule
+       |
+       |class Example extends SemanticRule("Example") {
+       |  override def fix(implicit doc: SemanticDocument): Patch = {
+       |    doc.tree.collect {
+       |      case ${x} =>
+       |        Patch.empty
+       |    }.asPatch
+       |  }
+       |}
+       |""".stripMargin
+  }
 }
 
 case class Output(ast: String, astBuildMs: Long, formatMs: Long)
