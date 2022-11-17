@@ -46,6 +46,11 @@ $(function(){
           console.trace(e);
         }
       }
+      try {
+        localStorage.setItem("output_type", outputType);
+      } catch(e) {
+        console.trace(e);
+      }
     } catch(e) {
       console.trace(e);
       $("#output_scala").text("");
@@ -88,6 +93,17 @@ $(function(){
 
     if (localStorage.getItem("format") === "false") {
       $("#format").prop("checked", false);
+    }
+
+    switch(localStorage.getItem("output_type")) {
+      case "semantic":
+        $("input[name=output_type][value='semantic']").prop("checked", true);
+        break;
+      case "syntactic":
+        $("input[name=output_type][value='syntactic']").prop("checked", true);
+        break;
+      default:
+        $("input[name=output_type][value='raw']").prop("checked", true);
     }
 
     run();
