@@ -68,6 +68,10 @@ $(function(){
     run();
   });
 
+  $("input[name=output_type]").on("change", function() {
+    run();
+  });
+
   $("#format").change(function(){
     run();
     localStorage.setItem("format", ($("#format").prop("checked") === true).toString());
