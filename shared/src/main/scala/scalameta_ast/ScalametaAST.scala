@@ -73,18 +73,18 @@ class ScalametaAST {
       loop(input, parsers).structure
     }
     val (res, formatMs) = stopwatch {
+      val ast0 = outputType match {
+        case "semantic" =>
+          semantic(ast)
+        case "syntactic" =>
+          syntactic(ast)
+        case _ =>
+          ast
+      }
       if (format) {
-        val ast0 = outputType match {
-          case "semantic" =>
-            semantic(ast)
-          case "syntactic" =>
-            syntactic(ast)
-          case _ =>
-            ast
-        }
         runFormat(source = ast0, scalafmtConfig)
       } else {
-        ast
+        ast0
       }
     }
     Output(res, astBuildMs, formatMs)
