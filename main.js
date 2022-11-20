@@ -13,6 +13,10 @@ $(function(){
     }
   });
 
+  $("#clear_local_storage").click(function(){
+    localStorage.clear();
+  });
+
   const run = function(){
     try {
       const scalafmt = $("#scalafmt").val();
