@@ -13,6 +13,10 @@ $(function(){
     }
   });
 
+  $("#clear_local_storage").click(function(){
+    localStorage.clear();
+  });
+
   const run = function(){
     try {
       const scalafmt = $("#scalafmt").val();
@@ -61,6 +65,10 @@ $(function(){
   };
 
   $("#input_scala").keyup(function(event){
+    run();
+  });
+
+  $("input[name=output_type]").on("change", function() {
     run();
   });
 
