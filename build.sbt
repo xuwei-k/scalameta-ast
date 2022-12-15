@@ -20,6 +20,7 @@ lazy val `scalameta-ast` = crossProject(JSPlatform, JVMPlatform)
     scalacOptions ++= unusedWarnings,
     watchSources += (LocalRootProject / baseDirectory).value / "template.html",
     libraryDependencies ++= Seq(
+      "org.ekrich" %%% "sconfig" % "1.5.0",
       "org.scalameta" %%% "parsers" % scalametaVersion,
     ),
     Seq(Compile, Test).flatMap(c => c / console / scalacOptions --= unusedWarnings)
@@ -29,6 +30,7 @@ lazy val `scalameta-ast` = crossProject(JSPlatform, JVMPlatform)
   )
   .jsSettings(
     scalaJSLinkerConfig ~= { _.withESFeatures(_.withESVersion(org.scalajs.linker.interface.ESVersion.ES2018)) },
+    libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.1.9",
     libraryDependencies += "com.github.xuwei-k" %%% "scalafmt-core" % "3.6.1-fork-1",
     scalacOptions += {
       val a = (LocalRootProject / baseDirectory).value.toURI.toString

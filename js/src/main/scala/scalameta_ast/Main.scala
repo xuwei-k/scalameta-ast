@@ -1,8 +1,12 @@
 package scalameta_ast
 
 import metaconfig.Conf
+import org.ekrich.config.Config
+import org.ekrich.config.ConfigFactory
+import org.ekrich.config.ConfigRenderOptions
 import scala.annotation.nowarn
 import scala.scalajs.js
+import scala.scalajs.js.JSON
 import scala.scalajs.js.annotation._
 
 @JSExportTopLevel("ScalametaAstMain")
@@ -14,7 +18,7 @@ object Main {
       new ScalametaAST().convert(
         src = source,
         format = format,
-        scalafmtConfig = convertJsonStringToMeteConfig(scalafmtConfJsonStr),
+        scalafmtConfig = hoconToMetaConfig(scalafmtConfJsonStr),
         outputType = outputType
       )
     new js.Object {
@@ -28,8 +32,14 @@ object Main {
   def format(source: String, scalafmtConfJsonStr: String): String =
     new ScalametaAST().runFormat(
       source = source,
-      scalafmtConfig = convertJsonStringToMeteConfig(scalafmtConfJsonStr)
+      scalafmtConfig = hoconToMetaConfig(scalafmtConfJsonStr)
     )
+
+  private[this] def hoconToMetaConfig(config: String): Conf =
+    convertSConfigToMetaConfig(ConfigFactory.parseString(config))
+
+  private[this] def convertSConfigToMetaConfig(config: Config): Conf =
+    convertToMetaConfig(JSON.parse(config.root.render(ConfigRenderOptions.concise)))
 
   private[this] def convertToMetaConfig(input: Any): Conf = input match {
     case x: String =>
@@ -49,8 +59,5 @@ object Main {
     case _ =>
       Conf.Null()
   }
-
-  private def convertJsonStringToMeteConfig(input: String): Conf =
-    convertToMetaConfig(js.JSON.parse(input))
 
 }
