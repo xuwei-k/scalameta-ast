@@ -2,7 +2,7 @@ val unusedWarnings = Seq(
   "-Ywarn-unused",
 )
 
-def scalametaVersion = "4.6.0"
+def scalametaVersion = "4.6.0" // scala-steward:off
 
 lazy val `scalameta-ast` = crossProject(JSPlatform, JVMPlatform)
   .in(file("."))
