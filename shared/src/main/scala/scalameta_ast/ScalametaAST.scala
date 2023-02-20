@@ -93,14 +93,24 @@ class ScalametaAST {
   private def syntactic(x: String): String = {
     s"""import scala.meta._
        |import scalafix.Patch
+       |import scalafix.lint.Diagnostic
+       |import scalafix.lint.LintSeverity
        |import scalafix.v1.SyntacticDocument
        |import scalafix.v1.SyntacticRule
        |
        |class Example extends SyntacticRule("Example") {
        |  override def fix(implicit doc: SyntacticDocument): Patch = {
        |    doc.tree.collect {
-       |      case ${x} =>
-       |        Patch.empty
+       |      case t @ ${x} =>
+       |        Patch.lint(
+       |          Diagnostic(
+       |            id = "",
+       |            message = "",
+       |            position = t.pos,
+       |            explanation = "",
+       |            severity = LintSeverity.Warning
+       |          )
+       |        )
        |    }.asPatch
        |  }
        |}
@@ -110,14 +120,24 @@ class ScalametaAST {
   private def semantic(x: String): String = {
     s"""import scala.meta._
        |import scalafix.Patch
+       |import scalafix.lint.Diagnostic
+       |import scalafix.lint.LintSeverity
        |import scalafix.v1.SemanticDocument
        |import scalafix.v1.SemanticRule
        |
        |class Example extends SemanticRule("Example") {
        |  override def fix(implicit doc: SemanticDocument): Patch = {
        |    doc.tree.collect {
-       |      case ${x} =>
-       |        Patch.empty
+       |      case t @ ${x} =>
+       |        Patch.lint(
+       |          Diagnostic(
+       |            id = "",
+       |            message = "",
+       |            position = t.pos,
+       |            explanation = "",
+       |            severity = LintSeverity.Warning
+       |          )
+       |        )
        |    }.asPatch
        |  }
        |}
