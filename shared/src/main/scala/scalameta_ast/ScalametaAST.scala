@@ -123,7 +123,17 @@ class ScalametaAST {
 
   private def imports(src: String): Seq[String] = {
     // TODO more better way
-    topLevelScalametaDefinitions.map(_.getSimpleName).filter(src.contains).map(x => s"import scala.meta.${x}")
+    val termName = "Term.Name"
+    val typeName = "Type.Name"
+    val name = "Name"
+    val termOrTypeNameCount = src.sliding(termName.length).count(x => x == termName || x == typeName)
+    val nameCount = src.sliding(name.length).count(_ == name)
+    val values = if (termOrTypeNameCount == nameCount) {
+      topLevelScalametaDefinitions.filterNot(_ == classOf[scala.meta.Name])
+    } else {
+      topLevelScalametaDefinitions
+    }
+    values.map(_.getSimpleName).filter(src.contains).map(x => s"import scala.meta.${x}")
   }
 
   private def syntactic(x: String): String = {
