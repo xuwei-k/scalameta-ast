@@ -10,9 +10,7 @@ import scala.meta.inputs.Input
 class ScalametaASTSpec extends AnyFreeSpec {
   "ScalametaAST" - {
     "top level scalameta classes" in {
-      val url =
-        "https://raw.githubusercontent.com/scalameta/scalameta/v4.7.5/scalameta/trees/shared/src/main/scala/scala/meta/Trees.scala"
-      val src = scala.io.Source.fromURL(url, "UTF-8").getLines().mkString("\n")
+      val src = scala.io.Source.fromURL(this.getClass.getResource("/trees.scala")).getLines().mkString("\n")
       val parsed =
         implicitly[scala.meta.parsers.Parse[scala.meta.Source]].apply(Input.String(src), dialects.Scala213Source3).get
 

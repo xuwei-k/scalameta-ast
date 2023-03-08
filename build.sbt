@@ -19,8 +19,16 @@ lazy val `scalameta-ast` = crossProject(JSPlatform, JVMPlatform)
     ),
     scalacOptions ++= unusedWarnings,
     watchSources += (LocalRootProject / baseDirectory).value / "template.html",
+    Test / resourceGenerators += task {
+      val treeURL =
+        s"https://raw.githubusercontent.com/scalameta/scalameta/v${scalametaVersion}/scalameta/trees/shared/src/main/scala/scala/meta/Trees.scala"
+      val src = scala.io.Source.fromURL(treeURL, "UTF-8").getLines().toList
+      val f = (Test / resourceManaged).value / "trees.scala"
+      IO.writeLines(f, src)
+      f :: Nil
+    },
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest-freespec" % "3.2.15" % Test,
+      "org.scalatest" %% "scalatest-freespec" % "3.2.15" % Test, // TODO scala-js test
       "org.ekrich" %%% "sconfig" % "1.5.0",
       "org.scalameta" %%% "parsers" % scalametaVersion,
     ),
