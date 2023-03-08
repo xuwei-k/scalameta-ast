@@ -22,6 +22,37 @@ class ScalametaAST {
     )
   } yield (x1, x2)
 
+  val topLevelScalametaDefinitions: Seq[Class[_]] = List(
+    classOf[Lit],
+    classOf[MultiSource],
+    classOf[CaseTree],
+    classOf[Import],
+    classOf[Mod],
+    classOf[Name],
+    classOf[Case],
+    classOf[Ctor],
+    classOf[Importee],
+    classOf[Init],
+    classOf[Term],
+    classOf[Decl],
+    classOf[Importer],
+    classOf[Defn],
+    classOf[Tree],
+    classOf[Enumerator],
+    classOf[Export],
+    classOf[Pat],
+    classOf[Pkg],
+    classOf[Template],
+    classOf[Member],
+    classOf[TypeCase],
+    classOf[ImportExportStat],
+    classOf[Source],
+    classOf[Type],
+    classOf[Ref],
+    classOf[Self],
+    classOf[Stat]
+  ).distinct.sortBy(_.getName)
+
   @tailrec
   private def loop(input: Input, xs: List[(Parse[Tree], Dialect)]): Tree = {
     (xs: @unchecked) match {
@@ -90,8 +121,13 @@ class ScalametaAST {
     Output(res, astBuildMs, formatMs)
   }
 
+  private def imports(src: String): Seq[String] = {
+    // TODO more better way
+    topLevelScalametaDefinitions.map(_.getSimpleName).filter(src.contains).map(x => s"import scala.meta.${x}")
+  }
+
   private def syntactic(x: String): String = {
-    s"""import scala.meta._
+    s"""${imports(x).mkString("\n")}
        |import scalafix.Patch
        |import scalafix.lint.Diagnostic
        |import scalafix.lint.LintSeverity
@@ -118,7 +154,7 @@ class ScalametaAST {
   }
 
   private def semantic(x: String): String = {
-    s"""import scala.meta._
+    s"""${imports(x).mkString("\n")}
        |import scalafix.Patch
        |import scalafix.lint.Diagnostic
        |import scalafix.lint.LintSeverity

@@ -20,6 +20,7 @@ lazy val `scalameta-ast` = crossProject(JSPlatform, JVMPlatform)
     scalacOptions ++= unusedWarnings,
     watchSources += (LocalRootProject / baseDirectory).value / "template.html",
     libraryDependencies ++= Seq(
+      "org.scalatest" %% "scalatest-freespec" % "3.2.15" % Test,
       "org.ekrich" %%% "sconfig" % "1.5.0",
       "org.scalameta" %%% "parsers" % scalametaVersion,
     ),
