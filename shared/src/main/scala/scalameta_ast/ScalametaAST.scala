@@ -103,7 +103,8 @@ class ScalametaAST {
     format: Boolean,
     scalafmtConfig: Conf,
     outputType: String,
-    packageName: Option[String]
+    packageName: Option[String],
+    wildcardImport: Boolean
   ): Output = {
     val input = convert.apply(src)
     val (ast, astBuildMs) = stopwatch {
@@ -112,9 +113,9 @@ class ScalametaAST {
     val (res, formatMs) = stopwatch {
       val ast0 = outputType match {
         case "semantic" =>
-          semantic(ast, packageName)
+          semantic(x = ast, packageName = packageName, wildcardImport = wildcardImport)
         case "syntactic" =>
-          syntactic(ast, packageName)
+          syntactic(x = ast, packageName = packageName, wildcardImport = wildcardImport)
         case _ =>
           ast
       }
@@ -142,10 +143,14 @@ class ScalametaAST {
     values.map(_.getSimpleName).filter(src.contains).map(x => s"import scala.meta.${x}")
   }
 
-  private def syntactic(x: String, packageName: Option[String]): String = {
+  private def header(x: String, packageName: Option[String], wildcardImport: Boolean): String = {
     val pkg = packageName.fold("")(x => s"package ${x}\n\n")
+    val i = if (wildcardImport) "import scala.meta._" else imports(x).mkString("\n")
+    s"${pkg}${i}"
+  }
 
-    s"""${pkg}${imports(x).mkString("\n")}
+  private def syntactic(x: String, packageName: Option[String], wildcardImport: Boolean): String = {
+    s"""${header(x = x, packageName = packageName, wildcardImport = wildcardImport)}
        |import scalafix.Patch
        |import scalafix.lint.Diagnostic
        |import scalafix.lint.LintSeverity
@@ -171,10 +176,8 @@ class ScalametaAST {
        |""".stripMargin
   }
 
-  private def semantic(x: String, packageName: Option[String]): String = {
-    val pkg = packageName.fold("")(x => s"package ${x}\n\n")
-
-    s"""${pkg}${imports(x).mkString("\n")}
+  private def semantic(x: String, packageName: Option[String], wildcardImport: Boolean): String = {
+    s"""${header(x = x, packageName = packageName, wildcardImport = wildcardImport)}
        |import scalafix.Patch
        |import scalafix.lint.Diagnostic
        |import scalafix.lint.LintSeverity
