@@ -22,12 +22,14 @@ $(function(){
       const scalafmt = $("#scalafmt").val();
       const input = $("#input_scala").val();
       const outputType = $("input[name=output_type]:checked").val();
+      const package = $("#package").val();
 
       const r = ScalametaAstMain.convert(
         input,
         $("#format").prop("checked") === true,
         scalafmt,
-        outputType === undefined ? "" : outputType
+        outputType === undefined ? "" : outputType,
+        package === undefined ? "" : package
       );
       $("#output_scala").text(r.ast);
       $("#info").text(`ast: ${r.astBuildMs} ms\nfmt: ${r.formatMs} ms`)
@@ -36,6 +38,11 @@ $(function(){
 
       const saveLimit = 1024;
 
+      try {
+        localStorage.setItem("package", package);
+      } catch(e) {
+        console.trace(e);
+      }
       if (input.length < saveLimit) {
         try {
           localStorage.setItem("source", input);
@@ -80,6 +87,13 @@ $(function(){
   $(document).ready(function(){
     const savedSource = localStorage.getItem("source");
     const savedScalafmt = localStorage.getItem("scalafmt");
+    const savedPackage = localStorage.getItem("package");
+
+    if (savedPackage != null) {
+      $("#package").val(savedPackage);
+    } else {
+      $("#package").val("fix");
+    }
 
     if (savedScalafmt != null) {
       $("#scalafmt").val(savedScalafmt);
