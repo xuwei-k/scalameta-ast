@@ -18,7 +18,8 @@ object Main {
     format: Boolean,
     scalafmtConfJsonStr: String,
     outputType: String,
-    packageName: String
+    packageName: String,
+    wildcardImport: Boolean,
   ): js.Object = {
     val output =
       new ScalametaAST().convert(
@@ -26,7 +27,8 @@ object Main {
         format = format,
         scalafmtConfig = hoconToMetaConfig(scalafmtConfJsonStr),
         outputType = outputType,
-        packageName = Option(packageName).filter(_.trim.nonEmpty)
+        packageName = Option(packageName).filter(_.trim.nonEmpty),
+        wildcardImport = wildcardImport
       )
     new js.Object {
       var ast = output.ast
