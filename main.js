@@ -75,6 +75,10 @@ $(function(){
     run();
   });
 
+  $("#package").keyup(function(event){
+    run();
+  });
+
   $("input[name=output_type]").on("change", function() {
     run();
   });
