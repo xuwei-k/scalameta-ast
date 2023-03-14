@@ -98,7 +98,13 @@ class ScalametaAST {
     ScalafmtConfig.decoder.read(None, conf).get
   }
 
-  def convert(src: String, format: Boolean, scalafmtConfig: Conf, outputType: String): Output = {
+  def convert(
+    src: String,
+    format: Boolean,
+    scalafmtConfig: Conf,
+    outputType: String,
+    packageName: Option[String]
+  ): Output = {
     val input = convert.apply(src)
     val (ast, astBuildMs) = stopwatch {
       loop(input, parsers).structure
@@ -106,9 +112,9 @@ class ScalametaAST {
     val (res, formatMs) = stopwatch {
       val ast0 = outputType match {
         case "semantic" =>
-          semantic(ast)
+          semantic(ast, packageName)
         case "syntactic" =>
-          syntactic(ast)
+          syntactic(ast, packageName)
         case _ =>
           ast
       }
@@ -136,8 +142,10 @@ class ScalametaAST {
     values.map(_.getSimpleName).filter(src.contains).map(x => s"import scala.meta.${x}")
   }
 
-  private def syntactic(x: String): String = {
-    s"""${imports(x).mkString("\n")}
+  private def syntactic(x: String, packageName: Option[String]): String = {
+    val pkg = packageName.fold("")(x => s"package ${x}\n\n")
+
+    s"""${pkg}${imports(x).mkString("\n")}
        |import scalafix.Patch
        |import scalafix.lint.Diagnostic
        |import scalafix.lint.LintSeverity
@@ -163,8 +171,10 @@ class ScalametaAST {
        |""".stripMargin
   }
 
-  private def semantic(x: String): String = {
-    s"""${imports(x).mkString("\n")}
+  private def semantic(x: String, packageName: Option[String]): String = {
+    val pkg = packageName.fold("")(x => s"package ${x}\n\n")
+
+    s"""${pkg}${imports(x).mkString("\n")}
        |import scalafix.Patch
        |import scalafix.lint.Diagnostic
        |import scalafix.lint.LintSeverity
