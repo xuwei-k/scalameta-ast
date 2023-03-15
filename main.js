@@ -23,6 +23,7 @@ $(function(){
       const input = $("#input_scala").val();
       const outputType = $("input[name=output_type]:checked").val();
       const package = $("#package").val();
+      const ruleName = $("#rule_name").val();
 
       const r = ScalametaAstMain.convert(
         input,
@@ -31,6 +32,7 @@ $(function(){
         outputType === undefined ? "" : outputType,
         package === undefined ? "" : package,
         $("#wildcard_import").prop("checked") === true,
+        ruleName === undefined ? "" : ruleName,
       );
       $("#output_scala").text(r.ast);
       $("#info").text(`ast: ${r.astBuildMs} ms\nfmt: ${r.formatMs} ms`)
@@ -39,6 +41,11 @@ $(function(){
 
       const saveLimit = 1024;
 
+      try {
+        localStorage.setItem("rule_name", ruleName);
+      } catch(e) {
+        console.trace(e);
+      }
       try {
         localStorage.setItem("package", package);
       } catch(e) {
@@ -80,6 +87,10 @@ $(function(){
     run();
   });
 
+  $("#rule_name").keyup(function(event){
+    run();
+  });
+
   $("input[name=output_type]").on("change", function() {
     run();
   });
@@ -98,6 +109,13 @@ $(function(){
     const savedSource = localStorage.getItem("source");
     const savedScalafmt = localStorage.getItem("scalafmt");
     const savedPackage = localStorage.getItem("package");
+    const savedRuleName = localStorage.getItem("rule_name");
+
+    if (savedPackage != null) {
+      $("#rule_name").val(savedRuleName);
+    } else {
+      $("#rule_name").val("fix");
+    }
 
     if (savedPackage != null) {
       $("#package").val(savedPackage);
