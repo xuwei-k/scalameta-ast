@@ -113,8 +113,6 @@ $(function(){
 
     if (savedPackage != null) {
       $("#rule_name").val(savedRuleName);
-    } else {
-      $("#rule_name").val("fix");
     }
 
     if (savedPackage != null) {
