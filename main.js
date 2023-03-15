@@ -29,7 +29,8 @@ $(function(){
         $("#format").prop("checked") === true,
         scalafmt,
         outputType === undefined ? "" : outputType,
-        package === undefined ? "" : package
+        package === undefined ? "" : package,
+        $("#wildcard_import").prop("checked") === true,
       );
       $("#output_scala").text(r.ast);
       $("#info").text(`ast: ${r.astBuildMs} ms\nfmt: ${r.formatMs} ms`)
@@ -88,6 +89,11 @@ $(function(){
     localStorage.setItem("format", ($("#format").prop("checked") === true).toString());
   });
 
+  $("#wildcard_import").change(function(){
+    run();
+    localStorage.setItem("wildcard_import", ($("#wildcard_import").prop("checked") === true).toString());
+  });
+
   $(document).ready(function(){
     const savedSource = localStorage.getItem("source");
     const savedScalafmt = localStorage.getItem("scalafmt");
@@ -126,6 +132,10 @@ $(function(){
 
     if (localStorage.getItem("format") === "false") {
       $("#format").prop("checked", false);
+    }
+
+    if (localStorage.getItem("wildcard_import") === "true") {
+      $("#wildcard_import").prop("checked", true);
     }
 
     switch(localStorage.getItem("output_type")) {
