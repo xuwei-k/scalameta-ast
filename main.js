@@ -1,7 +1,7 @@
 $(function(){
   $("#copy_button").click(function(){
     $("#output_scala").select();
-    document.execCommand("copy");
+    navigator.clipboard.writeText($("#output_scala").val());
   });
 
   $("#format_input").click(function(){
