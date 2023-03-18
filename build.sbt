@@ -69,6 +69,24 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
     (Compile / scalaSource).value / ".." / "js"
   },
   libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.1.9",
+  Compile / sourceGenerators += task {
+    val hash = sys.process.Process("git rev-parse HEAD").lineStream_!.head
+    val src =
+      s"""package scalameta_ast
+         |
+         |import scala.scalajs.js.annotation.JSExport
+         |import scala.scalajs.js.annotation.JSExportTopLevel
+         |
+         |@JSExportTopLevel("ScalametaASTBuildInfo")
+         |object ScalametaASTBuildInfo {
+         |  @JSExport
+         |  def gitHash: String = "${hash}"
+         |}
+         |""".stripMargin
+    val f = (Compile / resourceManaged).value / "scalameta_ast" / "ScalametaASTBuildInfo.scala"
+    IO.write(f, src)
+    f :: Nil
+  },
   Test / test := {},
   scalacOptions += {
     val a = (LocalRootProject / baseDirectory).value.toURI.toString

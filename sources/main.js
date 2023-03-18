@@ -2,6 +2,7 @@
 
 import { ScalametaAstMainScalafixCompat } from "./scalafix-compat/scalameta-ast-fastopt.js"
 import { ScalametaAstMainLatest }         from "./latest/scalameta-ast-fastopt.js"
+import { ScalametaASTBuildInfo }          from "./latest/scalameta-ast-fastopt.js"
 
 $(function(){
   $("#format_input").click(function(){
@@ -197,6 +198,12 @@ $(function(){
         $("input[name=output_type][value='raw']").prop("checked", true);
     }
 
+    const githubUrl = `https://github.com/xuwei-k/scalameta-ast/tree/${ScalametaASTBuildInfo.gitHash}`;
+    const link = document.createElement("a");
+    link.append(githubUrl);
+    link.href = githubUrl;
+    link.target = "_blank";
+    document.getElementById("footer").appendChild(link);
     run();
   });
 });
