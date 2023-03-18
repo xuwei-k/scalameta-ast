@@ -34,7 +34,6 @@ lazy val `scalameta-ast` = projectMatrix
     libraryDependencies ++= Seq(
       "org.scalatest" %% "scalatest-freespec" % "3.2.15" % Test, // TODO scala-js test
       "org.ekrich" %%% "sconfig" % "1.5.0",
-      "org.scalameta" %%% "parsers" % scalametaVersion,
     ),
     Seq(Compile, Test).flatMap(c => c / console / scalacOptions --= unusedWarnings)
   )
@@ -49,7 +48,7 @@ lazy val `scalameta-ast` = projectMatrix
     axisValues = Seq(metaScalafixCompat),
     settings = Def.settings(
       jsProjectSettings,
-      libraryDependencies += "org.scalameta" %%% "parsers" % scalametaVersion,
+      libraryDependencies += "com.github.xuwei-k" %%% "scalafmt-core" % "3.7.2-fork-1",
     )
   )
   .jsPlatform(
@@ -57,7 +56,7 @@ lazy val `scalameta-ast` = projectMatrix
     axisValues = Seq(metaLatest),
     settings = Def.settings(
       jsProjectSettings,
-      libraryDependencies += "org.scalameta" %%% "parsers" % "4.7.6",
+      libraryDependencies += "com.github.xuwei-k" %%% "scalafmt-core" % "3.6.1-fork-1",
     )
   )
 
@@ -67,10 +66,9 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
   },
   scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) },
   Compile / unmanagedSourceDirectories += {
-    `scalameta-ast`.base / "src" / "main" / "js"
+    (Compile / scalaSource).value / ".." / "js"
   },
   libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.1.9",
-  libraryDependencies += "com.github.xuwei-k" %%% "scalafmt-core" % "3.6.1-fork-1",
   scalacOptions += {
     val a = (LocalRootProject / baseDirectory).value.toURI.toString
     val g = "https://raw.githubusercontent.com/xuwei-k/scalameta-ast/" + sys.process
@@ -108,7 +106,6 @@ def gen(js: String, hash: String): String = {
   IO.read(file("template.html"))
     .replace("SCALA_META_AST_JAVASCRIPT_URL", js)
     .replace("SCALA_META_AST_GIT_HASH", hash)
-    .replace("SCALA_META_VERSION", scalametaVersion)
 }
 
 publish := {}
