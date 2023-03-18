@@ -11,16 +11,28 @@ import scala.meta.parsers.Parsed
 import scala.util.control.NonFatal
 
 class ScalametaAST {
-  private val parsers: List[(Parse[Tree], Dialect)] = for {
-    x1 <- List(
-      implicitly[Parse[Stat]],
-      implicitly[Parse[Source]],
-    ).map(_.asInstanceOf[Parse[Tree]])
-    x2 <- List(
-      dialects.Scala213Source3,
-      dialects.Scala3,
-    )
-  } yield (x1, x2)
+  private val dialectsDefault = List(dialects.Scala213Source3, dialects.Scala3)
+  private val stringToDialects: Map[String, List[Dialect]] = {
+    import dialects._
+    Map(
+      "Auto" -> dialectsDefault,
+      "Scala3" -> List(Scala3),
+      "Scala213Source3" -> List(Scala213Source3),
+      "Scala213" -> List(Scala213),
+      "Scala212Source3" -> List(Scala212Source3),
+      "Scala212" -> List(Scala212),
+      "Scala211" -> List(Scala211),
+      "Scala210" -> List(Scala210),
+    ).view
+      .mapValues(
+        _.map(_.withAllowToplevelTerms(true).withAllowToplevelStatements(true))
+      )
+      .toMap
+  }
+  private val parsers: List[Parse[Tree]] = List(
+    implicitly[Parse[Stat]],
+    implicitly[Parse[Source]],
+  ).map(_.asInstanceOf[Parse[Tree]])
 
   val topLevelScalametaDefinitions: Seq[Class[_]] = List(
     classOf[Lit],
@@ -106,10 +118,24 @@ class ScalametaAST {
     packageName: Option[String],
     wildcardImport: Boolean,
     ruleNameOption: Option[String],
+    dialect: Option[String],
   ): Output = {
     val input = convert.apply(src)
     val (ast, astBuildMs) = stopwatch {
-      loop(input, parsers).structure
+      loop(
+        input,
+        for {
+          x1 <- parsers
+          x2 <- dialect.fold(dialectsDefault) { x =>
+            stringToDialects.getOrElse(
+              x, {
+                Console.err.println(s"invalid dialct ${x}")
+                dialectsDefault
+              }
+            )
+          }
+        } yield (x1, x2)
+      ).structure
     }
     val ruleName = ruleNameOption.getOrElse("Example").filterNot(_.isWhitespace)
     val (res, formatMs) = stopwatch {
