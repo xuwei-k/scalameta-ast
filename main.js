@@ -24,6 +24,7 @@ $(function(){
       const outputType = $("input[name=output_type]:checked").val();
       const package = $("#package").val();
       const ruleName = $("#rule_name").val();
+      const dialect = $("#dialect").val();
 
       const r = ScalametaAstMain.convert(
         input,
@@ -33,6 +34,7 @@ $(function(){
         package === undefined ? "" : package,
         $("#wildcard_import").prop("checked") === true,
         ruleName === undefined ? "" : ruleName,
+        dialect === undefined ? "" : dialect,
       );
       $("#output_scala").text(r.ast);
       $("#info").text(`ast: ${r.astBuildMs} ms\nfmt: ${r.formatMs} ms`)
@@ -41,6 +43,11 @@ $(function(){
 
       const saveLimit = 1024;
 
+      try {
+        localStorage.setItem("dialect", dialect);
+      } catch(e) {
+        console.trace(e);
+      }
       try {
         localStorage.setItem("rule_name", ruleName);
       } catch(e) {
@@ -95,6 +102,10 @@ $(function(){
     run();
   });
 
+  $("#dialect").change(function() {
+    run();
+  });
+
   $("#format").change(function(){
     run();
     localStorage.setItem("format", ($("#format").prop("checked") === true).toString());
@@ -110,6 +121,11 @@ $(function(){
     const savedScalafmt = localStorage.getItem("scalafmt");
     const savedPackage = localStorage.getItem("package");
     const savedRuleName = localStorage.getItem("rule_name");
+    const savedDialect = localStorage.getItem("dialect");
+
+    if (savedDialect != null) {
+      $(`[name="dialect"] option[value="${savedDialect}"]`).prop("selected", true);
+    }
 
     if (savedPackage != null) {
       $("#rule_name").val(savedRuleName);
