@@ -1,8 +1,4 @@
 $(function(){
-  $("#copy_button").click(function(){
-    $("#output_scala").select();
-    navigator.clipboard.writeText($("#output_scala").val());
-  });
 
   $("#format_input").click(function(){
     const input = $("#input_scala").val();
@@ -77,6 +73,7 @@ $(function(){
       } catch(e) {
         console.trace(e);
       }
+      hljs.highlightAll();
     } catch(e) {
       console.trace(e);
       $("#output_scala").text("");
@@ -117,6 +114,8 @@ $(function(){
   });
 
   $(document).ready(function(){
+    hljs.addPlugin(new CopyButtonPlugin());
+
     const savedSource = localStorage.getItem("source");
     const savedScalafmt = localStorage.getItem("scalafmt");
     const savedPackage = localStorage.getItem("package");
