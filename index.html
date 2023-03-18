@@ -77,8 +77,8 @@
             <div>
               <label for="scalameta">scalameta version</label>
               <select name="scalameta" id="scalameta">
-                <option value="scalafix">scalafix compatible</option>
-                <option value="latest">latest</option>
+                <option id="scalameta_scalafix_compat" value="scalafix">scalafix compatible</option>
+                <option id="scalameta_latest" value="latest">latest</option>
               </select>
             </div>
           </div>
@@ -124,6 +124,8 @@
           <p>scalafmt config</p>
           <textarea id="scalafmt" style="width: 100%; height: 200px;"></textarea>
         </div>
+      </div>
+      <div class="row" id="footer">
       </div>
     </div>
   </body>
