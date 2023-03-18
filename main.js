@@ -122,6 +122,10 @@ $(function(){
     run();
   });
 
+  $("#scalameta").change(function() {
+    run();
+  });
+
   $("#format").change(function(){
     run();
     localStorage.setItem("format", ($("#format").prop("checked") === true).toString());
