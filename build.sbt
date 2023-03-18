@@ -48,7 +48,7 @@ lazy val `scalameta-ast` = projectMatrix
     axisValues = Seq(metaScalafixCompat),
     settings = Def.settings(
       jsProjectSettings,
-      libraryDependencies += "com.github.xuwei-k" %%% "scalafmt-core" % "3.7.2-fork-1",
+      libraryDependencies += "com.github.xuwei-k" %%% "scalafmt-core" % "3.6.1-fork-1",
     )
   )
   .jsPlatform(
@@ -56,7 +56,7 @@ lazy val `scalameta-ast` = projectMatrix
     axisValues = Seq(metaLatest),
     settings = Def.settings(
       jsProjectSettings,
-      libraryDependencies += "com.github.xuwei-k" %%% "scalafmt-core" % "3.6.1-fork-1",
+      libraryDependencies += "com.github.xuwei-k" %%% "scalafmt-core" % "3.7.2-fork-1",
     )
   )
 

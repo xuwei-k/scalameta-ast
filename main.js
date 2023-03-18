@@ -1,10 +1,14 @@
+"use strict";
+
 import { ScalametaAstMainScalafixCompat } from "./core/target/scalafix_compat-js-2.13/scalameta-ast-fastopt.js"
+import { ScalametaAstMainLatest }         from "./core/target/latest-js-2.13/scalameta-ast-fastopt.js"
 
 $(function(){
   $("#format_input").click(function(){
     const input = $("#input_scala").val();
     const scalafmt = $("#scalafmt").val();
-    const result = ScalametaAstMainScalafixCompat.format(input, scalafmt);
+    const main = ($("#scalameta").val() == "latest") ? ScalametaAstMainLatest : ScalametaAstMainScalafixCompat;
+    const result = main.format(input, scalafmt);
     if (input != result) {
       $("#input_scala").val(result);
     }
@@ -22,8 +26,10 @@ $(function(){
       const packageName = $("#package").val();
       const ruleName = $("#rule_name").val();
       const dialect = $("#dialect").val();
+      const scalameta = $("#scalameta").val();
+      const main = (scalameta == "latest") ? ScalametaAstMainLatest : ScalametaAstMainScalafixCompat;
 
-      const r = ScalametaAstMainScalafixCompat.convert(
+      const r = main.convert(
         input,
         $("#format").prop("checked") === true,
         scalafmt,
@@ -40,6 +46,11 @@ $(function(){
 
       const saveLimit = 1024;
 
+      try {
+        localStorage.setItem("scalameta", scalameta);
+      } catch(e) {
+        console.trace(e);
+      }
       try {
         localStorage.setItem("dialect", dialect);
       } catch(e) {
@@ -122,6 +133,11 @@ $(function(){
     const savedPackage = localStorage.getItem("package");
     const savedRuleName = localStorage.getItem("rule_name");
     const savedDialect = localStorage.getItem("dialect");
+    const savedScalameta = localStorage.getItem("scalameta");
+
+    if (savedScalameta != null) {
+      $(`[name="scalameta"] option[value="${savedScalameta}"]`).prop("selected", true);
+    }
 
     if (savedDialect != null) {
       $(`[name="dialect"] option[value="${savedDialect}"]`).prop("selected", true);

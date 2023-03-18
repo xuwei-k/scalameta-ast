@@ -3,12 +3,6 @@
   <head>
     <meta charset="UTF-8">
     <title>scalameta-ast</title>
-    <script type="module" src="./core/target/scalafix_compat-js-2.13/scalameta-ast-fastopt.js" ></script>
-    <script type="module" src="./core/target/latest-js-2.13/scalameta-ast-fastopt.js"></script>
-    <script type="module">
-      import { ScalametaAstMainScalafixCompat } from "./core/target/scalafix_compat-js-2.13/scalameta-ast-fastopt.js"
-    </script>
-
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
@@ -79,6 +73,15 @@
           </div>
         </div>
         <div class="col-2">
+          <div class="row">
+            <div>
+              <label for="scalameta">scalameta version</label>
+              <select name="scalameta" id="scalameta">
+                <option value="scalafix">scalafix compatible</option>
+                <option value="latest">latest</option>
+              </select>
+            </div>
+          </div>
           <div class="row">
             <div>
               <label for="package">package</label>

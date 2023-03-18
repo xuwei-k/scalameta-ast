@@ -8,5 +8,5 @@
 
 ```sh
 sbt fastOptJS
-open index.html
+python -m http.server
 ```
