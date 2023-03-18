@@ -4,11 +4,15 @@ val unusedWarnings = Seq(
 
 def scalametaVersion = "4.6.0" // scala-steward:off
 
-lazy val `scalameta-ast` = crossProject(JSPlatform, JVMPlatform)
-  .in(file("."))
+def Scala213 = "2.13.10"
+
+val metaScalafixCompat = MetaCross("-scalafix-compat", "-scalafix_compat")
+val metaLatest = MetaCross("-latest", "-latest")
+
+lazy val `scalameta-ast` = projectMatrix
+  .in(file("core"))
   .settings(
     name := "scalameta-ast",
-    scalaVersion := "2.13.10",
     licenses := Seq("MIT License" -> url("https://opensource.org/licenses/mit-license")),
     scalacOptions ++= Seq(
       "-deprecation",
@@ -34,27 +38,53 @@ lazy val `scalameta-ast` = crossProject(JSPlatform, JVMPlatform)
     ),
     Seq(Compile, Test).flatMap(c => c / console / scalacOptions --= unusedWarnings)
   )
-  .jvmSettings(
-    libraryDependencies += "org.scalameta" %%% "scalafmt-core" % "3.7.2",
+  .jvmPlatform(
+    scalaVersions = Scala213 :: Nil,
+    settings = Def.settings(
+      libraryDependencies += "org.scalameta" %%% "scalafmt-core" % "3.7.2",
+    )
   )
-  .jsSettings(
-    scalaJSLinkerConfig ~= { _.withESFeatures(_.withESVersion(org.scalajs.linker.interface.ESVersion.ES2018)) },
-    libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.1.9",
-    libraryDependencies += "com.github.xuwei-k" %%% "scalafmt-core" % "3.6.1-fork-1",
-    scalacOptions += {
-      val a = (LocalRootProject / baseDirectory).value.toURI.toString
-      val g = "https://raw.githubusercontent.com/xuwei-k/scalameta-ast/" + sys.process
-        .Process("git rev-parse HEAD")
-        .lineStream_!
-        .head
-      s"-P:scalajs:mapSourceURI:$a->$g/"
-    }
+  .jsPlatform(
+    scalaVersions = Scala213 :: Nil,
+    axisValues = Seq(metaScalafixCompat),
+    settings = Def.settings(
+      jsProjectSettings,
+      libraryDependencies += "org.scalameta" %%% "parsers" % scalametaVersion,
+    )
   )
+  .jsPlatform(
+    scalaVersions = Scala213 :: Nil,
+    axisValues = Seq(metaLatest),
+    settings = Def.settings(
+      jsProjectSettings,
+      libraryDependencies += "org.scalameta" %%% "parsers" % "4.7.6",
+    )
+  )
+
+lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
+  scalaJSLinkerConfig ~= {
+    _.withESFeatures(_.withESVersion(org.scalajs.linker.interface.ESVersion.ES2018))
+  },
+  scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) },
+  Compile / unmanagedSourceDirectories += {
+    `scalameta-ast`.base / "src" / "main" / "js"
+  },
+  libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.1.9",
+  libraryDependencies += "com.github.xuwei-k" %%% "scalafmt-core" % "3.6.1-fork-1",
+  scalacOptions += {
+    val a = (LocalRootProject / baseDirectory).value.toURI.toString
+    val g = "https://raw.githubusercontent.com/xuwei-k/scalameta-ast/" + sys.process
+      .Process("git rev-parse HEAD")
+      .lineStream_!
+      .head
+    s"-P:scalajs:mapSourceURI:$a->$g/"
+  },
+)
 
 val genHtmlLocal = TaskKey[Unit]("genHtmlLocal")
 
 genHtmlLocal := {
-  val js = "./js/target/scala-2.13/scalameta-ast-fastopt.js"
+  val js = "./core/target/js-2.13/scalameta-ast-fastopt.js"
   val html = gen(js = js, hash = "main")
   IO.write(file("index.html"), html)
 }

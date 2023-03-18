@@ -3,7 +3,12 @@
   <head>
     <meta charset="UTF-8">
     <title>scalameta-ast</title>
-    <script type="text/javascript" src="./js/target/scala-2.13/scalameta-ast-fastopt.js"></script>
+    <script type="module" src="./core/target/scalafix_compat-js-2.13/scalameta-ast-fastopt.js" ></script>
+    <script type="module" src="./core/target/latest-js-2.13/scalameta-ast-fastopt.js"></script>
+    <script type="module">
+      import { ScalametaAstMainScalafixCompat } from "./core/target/scalafix_compat-js-2.13/scalameta-ast-fastopt.js"
+    </script>
+
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
@@ -13,7 +18,7 @@
       rel="stylesheet"
       href="https://unpkg.com/highlightjs-copy@1.0.3/dist/highlightjs-copy.min.css"
     />
-    <script type="text/javascript" src="./main.js"></script>
+    <script type="module" src="./main.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
     <style>

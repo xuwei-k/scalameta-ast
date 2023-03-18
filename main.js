@@ -1,9 +1,10 @@
-$(function(){
+import { ScalametaAstMainScalafixCompat } from "./core/target/scalafix_compat-js-2.13/scalameta-ast-fastopt.js"
 
+$(function(){
   $("#format_input").click(function(){
     const input = $("#input_scala").val();
     const scalafmt = $("#scalafmt").val();
-    const result = ScalametaAstMain.format(input, scalafmt);
+    const result = ScalametaAstMainScalafixCompat.format(input, scalafmt);
     if (input != result) {
       $("#input_scala").val(result);
     }
@@ -22,7 +23,7 @@ $(function(){
       const ruleName = $("#rule_name").val();
       const dialect = $("#dialect").val();
 
-      const r = ScalametaAstMain.convert(
+      const r = ScalametaAstMainScalafixCompat.convert(
         input,
         $("#format").prop("checked") === true,
         scalafmt,
