@@ -79,6 +79,11 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
   },
 )
 
+libraryDependencies ++= Seq(
+  "ws.unfiltered" %% "unfiltered-filter" % "0.12.0",
+  "ws.unfiltered" %% "unfiltered-jetty" % "0.12.0",
+)
+
 val genHtmlLocal = TaskKey[Unit]("genHtmlLocal")
 
 genHtmlLocal := {
