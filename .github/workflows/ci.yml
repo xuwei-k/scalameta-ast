@@ -20,18 +20,10 @@ jobs:
            scalafmtSbtCheck
            scalafmtCheckAll
            test
-           genAndCheckHtml
-           genHtmlPublish
-           fullOptJS
-    - run: |
-        mkdir deploy-tmp &&
-        mv index.html ./deploy-tmp/ &&
-        mv main.js ./deploy-tmp/ &&
-        mv ./js/target/scala-2.13/scalameta-ast-opt.js ./deploy-tmp/scalameta-ast.js
-        mv ./js/target/scala-2.13/scalameta-ast-opt.js.map ./deploy-tmp/scalameta-ast-opt.js.map
+           copyFilesFull
     - if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && github.repository_owner == 'xuwei-k' }}
       uses: JamesIves/github-pages-deploy-action@v4.4.1
       with:
         branch: gh-pages
-        folder: deploy-tmp
+        folder: sources
         clean: true

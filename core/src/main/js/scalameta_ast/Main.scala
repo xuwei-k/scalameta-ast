@@ -9,7 +9,7 @@ import scala.scalajs.js
 import scala.scalajs.js.JSON
 import scala.scalajs.js.annotation._
 
-@JSExportTopLevel("ScalametaAstMain")
+@JSExportTopLevel(ExportName.value)
 object Main {
   @JSExport
   @nowarn

@@ -7,6 +7,5 @@
 ## local
 
 ```sh
-sbt fastOptJS
-open index.html
+sbt copyFilesFast run
 ```
