@@ -137,7 +137,13 @@ class ScalametaAST {
         } yield (x1, x2)
       ).structure
     }
-    val ruleName = ruleNameOption.getOrElse("Example").filterNot(_.isWhitespace)
+    val ruleNameRaw = ruleNameOption.getOrElse("Example").filterNot(char => char == '`' || char == '"')
+    val ruleName = {
+      val isValid =
+        implicitly[Parse[Term]].apply(Input.String(ruleNameRaw), dialects.Scala3).toOption.exists(_.is[Term.Name])
+      if (isValid) ruleNameRaw else s"`${ruleNameRaw}`"
+    }
+
     val (res, formatMs) = stopwatch {
       val ast0 = outputType match {
         case "semantic" =>
@@ -145,14 +151,16 @@ class ScalametaAST {
             x = ast,
             packageName = packageName,
             wildcardImport = wildcardImport,
-            ruleName = ruleName
+            ruleName = ruleName,
+            ruleNameRaw = ruleNameRaw,
           )
         case "syntactic" =>
           syntactic(
             x = ast,
             packageName = packageName,
             wildcardImport = wildcardImport,
-            ruleName = ruleName
+            ruleName = ruleName,
+            ruleNameRaw = ruleNameRaw,
           )
         case _ =>
           ast
@@ -192,6 +200,7 @@ class ScalametaAST {
     packageName: Option[String],
     wildcardImport: Boolean,
     ruleName: String,
+    ruleNameRaw: String,
   ): String = {
     s"""${header(x = x, packageName = packageName, wildcardImport = wildcardImport)}
        |import scalafix.Patch
@@ -200,7 +209,7 @@ class ScalametaAST {
        |import scalafix.v1.SyntacticDocument
        |import scalafix.v1.SyntacticRule
        |
-       |class ${ruleName} extends SyntacticRule("${ruleName}") {
+       |class ${ruleName} extends SyntacticRule("${ruleNameRaw}") {
        |  override def fix(implicit doc: SyntacticDocument): Patch = {
        |    doc.tree.collect {
        |      case t @ ${x} =>
@@ -224,6 +233,7 @@ class ScalametaAST {
     packageName: Option[String],
     wildcardImport: Boolean,
     ruleName: String,
+    ruleNameRaw: String,
   ): String = {
     s"""${header(x = x, packageName = packageName, wildcardImport = wildcardImport)}
        |import scalafix.Patch
@@ -232,7 +242,7 @@ class ScalametaAST {
        |import scalafix.v1.SemanticDocument
        |import scalafix.v1.SemanticRule
        |
-       |class ${ruleName} extends SemanticRule("${ruleName}") {
+       |class ${ruleName} extends SemanticRule("${ruleNameRaw}") {
        |  override def fix(implicit doc: SemanticDocument): Patch = {
        |    doc.tree.collect {
        |      case t @ ${x} =>
