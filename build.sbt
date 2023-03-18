@@ -60,6 +60,8 @@ lazy val `scalameta-ast` = projectMatrix
     )
   )
 
+lazy val metaVersion = taskKey[String]("")
+
 lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
   scalaJSLinkerConfig ~= {
     _.withESFeatures(_.withESVersion(org.scalajs.linker.interface.ESVersion.ES2018))
@@ -69,7 +71,15 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
     (Compile / scalaSource).value / ".." / "js"
   },
   libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.1.9",
-  Compile / sourceGenerators += task {
+  metaVersion := {
+    val x1 = "https/repo1.maven.org/maven2/org/scalameta/parsers_sjs1_2.13/"
+    val x2 = "/parsers_sjs1_2.13-"
+    val Seq(jarPath) = (Compile / externalDependencyClasspath).value
+      .map(_.data.getAbsolutePath)
+      .filter(path => path.contains(x1) && path.contains(x2))
+    jarPath.split(x1).last.split(x2).head
+  },
+  Compile / sourceGenerators += Def.task {
     val hash = sys.process.Process("git rev-parse HEAD").lineStream_!.head
     val src =
       s"""package scalameta_ast
@@ -81,6 +91,8 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
          |object ScalametaASTBuildInfo {
          |  @JSExport
          |  def gitHash: String = "${hash}"
+         |  @JSExport
+         |  def scalametaVersion: String = "${metaVersion.value}"
          |}
          |""".stripMargin
     val f = (Compile / resourceManaged).value / "scalameta_ast" / "ScalametaASTBuildInfo.scala"

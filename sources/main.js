@@ -1,8 +1,14 @@
 "use strict";
 
-import { ScalametaAstMainScalafixCompat } from "./scalafix-compat/scalameta-ast-fastopt.js"
-import { ScalametaAstMainLatest }         from "./latest/scalameta-ast-fastopt.js"
-import { ScalametaASTBuildInfo }          from "./latest/scalameta-ast-fastopt.js"
+import {
+  ScalametaAstMainScalafixCompat,
+  ScalametaASTBuildInfo as BuildInfoScalafixCompat
+} from "./scalafix-compat/scalameta-ast-fastopt.js"
+
+import {
+  ScalametaAstMainLatest,
+  ScalametaASTBuildInfo as BuildInfoLatest
+} from "./latest/scalameta-ast-fastopt.js"
 
 $(function(){
   $("#format_input").click(function(){
@@ -198,7 +204,10 @@ $(function(){
         $("input[name=output_type][value='raw']").prop("checked", true);
     }
 
-    const githubUrl = `https://github.com/xuwei-k/scalameta-ast/tree/${ScalametaASTBuildInfo.gitHash}`;
+    document.getElementById("scalameta_scalafix_compat").innerHTML += ` ${BuildInfoScalafixCompat.scalametaVersion}`;
+    document.getElementById("scalameta_latest").innerHTML += ` ${BuildInfoLatest.scalametaVersion}`;
+
+    const githubUrl = `https://github.com/xuwei-k/scalameta-ast/tree/${BuildInfoLatest.gitHash}`;
     const link = document.createElement("a");
     link.append(githubUrl);
     link.href = githubUrl;
