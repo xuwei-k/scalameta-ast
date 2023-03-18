@@ -18,7 +18,7 @@ $(function(){
       const scalafmt = $("#scalafmt").val();
       const input = $("#input_scala").val();
       const outputType = $("input[name=output_type]:checked").val();
-      const package = $("#package").val();
+      const packageName = $("#package").val();
       const ruleName = $("#rule_name").val();
       const dialect = $("#dialect").val();
 
@@ -27,7 +27,7 @@ $(function(){
         $("#format").prop("checked") === true,
         scalafmt,
         outputType === undefined ? "" : outputType,
-        package === undefined ? "" : package,
+        packageName === undefined ? "" : packageName,
         $("#wildcard_import").prop("checked") === true,
         ruleName === undefined ? "" : ruleName,
         dialect === undefined ? "" : dialect,
@@ -50,7 +50,7 @@ $(function(){
         console.trace(e);
       }
       try {
-        localStorage.setItem("package", package);
+        localStorage.setItem("package", packageName);
       } catch(e) {
         console.trace(e);
       }
