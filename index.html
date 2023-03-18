@@ -5,6 +5,14 @@
     <title>scalameta-ast</title>
     <script type="text/javascript" src="./js/target/scala-2.13/scalameta-ast-fastopt.js"></script>
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/scala.min.js"></script>
+    <script src="https://unpkg.com/highlightjs-copy@1.0.3/dist/highlightjs-copy.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/highlightjs-copy@1.0.3/dist/highlightjs-copy.min.css"
+    />
     <script type="text/javascript" src="./main.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
@@ -43,9 +51,6 @@
             </div>
             <div class="col">
               <button class="btn btn-primary" id="clear_local_storage">clear local storage</button>
-            </div>
-            <div class="col">
-              <button class="btn btn-primary" id="copy_button">copy</button>
             </div>
           </div>
         </div>
@@ -103,7 +108,7 @@
           <textarea id="input_scala"  style="width: 100%; height: 800px;"></textarea>
         </div>
         <div class="col">
-          <textarea id="output_scala" style="width: 100%; height: 800px;" readonly></textarea>
+          <pre><code class="language-scala" id="output_scala" style="width: 100%; height: 800px; background-color:rgb(233, 233, 233);"></code></pre>
         </div>
       </div>
       <div class="row">
