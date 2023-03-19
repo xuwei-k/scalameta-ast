@@ -4,6 +4,7 @@ import unfiltered.request.Path
 import unfiltered.response.HtmlContent
 import unfiltered.response.JsContent
 import unfiltered.response.NotFound
+import unfiltered.response.Ok
 import unfiltered.response.ResponseString
 import java.io.File
 import java.nio.charset.StandardCharsets
@@ -28,6 +29,8 @@ object LocalServer {
             } else {
               res
             }
+          } else if (p == "/favicon.ico") {
+            Ok
           } else {
             NotFound
           }
