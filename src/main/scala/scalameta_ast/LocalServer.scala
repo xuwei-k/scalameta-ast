@@ -8,12 +8,15 @@ import unfiltered.response.ResponseString
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 object LocalServer {
   def main(args: Array[String]): Unit = {
     unfiltered.jetty.Server.anylocal
       .plan(
         unfiltered.filter.Planify { case Path(p) =>
+          println(s"${DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now())} ${p}")
           val f = new File("sources", if (p == "/") "index.html" else s".$p")
           if (f.isFile) {
             val path = f.toPath
