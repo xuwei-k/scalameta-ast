@@ -36,6 +36,16 @@ $(function(){
       const scalameta = $("#scalameta").val();
       const main = (scalameta == "latest") ? ScalametaAstMainLatest : ScalametaAstMainScalafixCompat;
 
+      if (outputType === "raw") {
+        $("#package").prop("disabled", true);
+        $("#rule_name").prop("disabled", true);
+        $("#wildcard_import").prop("disabled", true);
+      } else {
+        $("#package").prop("disabled", false);
+        $("#rule_name").prop("disabled", false);
+        $("#wildcard_import").prop("disabled", false);
+      }
+
       const r = main.convert(
         input,
         $("#format").prop("checked") === true,
