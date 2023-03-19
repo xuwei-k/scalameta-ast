@@ -2,8 +2,6 @@ val unusedWarnings = Seq(
   "-Ywarn-unused",
 )
 
-def scalametaVersion = "4.6.0" // scala-steward:off
-
 def Scala213 = "2.13.10"
 
 val metaScalafixCompat = MetaCross("-scalafix-compat", "-scalafix_compat")
@@ -23,13 +21,17 @@ lazy val `scalameta-ast` = projectMatrix
     ),
     scalacOptions ++= unusedWarnings,
     watchSources += (LocalRootProject / baseDirectory).value / "template.html",
-    Test / resourceGenerators += task {
-      val treeURL =
-        s"https://raw.githubusercontent.com/scalameta/scalameta/v${scalametaVersion}/scalameta/trees/shared/src/main/scala/scala/meta/Trees.scala"
-      val src = scala.io.Source.fromURL(treeURL, "UTF-8").getLines().toList
-      val f = (Test / resourceManaged).value / "trees.scala"
-      IO.writeLines(f, src)
-      f :: Nil
+    Test / resourceGenerators += Def.task {
+      val v1 = (LocalProject("scalameta-ast-latestJS") / metaVersion).value
+      val v2 = (LocalProject("scalameta-ast-scalafix-compatJS") / metaVersion).value
+      Seq(v1, v2).zipWithIndex.map { case (v, index) =>
+        val treeURL =
+          s"https://raw.githubusercontent.com/scalameta/scalameta/v${v}/scalameta/trees/shared/src/main/scala/scala/meta/Trees.scala"
+        val src = scala.io.Source.fromURL(treeURL, "UTF-8").getLines().toList
+        val f = (Test / resourceManaged).value / s"trees${index}.scala"
+        IO.writeLines(f, src)
+        f
+      }
     },
     libraryDependencies ++= Seq(
       "org.scalatest" %% "scalatest-freespec" % "3.2.15" % Test, // TODO scala-js test
