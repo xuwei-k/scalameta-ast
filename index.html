@@ -71,17 +71,6 @@
               </div>
             </fieldset>
           </div>
-        </div>
-        <div class="col-2">
-          <div class="row">
-            <div>
-              <label for="scalameta">scalameta version</label>
-              <select name="scalameta" id="scalameta">
-                <option id="scalameta_scalafix_compat" value="scalafix">scalafix compatible</option>
-                <option id="scalameta_latest" value="latest">latest</option>
-              </select>
-            </div>
-          </div>
           <div class="row">
             <div>
               <label for="dialect">dialect</label>
@@ -97,6 +86,17 @@
               </select>
             </div>
           </div>
+        </div>
+        <div class="col-2">
+          <div class="row">
+            <div>
+              <label for="scalameta">scalameta version</label>
+              <select name="scalameta" id="scalameta">
+                <option id="scalameta_scalafix_compat" value="scalafix">scalafix compatible</option>
+                <option id="scalameta_latest" value="latest">latest</option>
+              </select>
+            </div>
+          </div>
           <div class="row">
             <div>
               <label for="package">package</label>
@@ -107,6 +107,17 @@
             <div>
               <label for="rule_name">rule name</label>
               <input type="text" id="rule_name" maxlength="128">
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label for="patch">patch</label>
+              <select name="patch" id="patch">
+                <option value="warn">lint warn</option>
+                <option value="error">lint error</option>
+                <option value="replace">replace</option>
+                <option value="empty">empty</option>
+              </select>
             </div>
           </div>
         </div>

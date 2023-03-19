@@ -35,16 +35,11 @@ $(function(){
       const dialect = $("#dialect").val();
       const scalameta = $("#scalameta").val();
       const main = (scalameta == "latest") ? ScalametaAstMainLatest : ScalametaAstMainScalafixCompat;
+      const patch = $("#patch").val();
 
-      if (outputType === "raw") {
-        $("#package").prop("disabled", true);
-        $("#rule_name").prop("disabled", true);
-        $("#wildcard_import").prop("disabled", true);
-      } else {
-        $("#package").prop("disabled", false);
-        $("#rule_name").prop("disabled", false);
-        $("#wildcard_import").prop("disabled", false);
-      }
+      ["package", "rule_name", "wildcard_import", "patch"].forEach(i =>
+        $(`#${i}`).prop("disabled", outputType === "raw")
+      )
 
       const r = main.convert(
         input,
@@ -55,6 +50,7 @@ $(function(){
         $("#wildcard_import").prop("checked") === true,
         ruleName === undefined ? "" : ruleName,
         dialect === undefined ? "" : dialect,
+        patch === undefined ? "" : patch,
       );
       $("#output_scala").text(r.ast);
       $("#info").text(`ast: ${r.astBuildMs} ms\nfmt: ${r.formatMs} ms`)
@@ -63,6 +59,11 @@ $(function(){
 
       const saveLimit = 1024;
 
+      try {
+        localStorage.setItem("patch", patch);
+      } catch(e) {
+        console.trace(e);
+      }
       try {
         localStorage.setItem("scalameta", scalameta);
       } catch(e) {
@@ -132,6 +133,10 @@ $(function(){
     run();
   });
 
+  $("#patch").change(function() {
+    run();
+  });
+
   $("#scalameta").change(function() {
     run();
   });
@@ -155,9 +160,14 @@ $(function(){
     const savedRuleName = localStorage.getItem("rule_name");
     const savedDialect = localStorage.getItem("dialect");
     const savedScalameta = localStorage.getItem("scalameta");
+    const savedPatch = localStorage.getItem("patch");
 
     if (savedScalameta != null) {
       $(`[name="scalameta"] option[value="${savedScalameta}"]`).prop("selected", true);
+    }
+
+    if (savedPatch != null) {
+      $(`[name="patch"] option[value="${savedPatch}"]`).prop("selected", true);
     }
 
     if (savedDialect != null) {
