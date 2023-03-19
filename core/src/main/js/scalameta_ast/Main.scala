@@ -21,7 +21,8 @@ object Main {
     packageName: String,
     wildcardImport: Boolean,
     ruleName: String,
-    dialect: String
+    dialect: String,
+    patch: String,
   ): js.Object = {
     val output =
       new ScalametaAST().convert(
@@ -33,6 +34,7 @@ object Main {
         wildcardImport = wildcardImport,
         ruleNameOption = Option(ruleName).filter(_.trim.nonEmpty),
         dialect = Option(dialect).filter(_.trim.nonEmpty),
+        patch = Option(patch).filter(_.trim.nonEmpty),
       )
     new js.Object {
       var ast = output.ast

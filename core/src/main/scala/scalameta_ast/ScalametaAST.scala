@@ -119,6 +119,7 @@ class ScalametaAST {
     wildcardImport: Boolean,
     ruleNameOption: Option[String],
     dialect: Option[String],
+    patch: Option[String],
   ): Output = {
     val input = convert.apply(src)
     val (ast, astBuildMs) = stopwatch {
@@ -153,6 +154,7 @@ class ScalametaAST {
             wildcardImport = wildcardImport,
             ruleName = ruleName,
             ruleNameRaw = ruleNameRaw,
+            patch = patch,
           )
         case "syntactic" =>
           syntactic(
@@ -161,6 +163,7 @@ class ScalametaAST {
             wildcardImport = wildcardImport,
             ruleName = ruleName,
             ruleNameRaw = ruleNameRaw,
+            patch = patch,
           )
         case _ =>
           ast
@@ -195,33 +198,60 @@ class ScalametaAST {
     s"${pkg}${i}"
   }
 
+  private def patchCode(patch: Option[String]): PatchValue = {
+    def lint(serverity: String): PatchValue = PatchValue(
+      imports = List(
+        "scalafix.lint.Diagnostic",
+        "scalafix.lint.LintSeverity",
+      ),
+      value = s"""Patch.lint(
+           |  Diagnostic(
+           |    id = "",
+           |    message = "",
+           |    position = t.pos,
+           |    explanation = "",
+           |    severity = LintSeverity.${serverity}
+           |  )
+           |)""".stripMargin
+    )
+
+    patch.collect {
+      case "error" =>
+        lint("Error")
+      case "replace" =>
+        PatchValue(imports = Nil, """Patch.replace(t, "")""")
+      case "empty" =>
+        PatchValue(imports = Nil, "Patch.empty")
+    }.getOrElse {
+      lint("Warning")
+    }
+  }
+
   private def syntactic(
     x: String,
     packageName: Option[String],
     wildcardImport: Boolean,
     ruleName: String,
     ruleNameRaw: String,
+    patch: Option[String],
   ): String = {
+    val p = patchCode(patch)
+    val imports = List[List[String]](
+      List("scalafix.Patch"),
+      p.imports,
+      List(
+        "scalafix.v1.SemanticDocument",
+        "scalafix.v1.SemanticRule",
+      )
+    ).flatten.map("import " + _)
     s"""${header(x = x, packageName = packageName, wildcardImport = wildcardImport)}
-       |import scalafix.Patch
-       |import scalafix.lint.Diagnostic
-       |import scalafix.lint.LintSeverity
-       |import scalafix.v1.SyntacticDocument
-       |import scalafix.v1.SyntacticRule
+       |${imports.mkString("\n")}
        |
        |class ${ruleName} extends SyntacticRule("${ruleNameRaw}") {
        |  override def fix(implicit doc: SyntacticDocument): Patch = {
        |    doc.tree.collect {
        |      case t @ ${x} =>
-       |        Patch.lint(
-       |          Diagnostic(
-       |            id = "",
-       |            message = "",
-       |            position = t.pos,
-       |            explanation = "",
-       |            severity = LintSeverity.Warning
-       |          )
-       |        )
+       |        ${p.value}
        |    }.asPatch
        |  }
        |}
@@ -234,27 +264,25 @@ class ScalametaAST {
     wildcardImport: Boolean,
     ruleName: String,
     ruleNameRaw: String,
+    patch: Option[String],
   ): String = {
+    val p = patchCode(patch)
+    val imports = List[List[String]](
+      List("scalafix.Patch"),
+      p.imports,
+      List(
+        "scalafix.v1.SemanticDocument",
+        "scalafix.v1.SemanticRule",
+      )
+    ).flatten.map("import " + _)
     s"""${header(x = x, packageName = packageName, wildcardImport = wildcardImport)}
-       |import scalafix.Patch
-       |import scalafix.lint.Diagnostic
-       |import scalafix.lint.LintSeverity
-       |import scalafix.v1.SemanticDocument
-       |import scalafix.v1.SemanticRule
+       |${imports.mkString("\n")}
        |
        |class ${ruleName} extends SemanticRule("${ruleNameRaw}") {
        |  override def fix(implicit doc: SemanticDocument): Patch = {
        |    doc.tree.collect {
        |      case t @ ${x} =>
-       |        Patch.lint(
-       |          Diagnostic(
-       |            id = "",
-       |            message = "",
-       |            position = t.pos,
-       |            explanation = "",
-       |            severity = LintSeverity.Warning
-       |          )
-       |        )
+       |        ${p.value}
        |    }.asPatch
        |  }
        |}
