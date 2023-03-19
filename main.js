@@ -57,31 +57,21 @@ $(() => {
 
       const saveLimit = 1024;
 
-      try {
-        localStorage.setItem("patch", patch);
-      } catch(e) {
-        console.trace(e);
-      }
-      try {
-        localStorage.setItem("scalameta", scalameta);
-      } catch(e) {
-        console.trace(e);
-      }
-      try {
-        localStorage.setItem("dialect", dialect);
-      } catch(e) {
-        console.trace(e);
-      }
-      try {
-        localStorage.setItem("rule_name", ruleName);
-      } catch(e) {
-        console.trace(e);
-      }
-      try {
-        localStorage.setItem("package", packageName);
-      } catch(e) {
-        console.trace(e);
-      }
+      [
+        ["patch", patch],
+        ["scalameta", scalameta],
+        ["dialect", dialect],
+        ["rule_name", ruleName],
+        ["package", packageName],
+        ["output_type", outputType],
+      ].forEach(xs => {
+        try {
+          localStorage.setItem(xs[0], xs[1]);
+        } catch(e) {
+          console.trace(e);
+        }
+      });
+
       if (input.length < saveLimit) {
         try {
           localStorage.setItem("source", input);
@@ -96,11 +86,7 @@ $(() => {
           console.trace(e);
         }
       }
-      try {
-        localStorage.setItem("output_type", outputType);
-      } catch(e) {
-        console.trace(e);
-      }
+
       hljs.highlightAll();
     } catch(e) {
       console.trace(e);
