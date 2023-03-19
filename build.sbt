@@ -7,6 +7,8 @@ def Scala213 = "2.13.10"
 val metaScalafixCompat = MetaCross("-scalafix-compat", "-scalafix_compat")
 val metaLatest = MetaCross("-latest", "-latest")
 
+scalaVersion := Scala213
+
 lazy val `scalameta-ast` = projectMatrix
   .in(file("core"))
   .settings(
