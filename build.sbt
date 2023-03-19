@@ -7,22 +7,27 @@ def Scala213 = "2.13.10"
 val metaScalafixCompat = MetaCross("-scalafix-compat", "-scalafix_compat")
 val metaLatest = MetaCross("-latest", "-latest")
 
-scalaVersion := Scala213
+lazy val commonSettings = Def.settings(
+  scalaVersion := Scala213,
+  licenses := Seq("MIT License" -> url("https://opensource.org/licenses/mit-license")),
+  scalacOptions ++= Seq(
+    "-deprecation",
+    "-unchecked",
+    "-Xlint",
+    "-language:existentials",
+    "-language:higherKinds",
+  ),
+  scalacOptions ++= unusedWarnings,
+  Seq(Compile, Test).flatMap(c => c / console / scalacOptions --= unusedWarnings),
+)
+
+commonSettings
 
 lazy val `scalameta-ast` = projectMatrix
   .in(file("core"))
   .settings(
     name := "scalameta-ast",
-    licenses := Seq("MIT License" -> url("https://opensource.org/licenses/mit-license")),
-    scalacOptions ++= Seq(
-      "-deprecation",
-      "-unchecked",
-      "-Xlint",
-      "-language:existentials",
-      "-language:higherKinds",
-    ),
-    scalacOptions ++= unusedWarnings,
-    watchSources += (LocalRootProject / baseDirectory).value / "template.html",
+    commonSettings,
     Test / resourceGenerators += Def.task {
       val v1 = (LocalProject("scalameta-ast-latestJS") / metaVersion).value
       val v2 = (LocalProject("scalameta-ast-scalafix-compatJS") / metaVersion).value
@@ -39,7 +44,6 @@ lazy val `scalameta-ast` = projectMatrix
       "org.scalatest" %% "scalatest-freespec" % "3.2.15" % Test, // TODO scala-js test
       "org.ekrich" %%% "sconfig" % "1.5.0",
     ),
-    Seq(Compile, Test).flatMap(c => c / console / scalacOptions --= unusedWarnings)
   )
   .jvmPlatform(
     scalaVersions = Scala213 :: Nil,
