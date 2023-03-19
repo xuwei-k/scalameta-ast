@@ -3,6 +3,7 @@ package scalameta_ast
 import unfiltered.request.Path
 import unfiltered.response.HtmlContent
 import unfiltered.response.JsContent
+import unfiltered.response.NotFound
 import unfiltered.response.ResponseString
 import java.io.File
 import java.nio.charset.StandardCharsets
@@ -13,14 +14,19 @@ object LocalServer {
     unfiltered.jetty.Server.anylocal
       .plan(
         unfiltered.filter.Planify { case Path(p) =>
-          val path = new File("sources", if (p == "/") "index.html" else s".$p").toPath
-          val res = ResponseString(Files.readString(path, StandardCharsets.UTF_8))
-          if (p.endsWith(".html")) {
-            HtmlContent ~> res
-          } else if (p.endsWith(".js")) {
-            JsContent ~> res
+          val f = new File("sources", if (p == "/") "index.html" else s".$p")
+          if (f.isFile) {
+            val path = f.toPath
+            val res = ResponseString(Files.readString(path, StandardCharsets.UTF_8))
+            if (p.endsWith(".html")) {
+              HtmlContent ~> res
+            } else if (p.endsWith(".js")) {
+              JsContent ~> res
+            } else {
+              res
+            }
           } else {
-            res
+            NotFound
           }
         }
       )
