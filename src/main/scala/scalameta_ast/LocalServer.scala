@@ -11,8 +11,10 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import scala.annotation.nowarn
 
 object LocalServer {
+  @nowarn("msg=a type was inferred to be")
   def main(args: Array[String]): Unit = {
     unfiltered.jetty.Server.anylocal
       .plan(
