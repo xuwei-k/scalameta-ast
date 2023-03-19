@@ -10,8 +10,8 @@ import {
   ScalametaASTBuildInfo as BuildInfoLatest
 } from "./latest/scalameta-ast-opt.js"
 
-$(function(){
-  $("#format_input").click(function(){
+$(() => {
+  $("#format_input").click(() => {
     const input = $("#input_scala").val();
     const scalafmt = $("#scalafmt").val();
     const main = ($("#scalameta").val() == "latest") ? ScalametaAstMainLatest : ScalametaAstMainScalafixCompat;
@@ -21,11 +21,9 @@ $(function(){
     }
   });
 
-  $("#clear_local_storage").click(function(){
-    localStorage.clear();
-  });
+  $("#clear_local_storage").click(() => localStorage.clear());
 
-  const run = function(){
+  const run = () => {
     try {
       const scalafmt = $("#scalafmt").val();
       const input = $("#input_scala").val();
@@ -113,45 +111,31 @@ $(function(){
     }
   };
 
-  $("#input_scala").keyup(function(event){
-    run();
-  });
+  $("#input_scala").keyup(event => run());
 
-  $("#package").keyup(function(event){
-    run();
-  });
+  $("#package").keyup(event => run());
 
-  $("#rule_name").keyup(function(event){
-    run();
-  });
+  $("#rule_name").keyup(event => run());
 
-  $("input[name=output_type]").on("change", function() {
-    run();
-  });
+  $("input[name=output_type]").on("change", () => run());
 
-  $("#dialect").change(function() {
-    run();
-  });
+  $("#dialect").change(() => run());
 
-  $("#patch").change(function() {
-    run();
-  });
+  $("#patch").change(() => run());
 
-  $("#scalameta").change(function() {
-    run();
-  });
+  $("#scalameta").change(() => run());
 
-  $("#format").change(function(){
+  $("#format").change(() => {
     run();
     localStorage.setItem("format", ($("#format").prop("checked") === true).toString());
   });
 
-  $("#wildcard_import").change(function(){
+  $("#wildcard_import").change(() => {
     run();
     localStorage.setItem("wildcard_import", ($("#wildcard_import").prop("checked") === true).toString());
   });
 
-  $(document).ready(function(){
+  $(document).ready(() => {
     hljs.addPlugin(new CopyButtonPlugin());
 
     const savedSource = localStorage.getItem("source");
