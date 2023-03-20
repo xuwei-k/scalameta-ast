@@ -1,3 +1,5 @@
+import org.scalajs.linker.interface.Report
+
 val unusedWarnings = Seq(
   "-Ywarn-unused",
 )
@@ -128,28 +130,32 @@ libraryDependencies ++= Seq(
 )
 
 val srcDir = file("sources")
-def cp(c: MetaCross, d: String, k: TaskKey[Attributed[File]]): Def.Initialize[Task[Unit]] = Def.taskDyn {
+def cp(
+  c: MetaCross,
+  d: String,
+  k: TaskKey[Attributed[Report]],
+  originalOutputDir: TaskKey[File]
+): Def.Initialize[Task[Unit]] = Def.taskDyn {
   val Seq(p) = `scalameta-ast`.finder(c, VirtualAxis.js).get
   Def.task {
     val v = (p / Compile / k).value
-    val f = v.data
-    val Some(srcMap) = v.get(scalaJSSourceMap)
-    IO.copyFile(f, srcDir / d / f.getName)
+    val Seq(m) = v.data.publicModules.toSeq
+    val src = (p / Compile / originalOutputDir).value
+    val f = src / m.jsFileName
+    val srcMap = src / m.sourceMapName.getOrElse(sys.error("source map not found"))
+    IO.copyFile(f, srcDir / d / m.jsFileName)
     IO.copyFile(srcMap, srcDir / d / srcMap.getName)
   }
 }
 
 TaskKey[Unit]("copyFilesFast") := {
-  cp(metaScalafixCompat, "scalafix-compat", fastOptJS).value
-  cp(metaLatest, "latest", fastOptJS).value
+  cp(metaScalafixCompat, "scalafix-compat", fastLinkJS, fastLinkJSOutput).value
+  cp(metaLatest, "latest", fastLinkJS, fastLinkJSOutput).value
 }
 
 TaskKey[Unit]("copyFilesFull") := {
-  cp(metaScalafixCompat, "scalafix-compat", fullOptJS).value
-  cp(metaLatest, "latest", fullOptJS).value
-  val mainJS = srcDir / "main.js"
-  val out = IO.read(mainJS).replace("scalameta-ast-fastopt.js", "scalameta-ast-opt.js")
-  IO.write(mainJS, out)
+  cp(metaScalafixCompat, "scalafix-compat", fullLinkJS, fullLinkJSOutput).value
+  cp(metaLatest, "latest", fullLinkJS, fullLinkJSOutput).value
 }
 
 publish := {}
