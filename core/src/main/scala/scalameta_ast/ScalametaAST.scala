@@ -240,8 +240,8 @@ class ScalametaAST {
       List("scalafix.Patch"),
       p.imports,
       List(
-        "scalafix.v1.SemanticDocument",
-        "scalafix.v1.SemanticRule",
+        "scalafix.v1.SyntacticDocument",
+        "scalafix.v1.SyntacticRule",
       )
     ).flatten.map("import " + _)
     s"""${header(x = x, packageName = packageName, wildcardImport = wildcardImport)}
