@@ -129,10 +129,16 @@ libraryDependencies ++= Seq(
   "ws.unfiltered" %% "unfiltered-jetty" % "0.12.0",
 )
 
-val srcDir = file("sources")
+val srcDir = (LocalRootProject / baseDirectory).apply(_ / "sources")
+val scalafixCompatOutJSDir = srcDir(_ / "scalafix-compat")
+val latestOutJSDir = srcDir(_ / "latest")
+
+cleanFiles += scalafixCompatOutJSDir.value
+cleanFiles += latestOutJSDir.value
+
 def cp(
   c: MetaCross,
-  d: String,
+  d: Def.Initialize[File],
   k: TaskKey[Attributed[Report]],
   originalOutputDir: TaskKey[File]
 ): Def.Initialize[Task[Unit]] = Def.taskDyn {
@@ -143,19 +149,19 @@ def cp(
     val src = (p / Compile / originalOutputDir).value
     val f = src / m.jsFileName
     val srcMap = src / m.sourceMapName.getOrElse(sys.error("source map not found"))
-    IO.copyFile(f, srcDir / d / m.jsFileName)
-    IO.copyFile(srcMap, srcDir / d / srcMap.getName)
+    IO.copyFile(f, d.value / m.jsFileName)
+    IO.copyFile(srcMap, d.value / srcMap.getName)
   }
 }
 
 TaskKey[Unit]("copyFilesFast") := {
-  cp(metaScalafixCompat, "scalafix-compat", fastLinkJS, fastLinkJSOutput).value
-  cp(metaLatest, "latest", fastLinkJS, fastLinkJSOutput).value
+  cp(metaScalafixCompat, scalafixCompatOutJSDir, fastLinkJS, fastLinkJSOutput).value
+  cp(metaLatest, latestOutJSDir, fastLinkJS, fastLinkJSOutput).value
 }
 
 TaskKey[Unit]("copyFilesFull") := {
-  cp(metaScalafixCompat, "scalafix-compat", fullLinkJS, fullLinkJSOutput).value
-  cp(metaLatest, "latest", fullLinkJS, fullLinkJSOutput).value
+  cp(metaScalafixCompat, scalafixCompatOutJSDir, fullLinkJS, fullLinkJSOutput).value
+  cp(metaLatest, latestOutJSDir, fullLinkJS, fullLinkJSOutput).value
 }
 
 publish := {}
