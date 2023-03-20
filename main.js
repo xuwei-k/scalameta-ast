@@ -3,12 +3,12 @@
 import {
   ScalametaAstMainScalafixCompat,
   ScalametaASTBuildInfo as BuildInfoScalafixCompat,
-} from "./scalafix-compat/scalameta-ast-opt.js";
+} from "./scalafix-compat/main.js";
 
 import {
   ScalametaAstMainLatest,
   ScalametaASTBuildInfo as BuildInfoLatest,
-} from "./latest/scalameta-ast-opt.js";
+} from "./latest/main.js";
 
 $(() => {
   $("#format_input").click(() => {
