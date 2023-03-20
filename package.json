@@ -1,0 +1,20 @@
+{
+  "name": "scalameta-ast",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xuwei-k/scalameta-ast.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/xuwei-k/scalameta-ast/issues"
+  },
+  "homepage": "https://github.com/xuwei-k/scalameta-ast#readme",
+  "devDependencies": {
+    "prettier": "^2.8.5"
+  }
+}

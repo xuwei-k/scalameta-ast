@@ -1,3 +1,4 @@
 target/
 sources/latest/
 sources/scalafix-compat/
+/node_modules

@@ -2,19 +2,22 @@
 
 import {
   ScalametaAstMainScalafixCompat,
-  ScalametaASTBuildInfo as BuildInfoScalafixCompat
-} from "./scalafix-compat/scalameta-ast-fastopt.js"
+  ScalametaASTBuildInfo as BuildInfoScalafixCompat,
+} from "./scalafix-compat/scalameta-ast-fastopt.js";
 
 import {
   ScalametaAstMainLatest,
-  ScalametaASTBuildInfo as BuildInfoLatest
-} from "./latest/scalameta-ast-fastopt.js"
+  ScalametaASTBuildInfo as BuildInfoLatest,
+} from "./latest/scalameta-ast-fastopt.js";
 
 $(() => {
   $("#format_input").click(() => {
     const input = $("#input_scala").val();
     const scalafmt = $("#scalafmt").val();
-    const main = ($("#scalameta").val() == "latest") ? ScalametaAstMainLatest : ScalametaAstMainScalafixCompat;
+    const main =
+      $("#scalameta").val() == "latest"
+        ? ScalametaAstMainLatest
+        : ScalametaAstMainScalafixCompat;
     const result = main.format(input, scalafmt);
     if (input != result) {
       $("#input_scala").val(result);
@@ -32,12 +35,15 @@ $(() => {
       const ruleName = $("#rule_name").val();
       const dialect = $("#dialect").val();
       const scalameta = $("#scalameta").val();
-      const main = (scalameta == "latest") ? ScalametaAstMainLatest : ScalametaAstMainScalafixCompat;
+      const main =
+        scalameta == "latest"
+          ? ScalametaAstMainLatest
+          : ScalametaAstMainScalafixCompat;
       const patch = $("#patch").val();
 
-      ["package", "rule_name", "wildcard_import", "patch"].forEach(i =>
+      ["package", "rule_name", "wildcard_import", "patch"].forEach((i) =>
         $(`#${i}`).prop("disabled", outputType === "raw")
-      )
+      );
 
       const r = main.convert(
         input,
@@ -48,12 +54,13 @@ $(() => {
         $("#wildcard_import").prop("checked") === true,
         ruleName === undefined ? "" : ruleName,
         dialect === undefined ? "" : dialect,
-        patch === undefined ? "" : patch,
+        patch === undefined ? "" : patch
       );
       $("#output_scala").text(r.ast);
-      $("#info").text(`ast: ${r.astBuildMs} ms\nfmt: ${r.formatMs} ms`)
-              .addClass("alert-success")
-              .removeClass("alert-danger");
+      $("#info")
+        .text(`ast: ${r.astBuildMs} ms\nfmt: ${r.formatMs} ms`)
+        .addClass("alert-success")
+        .removeClass("alert-danger");
 
       const saveLimit = 1024;
 
@@ -64,10 +71,10 @@ $(() => {
         ["rule_name", ruleName],
         ["package", packageName],
         ["output_type", outputType],
-      ].forEach(xs => {
+      ].forEach((xs) => {
         try {
           localStorage.setItem(xs[0], xs[1]);
-        } catch(e) {
+        } catch (e) {
           console.trace(e);
         }
       });
@@ -75,33 +82,31 @@ $(() => {
       if (input.length < saveLimit) {
         try {
           localStorage.setItem("source", input);
-        } catch(e) {
+        } catch (e) {
           console.trace(e);
         }
       }
       if (scalafmt.length < saveLimit) {
         try {
           localStorage.setItem("scalafmt", scalafmt);
-        } catch(e) {
+        } catch (e) {
           console.trace(e);
         }
       }
 
       hljs.highlightAll();
-    } catch(e) {
+    } catch (e) {
       console.trace(e);
       $("#output_scala").text("");
-      $("#info").text(e)
-              .addClass("alert-danger")
-              .removeClass("alert-success");
+      $("#info").text(e).addClass("alert-danger").removeClass("alert-success");
     }
   };
 
-  $("#input_scala").keyup(event => run());
+  $("#input_scala").keyup((event) => run());
 
-  $("#package").keyup(event => run());
+  $("#package").keyup((event) => run());
 
-  $("#rule_name").keyup(event => run());
+  $("#rule_name").keyup((event) => run());
 
   $("input[name=output_type]").on("change", () => run());
 
@@ -113,12 +118,18 @@ $(() => {
 
   $("#format").change(() => {
     run();
-    localStorage.setItem("format", ($("#format").prop("checked") === true).toString());
+    localStorage.setItem(
+      "format",
+      ($("#format").prop("checked") === true).toString()
+    );
   });
 
   $("#wildcard_import").change(() => {
     run();
-    localStorage.setItem("wildcard_import", ($("#wildcard_import").prop("checked") === true).toString());
+    localStorage.setItem(
+      "wildcard_import",
+      ($("#wildcard_import").prop("checked") === true).toString()
+    );
   });
 
   $(document).ready(() => {
@@ -133,7 +144,10 @@ $(() => {
     const savedPatch = localStorage.getItem("patch");
 
     if (savedScalameta != null) {
-      $(`[name="scalameta"] option[value="${savedScalameta}"]`).prop("selected", true);
+      $(`[name="scalameta"] option[value="${savedScalameta}"]`).prop(
+        "selected",
+        true
+      );
     }
 
     if (savedPatch != null) {
@@ -141,7 +155,10 @@ $(() => {
     }
 
     if (savedDialect != null) {
-      $(`[name="dialect"] option[value="${savedDialect}"]`).prop("selected", true);
+      $(`[name="dialect"] option[value="${savedDialect}"]`).prop(
+        "selected",
+        true
+      );
     }
 
     if (savedPackage != null) {
@@ -160,15 +177,15 @@ $(() => {
       const defaultConfig = {
         maxColumn: 50,
         runner: {
-          dialect: "Scala3"
+          dialect: "Scala3",
         },
         align: {
-          preset: "none"
+          preset: "none",
         },
         continuationIndent: {
           defnSite: 2,
-          extendSite: 2
-        }
+          extendSite: 2,
+        },
       };
       $("#scalafmt").val(JSON.stringify(defaultConfig, null, "  "));
     }
@@ -187,7 +204,7 @@ $(() => {
       $("#wildcard_import").prop("checked", true);
     }
 
-    switch(localStorage.getItem("output_type")) {
+    switch (localStorage.getItem("output_type")) {
       case "semantic":
         $("input[name=output_type][value='semantic']").prop("checked", true);
         break;
@@ -198,8 +215,12 @@ $(() => {
         $("input[name=output_type][value='raw']").prop("checked", true);
     }
 
-    document.getElementById("scalameta_scalafix_compat").innerHTML += ` ${BuildInfoScalafixCompat.scalametaVersion}`;
-    document.getElementById("scalameta_latest").innerHTML += ` ${BuildInfoLatest.scalametaVersion}`;
+    document.getElementById(
+      "scalameta_scalafix_compat"
+    ).innerHTML += ` ${BuildInfoScalafixCompat.scalametaVersion}`;
+    document.getElementById(
+      "scalameta_latest"
+    ).innerHTML += ` ${BuildInfoLatest.scalametaVersion}`;
 
     const githubUrl = `https://github.com/xuwei-k/scalameta-ast/tree/${BuildInfoLatest.gitHash}`;
     const link = document.createElement("a");
