@@ -82,6 +82,14 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
     _.withESFeatures(_.withESVersion(org.scalajs.linker.interface.ESVersion.ES2018))
   },
   scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) },
+  genBuildInfo := {
+    val hash = sys.process.Process("git rev-parse HEAD").lineStream_!.head
+    s"""{
+       |  "gitHash" : "$hash",
+       |  "scalametaVersion" : "${metaVersion.value}"
+       |}
+       |""".stripMargin
+  },
   Seq(Compile, Test).map { x =>
     x / unmanagedSourceDirectories += {
       (x / scalaSource).value / ".." / "js"
@@ -99,26 +107,6 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
   Test / scalaJSLinkerConfig ~= {
     _.withModuleKind(ModuleKind.ESModule).withOutputPatterns(OutputPatterns.fromJSFile("%s.mjs"))
   },
-  Compile / sourceGenerators += Def.task {
-    val hash = sys.process.Process("git rev-parse HEAD").lineStream_!.head
-    val src =
-      s"""package scalameta_ast
-         |
-         |import scala.scalajs.js.annotation.JSExport
-         |import scala.scalajs.js.annotation.JSExportTopLevel
-         |
-         |@JSExportTopLevel("ScalametaASTBuildInfo")
-         |object ScalametaASTBuildInfo {
-         |  @JSExport
-         |  def gitHash: String = "${hash}"
-         |  @JSExport
-         |  def scalametaVersion: String = "${metaVersion.value}"
-         |}
-         |""".stripMargin
-    val f = (Compile / resourceManaged).value / "scalameta_ast" / "ScalametaASTBuildInfo.scala"
-    IO.write(f, src)
-    f :: Nil
-  },
   scalacOptions += {
     val a = (LocalRootProject / baseDirectory).value.toURI.toString
     val g = "https://raw.githubusercontent.com/xuwei-k/scalameta-ast/" + sys.process
@@ -128,6 +116,8 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
     s"-P:scalajs:mapSourceURI:$a->$g/"
   },
 )
+
+val genBuildInfo = taskKey[String]("")
 
 libraryDependencies ++= Seq(
   "ws.unfiltered" %% "unfiltered-filter" % "0.12.0",
@@ -154,6 +144,7 @@ def cp(
     val src = (p / Compile / originalOutputDir).value
     val f = src / m.jsFileName
     val srcMap = src / m.sourceMapName.getOrElse(sys.error("source map not found"))
+    IO.write(d.value / "build_info.json", (p / genBuildInfo).value)
     IO.copyFile(f, d.value / m.jsFileName)
     IO.copyFile(srcMap, d.value / srcMap.getName)
   }

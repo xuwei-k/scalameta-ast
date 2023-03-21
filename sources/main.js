@@ -1,14 +1,8 @@
 "use strict";
 
-import {
-  ScalametaAstMainScalafixCompat,
-  ScalametaASTBuildInfo as BuildInfoScalafixCompat,
-} from "./scalafix-compat/main.js";
+import { ScalametaAstMainScalafixCompat } from "./scalafix-compat/main.js";
 
-import {
-  ScalametaAstMainLatest,
-  ScalametaASTBuildInfo as BuildInfoLatest,
-} from "./latest/main.js";
+import { ScalametaAstMainLatest } from "./latest/main.js";
 
 $(() => {
   [ScalametaAstMainLatest, ScalametaAstMainScalafixCompat].forEach((main) => {
@@ -224,19 +218,25 @@ $(() => {
         $("input[name=output_type][value='raw']").prop("checked", true);
     }
 
-    document.getElementById(
-      "scalameta_scalafix_compat"
-    ).innerHTML += ` ${BuildInfoScalafixCompat.scalametaVersion}`;
-    document.getElementById(
-      "scalameta_latest"
-    ).innerHTML += ` ${BuildInfoLatest.scalametaVersion}`;
+    $.getJSON("./scalafix-compat/build_info.json", (data) => {
+      document.getElementById(
+        "scalameta_scalafix_compat"
+      ).innerHTML += ` ${data.scalametaVersion}`;
+    });
 
-    const githubUrl = `https://github.com/xuwei-k/scalameta-ast/tree/${BuildInfoLatest.gitHash}`;
-    const link = document.createElement("a");
-    link.append(githubUrl);
-    link.href = githubUrl;
-    link.target = "_blank";
-    document.getElementById("footer").appendChild(link);
+    $.getJSON("./latest/build_info.json", (data) => {
+      document.getElementById(
+        "scalameta_latest"
+      ).innerHTML += ` ${data.scalametaVersion}`;
+
+      const githubUrl = `https://github.com/xuwei-k/scalameta-ast/tree/${data.gitHash}`;
+      const link = document.createElement("a");
+      link.append(githubUrl);
+      link.href = githubUrl;
+      link.target = "_blank";
+      document.getElementById("footer").appendChild(link);
+    });
+
     run();
   });
 });
