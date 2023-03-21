@@ -26,6 +26,7 @@ jobs:
     - run: sbt -v
            scalafmtSbtCheck
            scalafmtCheckAll
+           updateClassifiers
            test
            copyFilesFull
     - if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && github.repository_owner == 'xuwei-k' }}

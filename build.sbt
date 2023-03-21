@@ -45,14 +45,11 @@ lazy val `scalameta-ast` = projectMatrix
     settings = Def.settings(
       libraryDependencies += "org.scalameta" %%% "scalafmt-core" % "3.7.2",
       Test / resourceGenerators += Def.task {
-        val v1 = (LocalProject("scalameta-ast-latestJS") / metaVersion).value
-        val v2 = (LocalProject("scalameta-ast-scalafix-compatJS") / metaVersion).value
-        Seq(v1, v2).zipWithIndex.map { case (v, index) =>
-          val treeURL =
-            s"https://raw.githubusercontent.com/scalameta/scalameta/v${v}/scalameta/trees/shared/src/main/scala/scala/meta/Trees.scala"
-          val src = scala.io.Source.fromURL(treeURL, "UTF-8").getLines().toList
+        val v1 = (LocalProject("scalameta-ast-latestJS") / metaTreesSource).value
+        val v2 = (LocalProject("scalameta-ast-scalafix-compatJS") / metaTreesSource).value
+        Seq(v1, v2).zipWithIndex.map { case (src, index) =>
           val f = (Test / resourceManaged).value / s"trees${index}.scala"
-          IO.writeLines(f, src)
+          IO.write(f, src)
           f
         }
       },
@@ -63,7 +60,9 @@ lazy val `scalameta-ast` = projectMatrix
     axisValues = Seq(metaScalafixCompat),
     settings = Def.settings(
       jsProjectSettings,
-      libraryDependencies += "com.github.xuwei-k" %%% "scalafmt-core" % "3.6.1-fork-1", // scala-steward:off
+      libraryDependencies += {
+        ("com.github.xuwei-k" %%% "scalafmt-core" % "3.6.1-fork-1").withSources() // scala-steward:off
+      }
     )
   )
   .jsPlatform(
@@ -71,11 +70,12 @@ lazy val `scalameta-ast` = projectMatrix
     axisValues = Seq(metaLatest),
     settings = Def.settings(
       jsProjectSettings,
-      libraryDependencies += "com.github.xuwei-k" %%% "scalafmt-core" % "3.7.2-fork-1",
+      libraryDependencies += ("com.github.xuwei-k" %%% "scalafmt-core" % "3.7.2-fork-1").withSources(),
     )
   )
 
 lazy val metaVersion = taskKey[String]("")
+lazy val metaTreesSource = taskKey[String]("")
 
 lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
   scalaJSLinkerConfig ~= {
@@ -96,9 +96,20 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
     }
   },
   libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.1.9",
+  metaTreesSource := {
+    val v = metaVersion.value
+    val s = scalaBinaryVersion.value
+    val p = s"https/repo1.maven.org/maven2/org/scalameta/trees_sjs1_${s}/${v}/trees_sjs1_${s}-${v}-sources.jar"
+    val sourceJar = csrCacheDirectory.value / p
+    IO.withTemporaryDirectory { dir =>
+      val file :: Nil = IO.unzip(sourceJar, dir, _ == "scala/meta/Trees.scala").toList
+      IO.read(file)
+    }
+  },
   metaVersion := {
-    val x1 = "https/repo1.maven.org/maven2/org/scalameta/parsers_sjs1_2.13/"
-    val x2 = "/parsers_sjs1_2.13-"
+    val s = scalaBinaryVersion.value
+    val x1 = s"https/repo1.maven.org/maven2/org/scalameta/parsers_sjs1_${s}/"
+    val x2 = s"/parsers_sjs1_${s}-"
     val Seq(jarPath) = (Compile / externalDependencyClasspath).value
       .map(_.data.getAbsolutePath)
       .filter(path => path.contains(x1) && path.contains(x2))
