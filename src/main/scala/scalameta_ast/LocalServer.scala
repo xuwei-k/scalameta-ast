@@ -25,15 +25,18 @@ object LocalServer {
           if (f.isFile) {
             val path = f.toPath
             val res = ResponseString(Files.readString(path, StandardCharsets.UTF_8))
-            if (p.endsWith(".html")) {
-              HtmlContent ~> res
-            } else if (p.endsWith(".js")) {
-              JsContent ~> res
-            } else if (p.endsWith(".json")) {
-              JsonContent ~> res
-            } else {
-              res
-            }
+            p.split('.')
+              .lastOption
+              .collect {
+                case "html" =>
+                  HtmlContent
+                case "js" =>
+                  JsContent
+                case "json" =>
+                  JsonContent
+              }
+              .map(_ ~> res)
+              .getOrElse(res)
           } else if (p == "/favicon.ico") {
             Ok
           } else {
