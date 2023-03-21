@@ -11,7 +11,7 @@ class ScalametaASTSpec extends AnyFreeSpec {
   "ScalametaAST" - {
     (0 to 1).foreach { i =>
       s"top level scalameta classes ${i}" in {
-        val src = scala.io.Source.fromURL(this.getClass.getResource(s"/trees${i}.scala")).getLines().mkString("\n")
+        val src = TestCompat.scalametaTreeFile(i)
         val parsed =
           implicitly[scala.meta.parsers.Parse[scala.meta.Source]].apply(Input.String(src), dialects.Scala213Source3).get
 

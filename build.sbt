@@ -1,4 +1,5 @@
 import org.scalajs.linker.interface.Report
+import org.scalajs.linker.interface.OutputPatterns
 
 val unusedWarnings = Seq(
   "-Ywarn-unused",
@@ -34,20 +35,8 @@ lazy val `scalameta-ast` = projectMatrix
   .settings(
     name := "scalameta-ast",
     commonSettings,
-    Test / resourceGenerators += Def.task {
-      val v1 = (LocalProject("scalameta-ast-latestJS") / metaVersion).value
-      val v2 = (LocalProject("scalameta-ast-scalafix-compatJS") / metaVersion).value
-      Seq(v1, v2).zipWithIndex.map { case (v, index) =>
-        val treeURL =
-          s"https://raw.githubusercontent.com/scalameta/scalameta/v${v}/scalameta/trees/shared/src/main/scala/scala/meta/Trees.scala"
-        val src = scala.io.Source.fromURL(treeURL, "UTF-8").getLines().toList
-        val f = (Test / resourceManaged).value / s"trees${index}.scala"
-        IO.writeLines(f, src)
-        f
-      }
-    },
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest-freespec" % "3.2.15" % Test, // TODO scala-js test
+      "org.scalatest" %%% "scalatest-freespec" % "3.2.15" % Test,
       "org.ekrich" %%% "sconfig" % "1.5.0",
     ),
   )
@@ -55,6 +44,18 @@ lazy val `scalameta-ast` = projectMatrix
     scalaVersions = Scala213 :: Nil,
     settings = Def.settings(
       libraryDependencies += "org.scalameta" %%% "scalafmt-core" % "3.7.2",
+      Test / resourceGenerators += Def.task {
+        val v1 = (LocalProject("scalameta-ast-latestJS") / metaVersion).value
+        val v2 = (LocalProject("scalameta-ast-scalafix-compatJS") / metaVersion).value
+        Seq(v1, v2).zipWithIndex.map { case (v, index) =>
+          val treeURL =
+            s"https://raw.githubusercontent.com/scalameta/scalameta/v${v}/scalameta/trees/shared/src/main/scala/scala/meta/Trees.scala"
+          val src = scala.io.Source.fromURL(treeURL, "UTF-8").getLines().toList
+          val f = (Test / resourceManaged).value / s"trees${index}.scala"
+          IO.writeLines(f, src)
+          f
+        }
+      },
     )
   )
   .jsPlatform(
@@ -81,8 +82,10 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
     _.withESFeatures(_.withESVersion(org.scalajs.linker.interface.ESVersion.ES2018))
   },
   scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) },
-  Compile / unmanagedSourceDirectories += {
-    (Compile / scalaSource).value / ".." / "js"
+  Seq(Compile, Test).map { x =>
+    x / unmanagedSourceDirectories += {
+      (x / scalaSource).value / ".." / "js"
+    }
   },
   libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.1.9",
   metaVersion := {
@@ -92,6 +95,9 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
       .map(_.data.getAbsolutePath)
       .filter(path => path.contains(x1) && path.contains(x2))
     jarPath.split(x1).last.split(x2).head
+  },
+  Test / scalaJSLinkerConfig ~= {
+    _.withModuleKind(ModuleKind.ESModule).withOutputPatterns(OutputPatterns.fromJSFile("%s.mjs"))
   },
   Compile / sourceGenerators += Def.task {
     val hash = sys.process.Process("git rev-parse HEAD").lineStream_!.head
@@ -113,7 +119,6 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
     IO.write(f, src)
     f :: Nil
   },
-  Test / test := {},
   scalacOptions += {
     val a = (LocalRootProject / baseDirectory).value.toURI.toString
     val g = "https://raw.githubusercontent.com/xuwei-k/scalameta-ast/" + sys.process
