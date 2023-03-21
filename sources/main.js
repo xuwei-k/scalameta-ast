@@ -11,6 +11,15 @@ import {
 } from "./latest/main.js";
 
 $(() => {
+  [ScalametaAstMainLatest, ScalametaAstMainScalafixCompat].forEach((main) => {
+    try {
+      // force initialize for avoid error
+      main.convert("", true, "", "", "", false, "", "", "");
+    } catch (e) {
+      console.log(e);
+    }
+  });
+
   $("#format_input").click(() => {
     const input = $("#input_scala").val();
     const scalafmt = $("#scalafmt").val();
