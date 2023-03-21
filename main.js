@@ -14,6 +14,16 @@ $(() => {
     }
   });
 
+  const headerAllConfig = document.getElementById("header_all_scalafix_config");
+  headerAllConfig.addEventListener("toggle", (event) => {
+    const summary = headerAllConfig.getElementsByTagName("summary")[0];
+    if (headerAllConfig.open) {
+      summary.innerHTML = "close header";
+    } else {
+      summary.innerHTML = "open header";
+    }
+  });
+
   $("#format_input").click(() => {
     const input = $("#input_scala").val();
     const scalafmt = $("#scalafmt").val();

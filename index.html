@@ -41,122 +41,125 @@
       crossorigin="anonymous"
     ></script>
     <div class="container mw-100">
-      <div class="row">
-        <div class="col-5">
-          <pre id="info" class="alert" style="height: 100px"></pre>
-        </div>
-        <div class="col-3">
-          <div class="row">
-            <div>
-              <input type="checkbox" id="format" checked />
-              <label for="format">format output by scalafmt</label>
-            </div>
-            <div>
-              <input
-                type="checkbox"
-                id="wildcard_import"
-                name="wildcard_import"
-              />
-              <label for="wildcard_import">wildcard import</label>
-            </div>
+      <details open id="header_all_scalafix_config">
+        <summary>close header</summary>
+        <div class="row">
+          <div class="col-5">
+            <pre id="info" class="alert" style="height: 100px"></pre>
           </div>
-          <div class="row">
-            <p></p>
-          </div>
-          <div class="row">
-            <div class="col">
-              <button class="btn btn-primary" id="format_input">
-                format input scala code
-              </button>
-            </div>
-            <div class="col">
-              <button class="btn btn-primary" id="clear_local_storage">
-                clear local storage
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="col-2">
-          <div class="row">
-            <fieldset>
-              <legend>output type</legend>
+          <div class="col-3">
+            <div class="row">
               <div>
-                <input type="radio" id="raw" name="output_type" value="raw" />
-                <label for="raw">Raw Scalameta</label>
+                <input type="checkbox" id="format" checked />
+                <label for="format">format output by scalafmt</label>
               </div>
               <div>
                 <input
-                  type="radio"
-                  id="syntactic"
-                  name="output_type"
-                  value="syntactic"
+                  type="checkbox"
+                  id="wildcard_import"
+                  name="wildcard_import"
                 />
-                <label for="syntactic">Scalafix SyntacticRule</label>
+                <label for="wildcard_import">wildcard import</label>
               </div>
+            </div>
+            <div class="row">
+              <p></p>
+            </div>
+            <div class="row">
+              <div class="col">
+                <button class="btn btn-primary" id="format_input">
+                  format input scala code
+                </button>
+              </div>
+              <div class="col">
+                <button class="btn btn-primary" id="clear_local_storage">
+                  clear local storage
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="col-2">
+            <div class="row">
+              <fieldset>
+                <legend>output type</legend>
+                <div>
+                  <input type="radio" id="raw" name="output_type" value="raw" />
+                  <label for="raw">Raw Scalameta</label>
+                </div>
+                <div>
+                  <input
+                    type="radio"
+                    id="syntactic"
+                    name="output_type"
+                    value="syntactic"
+                  />
+                  <label for="syntactic">Scalafix SyntacticRule</label>
+                </div>
+                <div>
+                  <input
+                    type="radio"
+                    id="semantic"
+                    name="output_type"
+                    value="semantic"
+                  />
+                  <label for="semantic">Scalafix SemanticRule</label>
+                </div>
+              </fieldset>
+            </div>
+            <div class="row">
               <div>
-                <input
-                  type="radio"
-                  id="semantic"
-                  name="output_type"
-                  value="semantic"
-                />
-                <label for="semantic">Scalafix SemanticRule</label>
+                <label for="dialect">dialect</label>
+                <select name="dialect" id="dialect">
+                  <option value="Auto">Auto</option>
+                  <option value="Scala3">Scala3</option>
+                  <option value="Scala213Source3">Scala213Source3</option>
+                  <option value="Scala213">Scala213</option>
+                  <option value="Scala212Source3">Scala212Source3</option>
+                  <option value="Scala212">Scala212</option>
+                  <option value="Scala211">Scala211</option>
+                  <option value="Scala210">Scala210</option>
+                </select>
               </div>
-            </fieldset>
+            </div>
           </div>
-          <div class="row">
-            <div>
-              <label for="dialect">dialect</label>
-              <select name="dialect" id="dialect">
-                <option value="Auto">Auto</option>
-                <option value="Scala3">Scala3</option>
-                <option value="Scala213Source3">Scala213Source3</option>
-                <option value="Scala213">Scala213</option>
-                <option value="Scala212Source3">Scala212Source3</option>
-                <option value="Scala212">Scala212</option>
-                <option value="Scala211">Scala211</option>
-                <option value="Scala210">Scala210</option>
-              </select>
+          <div class="col-2">
+            <div class="row">
+              <div>
+                <label for="scalameta">scalameta version</label>
+                <select name="scalameta" id="scalameta">
+                  <option id="scalameta_scalafix_compat" value="scalafix">
+                    scalafix compatible
+                  </option>
+                  <option id="scalameta_latest" value="latest">latest</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label for="package">package</label>
+                <input type="text" id="package" maxlength="256" />
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label for="rule_name">rule name</label>
+                <input type="text" id="rule_name" maxlength="128" />
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label for="patch">patch</label>
+                <select name="patch" id="patch">
+                  <option value="warn">lint warn</option>
+                  <option value="error">lint error</option>
+                  <option value="replace">replace</option>
+                  <option value="empty">empty</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
-        <div class="col-2">
-          <div class="row">
-            <div>
-              <label for="scalameta">scalameta version</label>
-              <select name="scalameta" id="scalameta">
-                <option id="scalameta_scalafix_compat" value="scalafix">
-                  scalafix compatible
-                </option>
-                <option id="scalameta_latest" value="latest">latest</option>
-              </select>
-            </div>
-          </div>
-          <div class="row">
-            <div>
-              <label for="package">package</label>
-              <input type="text" id="package" maxlength="256" />
-            </div>
-          </div>
-          <div class="row">
-            <div>
-              <label for="rule_name">rule name</label>
-              <input type="text" id="rule_name" maxlength="128" />
-            </div>
-          </div>
-          <div class="row">
-            <div>
-              <label for="patch">patch</label>
-              <select name="patch" id="patch">
-                <option value="warn">lint warn</option>
-                <option value="error">lint error</option>
-                <option value="replace">replace</option>
-                <option value="empty">empty</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
+      </details>
       <div class="row">
         <div class="col">
           <textarea
