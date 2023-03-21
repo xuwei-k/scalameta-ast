@@ -177,20 +177,18 @@ $(() => {
     if (savedScalafmt != null) {
       $("#scalafmt").val(savedScalafmt);
     } else {
-      const defaultConfig = {
-        maxColumn: 50,
-        runner: {
-          dialect: "Scala3",
-        },
-        align: {
-          preset: "none",
-        },
-        continuationIndent: {
-          defnSite: 2,
-          extendSite: 2,
-        },
-      };
-      $("#scalafmt").val(JSON.stringify(defaultConfig, null, "  "));
+      const defaultConfig = `
+        maxColumn = 50
+        runner.dialect = "Scala3"
+        align.preset = "none"
+        continuationIndent.defnSite = 2
+        continuationIndent.extendSite = 2
+      `
+        .split("\n")
+        .map((c) => c.trim())
+        .filter((c) => c.length > 0)
+        .join("\n");
+      $("#scalafmt").val(defaultConfig);
     }
 
     if (savedSource != null) {
