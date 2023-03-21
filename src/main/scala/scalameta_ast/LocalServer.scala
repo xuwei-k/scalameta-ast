@@ -3,6 +3,7 @@ package scalameta_ast
 import unfiltered.request.Path
 import unfiltered.response.HtmlContent
 import unfiltered.response.JsContent
+import unfiltered.response.JsonContent
 import unfiltered.response.NotFound
 import unfiltered.response.Ok
 import unfiltered.response.ResponseString
@@ -28,6 +29,8 @@ object LocalServer {
               HtmlContent ~> res
             } else if (p.endsWith(".js")) {
               JsContent ~> res
+            } else if (p.endsWith(".json")) {
+              JsonContent ~> res
             } else {
               res
             }
