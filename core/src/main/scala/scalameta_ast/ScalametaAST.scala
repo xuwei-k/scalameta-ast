@@ -110,6 +110,13 @@ class ScalametaAST {
     ScalafmtConfig.decoder.read(None, conf).get
   }
 
+  // TODO remove when scalafix depends on new scalameta version
+  // https://github.com/scalameta/scalameta/pull/2921
+  private[this] val scalametaBugWorkaround: Seq[(String, String)] = Seq(
+    "Lit.Unit(())" -> "Lit.Unit()",
+    "Lit.Null(null)" -> "Lit.Null()"
+  )
+
   def convert(
     src: String,
     format: Boolean,
@@ -123,7 +130,7 @@ class ScalametaAST {
   ): Output = {
     val input = convert.apply(src)
     val (ast, astBuildMs) = stopwatch {
-      loop(
+      val x = loop(
         input,
         for {
           x1 <- parsers
@@ -137,6 +144,9 @@ class ScalametaAST {
           }
         } yield (x1, x2)
       ).structure
+      scalametaBugWorkaround.foldLeft(x) { case (s, (x1, x2)) =>
+        s.replace(x1, x2)
+      }
     }
     val ruleNameRaw = ruleNameOption.getOrElse("Example").filterNot(char => char == '`' || char == '"')
     val ruleName = {

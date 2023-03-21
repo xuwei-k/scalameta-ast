@@ -12,7 +12,7 @@ class ScalametaASTSpec extends AnyFreeSpec {
     val main = new ScalametaAST
     "convert" in {
       val result = main.convert(
-        src = "val x = y",
+        src = "val x = ((), null)",
         format = true,
         scalafmtConfig = metaconfig.Conf.Obj.empty,
         outputType = "syntactic",
@@ -25,6 +25,7 @@ class ScalametaASTSpec extends AnyFreeSpec {
       val expect = s"""package package_name
          |
          |import scala.meta.Defn
+         |import scala.meta.Lit
          |import scala.meta.Pat
          |import scala.meta.Term
          |import scalafix.Patch
@@ -40,7 +41,7 @@ class ScalametaASTSpec extends AnyFreeSpec {
          |            Nil,
          |            List(Pat.Var(Term.Name("x"))),
          |            None,
-         |            Term.Name("y")
+         |            Term.Tuple(List(Lit.Unit(), Lit.Null()))
          |          ) =>
          |        Patch.lint(
          |          Diagnostic(
