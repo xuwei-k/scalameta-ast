@@ -115,6 +115,14 @@ $(() => {
     }
   };
 
+  document.getElementById("output_scala").addEventListener("dblclick", (e) => {
+    const s = window.getSelection();
+    const r = document.createRange();
+    r.selectNodeContents(e.target);
+    s.removeAllRanges();
+    s.addRange(r);
+  });
+
   $("#input_scala").keyup((event) => run());
 
   $("#package").keyup((event) => run());
