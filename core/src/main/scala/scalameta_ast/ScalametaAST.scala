@@ -205,7 +205,9 @@ class ScalametaAST {
   }
 
   private def header(x: String, packageName: Option[String], wildcardImport: Boolean): String = {
-    val pkg = packageName.fold("")(x => s"package ${x}\n\n")
+    val pkg = packageName.fold("") { x =>
+      s"package ${x.split('.').map(s => if (isValidTermName(s)) s else s"`${s}`").mkString(".")}\n\n"
+    }
     val i = if (wildcardImport) "import scala.meta._" else imports(x).mkString("\n")
     s"${pkg}${i}"
   }
