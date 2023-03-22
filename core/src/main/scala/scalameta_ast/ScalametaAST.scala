@@ -230,6 +230,10 @@ class ScalametaAST {
         lint("Error")
       case "info" =>
         lint("Info")
+      case "left" =>
+        PatchValue(imports = Nil, """Patch.addLeft(t, "")""")
+      case "right" =>
+        PatchValue(imports = Nil, """Patch.addRight(t, "")""")
       case "replace" =>
         PatchValue(imports = Nil, """Patch.replaceTree(t, "")""")
       case "empty" =>
