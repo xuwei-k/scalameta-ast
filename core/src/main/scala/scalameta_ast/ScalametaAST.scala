@@ -117,6 +117,10 @@ class ScalametaAST {
     "Lit.Null(null)" -> "Lit.Null()"
   )
 
+  private def isValidTermName(str: String): Boolean = {
+    implicitly[Parse[Term]].apply(Input.String(str), dialects.Scala3).toOption.exists(_.is[Term.Name])
+  }
+
   def convert(
     src: String,
     format: Boolean,
@@ -150,9 +154,7 @@ class ScalametaAST {
     }
     val ruleNameRaw = ruleNameOption.getOrElse("Example").filterNot(char => char == '`' || char == '"')
     val ruleName = {
-      val isValid =
-        implicitly[Parse[Term]].apply(Input.String(ruleNameRaw), dialects.Scala3).toOption.exists(_.is[Term.Name])
-      if (isValid) ruleNameRaw else s"`${ruleNameRaw}`"
+      if (isValidTermName(ruleNameRaw)) ruleNameRaw else s"`${ruleNameRaw}`"
     }
 
     val (res, formatMs) = stopwatch {
