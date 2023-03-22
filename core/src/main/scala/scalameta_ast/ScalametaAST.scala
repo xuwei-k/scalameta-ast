@@ -228,6 +228,8 @@ class ScalametaAST {
     patch.collect {
       case "error" =>
         lint("Error")
+      case "info" =>
+        lint("Info")
       case "replace" =>
         PatchValue(imports = Nil, """Patch.replaceTree(t, "")""")
       case "empty" =>
