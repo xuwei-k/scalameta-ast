@@ -43,7 +43,7 @@ lazy val `scalameta-ast` = projectMatrix
   .jvmPlatform(
     scalaVersions = Scala213 :: Nil,
     settings = Def.settings(
-      libraryDependencies += "org.scalameta" %%% "scalafmt-core" % "3.7.2",
+      libraryDependencies += "org.scalameta" %%% "scalafmt-core" % "3.7.3",
       Test / resourceGenerators += Def.task {
         val v1 = (LocalProject("scalameta-ast-latestJS") / metaTreesSource).value
         val v2 = (LocalProject("scalameta-ast-scalafix-compatJS") / metaTreesSource).value
