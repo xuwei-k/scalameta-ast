@@ -55,7 +55,10 @@ $(() => {
       const patch = $("#patch").val();
 
       ["package", "rule_name", "wildcard_import", "patch"].forEach((i) =>
-        $(`#${i}`).prop("disabled", outputType === "raw")
+        $(`#${i}`).prop(
+          "disabled",
+          outputType === "raw" || outputType === "tokens"
+        )
       );
 
       const r = main.convert(
@@ -229,6 +232,9 @@ $(() => {
         break;
       case "syntactic":
         $("input[name=output_type][value='syntactic']").prop("checked", true);
+        break;
+      case "tokens":
+        $("input[name=output_type][value='tokens']").prop("checked", true);
         break;
       default:
         $("input[name=output_type][value='raw']").prop("checked", true);
