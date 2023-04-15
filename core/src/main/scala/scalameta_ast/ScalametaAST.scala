@@ -8,6 +8,7 @@ import scala.meta._
 import scala.meta.common.Convert
 import scala.meta.parsers.Parse
 import scala.meta.parsers.Parsed
+import scala.meta.tokens.Token
 import scala.util.control.NonFatal
 
 class ScalametaAST {
@@ -121,6 +122,72 @@ class ScalametaAST {
     implicitly[Parse[Term]].apply(Input.String(str), dialects.Scala3).toOption.exists(_.is[Term.Name])
   }
 
+  private def treeToString(tree: Tree, treeType: TreeType): String = {
+    treeType match {
+      case TreeType.Tree =>
+        scalametaBugWorkaround.foldLeft(tree.structure) { case (s, (x1, x2)) =>
+          s.replace(x1, x2)
+        }
+      case TreeType.Token =>
+        tree.tokens.tokens.map { x =>
+          val n = x.getClass.getSimpleName
+          def q(a: String): String = s"(\"${a}\")"
+
+          PartialFunction
+            .condOpt(x) {
+              case y: Token.Ident =>
+                s"Ident${q(y.value)}"
+              case y: Token.Comment =>
+                s"Comment${q(y.value)}"
+              case y: Token.Interpolation.Id =>
+                s"Interpolation.Id${q(y.value)}"
+              case y: Token.Interpolation.Part =>
+                s"Interpolation.Part${q(y.value)}"
+              case _: Token.Interpolation.Start =>
+                s"Interpolation.$n"
+              case _: Token.Interpolation.SpliceStart =>
+                s"Interpolation.$n"
+              case _: Token.Interpolation.SpliceEnd =>
+                s"Interpolation.$n"
+              case _: Token.Interpolation.End =>
+                s"Interpolation.$n"
+              case y: Token.Constant[?] =>
+                y match {
+                  case z: Token.Constant.Int =>
+                    s"Constant.Int(BigInt${q(z.value.toString)})"
+                  case z: Token.Constant.Long =>
+                    s"Constant.Long(BigInt${q(z.value.toString)})"
+                  case z: Token.Constant.Float =>
+                    s"Constant.Float(BigDecimal${q(z.value.toString)})"
+                  case z: Token.Constant.Double =>
+                    s"Constant.Double(BigDecimal${q(z.value.toString)})"
+                  case z: Token.Constant.Char =>
+                    s"Constant.Char('${z.value}')"
+                  case z: Token.Constant.Symbol =>
+                    s"Constant.Symbol(scala.Symbol${q(z.value.name)})"
+                  case z: Token.Constant.String =>
+                    s"Constant.String${q(z.value)}"
+                }
+              case _: Token.Xml.Start =>
+                s"Xml.${n}"
+              case y: Token.Xml.Part =>
+                s"Xml.Part${q(y.value)}"
+              case _: Token.Xml.SpliceStart =>
+                s"Xml.${n}"
+              case _: Token.Xml.SpliceEnd =>
+                s"Xml.${n}"
+              case _: Token.Xml.End =>
+                s"Xml.${n}"
+              case _: Token.Indentation.Indent =>
+                s"Indentation.${n}"
+              case _: Token.Indentation.Outdent =>
+                s"Indentation.${n}"
+            }
+            .getOrElse(n)
+        }.map("Token." + _).mkString("Seq(", ", ", ")")
+    }
+  }
+
   def convert(
     src: String,
     format: Boolean,
@@ -134,7 +201,7 @@ class ScalametaAST {
   ): Output = {
     val input = convert.apply(src)
     val (ast, astBuildMs) = stopwatch {
-      val x = loop(
+      val tree = loop(
         input,
         for {
           x1 <- parsers
@@ -147,10 +214,19 @@ class ScalametaAST {
             )
           }
         } yield (x1, x2)
-      ).structure
-      scalametaBugWorkaround.foldLeft(x) { case (s, (x1, x2)) =>
-        s.replace(x1, x2)
-      }
+      )
+
+      treeToString(
+        tree = tree,
+        treeType = {
+          outputType match {
+            case "tokens" =>
+              TreeType.Token
+            case _ =>
+              TreeType.Tree
+          }
+        }
+      )
     }
     val ruleNameRaw = ruleNameOption.getOrElse("Example").filterNot(char => char == '`' || char == '"')
     val ruleName = {
