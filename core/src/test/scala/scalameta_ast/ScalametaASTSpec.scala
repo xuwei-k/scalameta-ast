@@ -59,6 +59,24 @@ class ScalametaASTSpec extends AnyFreeSpec {
       assert(result.ast == expect)
     }
 
+    "invalid tree" in {
+      val result = main.convert(
+        src = """(""",
+        format = true,
+        scalafmtConfig = metaconfig.Conf.Obj.empty,
+        outputType = "tokens",
+        packageName = None,
+        wildcardImport = false,
+        ruleNameOption = None,
+        dialect = None,
+        patch = None,
+      )
+      val expect =
+        """Seq(Token.BOF, Token.LeftParen, Token.EOF)
+          |""".stripMargin
+      assert(result.ast == expect)
+    }
+
     "convert token" in {
       val result = main.convert(
         src = """def x(y: Z) = ('y, 'a', "b", 1.5, 4.4f, 2L, 3, s"x1${x2}", <g>{p}</g>) // c """,

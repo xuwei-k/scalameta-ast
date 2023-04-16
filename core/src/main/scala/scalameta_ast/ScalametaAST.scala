@@ -8,6 +8,7 @@ import scala.meta._
 import scala.meta.common.Convert
 import scala.meta.parsers.Parse
 import scala.meta.parsers.Parsed
+import scala.meta.tokenizers.Tokenize
 import scala.meta.tokens.Token
 import scala.util.control.NonFatal
 
@@ -67,14 +68,14 @@ class ScalametaAST {
   ).distinct.sortBy(_.getName)
 
   @tailrec
-  private def loop(input: Input, xs: List[(Parse[Tree], Dialect)]): Tree = {
+  private def loopParse(input: Input, xs: List[(Parse[Tree], Dialect)]): Tree = {
     (xs: @unchecked) match {
       case (parse, dialect) :: t1 :: t2 =>
         parse.apply(input, dialect) match {
           case s: Parsed.Success[_] =>
             s.get
           case _: Parsed.Error =>
-            loop(input, t1 :: t2)
+            loopParse(input, t1 :: t2)
         }
       case (parse, dialect) :: Nil =>
         parse.apply(input, dialect).get
@@ -122,70 +123,63 @@ class ScalametaAST {
     implicitly[Parse[Term]].apply(Input.String(str), dialects.Scala3).toOption.exists(_.is[Term.Name])
   }
 
-  private def treeToString(tree: Tree, treeType: TreeType): String = {
-    treeType match {
-      case TreeType.Tree =>
-        scalametaBugWorkaround.foldLeft(tree.structure) { case (s, (x1, x2)) =>
-          s.replace(x1, x2)
-        }
-      case TreeType.Token =>
-        tree.tokens.tokens.map { x =>
-          val n = x.getClass.getSimpleName
-          def q(a: String): String = s"(\"${a}\")"
+  private def tokensToString(tokens: Tokens): String = {
+    tokens.tokens.map { x =>
+      val n = x.getClass.getSimpleName
+      def q(a: String): String = s"(\"${a}\")"
 
-          PartialFunction
-            .condOpt(x) {
-              case y: Token.Ident =>
-                s"Ident${q(y.value)}"
-              case y: Token.Comment =>
-                s"Comment${q(y.value)}"
-              case y: Token.Interpolation.Id =>
-                s"Interpolation.Id${q(y.value)}"
-              case y: Token.Interpolation.Part =>
-                s"Interpolation.Part${q(y.value)}"
-              case _: Token.Interpolation.Start =>
-                s"Interpolation.$n"
-              case _: Token.Interpolation.SpliceStart =>
-                s"Interpolation.$n"
-              case _: Token.Interpolation.SpliceEnd =>
-                s"Interpolation.$n"
-              case _: Token.Interpolation.End =>
-                s"Interpolation.$n"
-              case y: Token.Constant[?] =>
-                y match {
-                  case z: Token.Constant.Int =>
-                    s"Constant.Int(BigInt${q(z.value.toString)})"
-                  case z: Token.Constant.Long =>
-                    s"Constant.Long(BigInt${q(z.value.toString)})"
-                  case z: Token.Constant.Float =>
-                    s"Constant.Float(BigDecimal${q(z.value.toString)})"
-                  case z: Token.Constant.Double =>
-                    s"Constant.Double(BigDecimal${q(z.value.toString)})"
-                  case z: Token.Constant.Char =>
-                    s"Constant.Char('${z.value}')"
-                  case z: Token.Constant.Symbol =>
-                    s"Constant.Symbol(scala.Symbol${q(z.value.name)})"
-                  case z: Token.Constant.String =>
-                    s"Constant.String${q(z.value)}"
-                }
-              case _: Token.Xml.Start =>
-                s"Xml.${n}"
-              case y: Token.Xml.Part =>
-                s"Xml.Part${q(y.value)}"
-              case _: Token.Xml.SpliceStart =>
-                s"Xml.${n}"
-              case _: Token.Xml.SpliceEnd =>
-                s"Xml.${n}"
-              case _: Token.Xml.End =>
-                s"Xml.${n}"
-              case _: Token.Indentation.Indent =>
-                s"Indentation.${n}"
-              case _: Token.Indentation.Outdent =>
-                s"Indentation.${n}"
+      PartialFunction
+        .condOpt(x) {
+          case y: Token.Ident =>
+            s"Ident${q(y.value)}"
+          case y: Token.Comment =>
+            s"Comment${q(y.value)}"
+          case y: Token.Interpolation.Id =>
+            s"Interpolation.Id${q(y.value)}"
+          case y: Token.Interpolation.Part =>
+            s"Interpolation.Part${q(y.value)}"
+          case _: Token.Interpolation.Start =>
+            s"Interpolation.$n"
+          case _: Token.Interpolation.SpliceStart =>
+            s"Interpolation.$n"
+          case _: Token.Interpolation.SpliceEnd =>
+            s"Interpolation.$n"
+          case _: Token.Interpolation.End =>
+            s"Interpolation.$n"
+          case y: Token.Constant[?] =>
+            y match {
+              case z: Token.Constant.Int =>
+                s"Constant.Int(BigInt${q(z.value.toString)})"
+              case z: Token.Constant.Long =>
+                s"Constant.Long(BigInt${q(z.value.toString)})"
+              case z: Token.Constant.Float =>
+                s"Constant.Float(BigDecimal${q(z.value.toString)})"
+              case z: Token.Constant.Double =>
+                s"Constant.Double(BigDecimal${q(z.value.toString)})"
+              case z: Token.Constant.Char =>
+                s"Constant.Char('${z.value}')"
+              case z: Token.Constant.Symbol =>
+                s"Constant.Symbol(scala.Symbol${q(z.value.name)})"
+              case z: Token.Constant.String =>
+                s"Constant.String${q(z.value)}"
             }
-            .getOrElse(n)
-        }.map("Token." + _).mkString("Seq(", ", ", ")")
-    }
+          case _: Token.Xml.Start =>
+            s"Xml.${n}"
+          case y: Token.Xml.Part =>
+            s"Xml.Part${q(y.value)}"
+          case _: Token.Xml.SpliceStart =>
+            s"Xml.${n}"
+          case _: Token.Xml.SpliceEnd =>
+            s"Xml.${n}"
+          case _: Token.Xml.End =>
+            s"Xml.${n}"
+          case _: Token.Indentation.Indent =>
+            s"Indentation.${n}"
+          case _: Token.Indentation.Outdent =>
+            s"Indentation.${n}"
+        }
+        .getOrElse(n)
+    }.map("Token." + _).mkString("Seq(", ", ", ")")
   }
 
   def convert(
@@ -201,33 +195,47 @@ class ScalametaAST {
   ): Output = {
     val input = convert.apply(src)
     val (ast, astBuildMs) = stopwatch {
-      val tree = loop(
-        input,
-        for {
-          x1 <- parsers
-          x2 <- dialect.fold(dialectsDefault) { x =>
-            stringToDialects.getOrElse(
-              x, {
-                Console.err.println(s"invalid dialct ${x}")
-                dialectsDefault
-              }
-            )
+      val dialects = dialect.fold(dialectsDefault) { x =>
+        stringToDialects.getOrElse(
+          x, {
+            Console.err.println(s"invalid dialct ${x}")
+            dialectsDefault
           }
-        } yield (x1, x2)
-      )
+        )
+      }
 
-      treeToString(
-        tree = tree,
-        treeType = {
-          outputType match {
-            case "tokens" =>
-              TreeType.Token
-            case _ =>
-              TreeType.Tree
+      outputType match {
+        case "tokens" =>
+          @tailrec
+          def loop(input: Input, xs: List[Dialect]): Tokens = {
+            (xs: @unchecked) match {
+              case d :: t1 :: t2 =>
+                implicitly[Tokenize].apply(input, d).toEither match {
+                  case Right(tokens) =>
+                    tokens
+                  case Left(_) =>
+                    loop(input, t1 :: t2)
+                }
+              case d :: Nil =>
+                implicitly[Tokenize].apply(input, d).get
+            }
           }
-        }
-      )
+          tokensToString(loop(input, dialects))
+
+        case _ =>
+          val tree = loopParse(
+            input,
+            for {
+              x1 <- parsers
+              x2 <- dialects
+            } yield (x1, x2)
+          )
+          scalametaBugWorkaround.foldLeft(tree.structure) { case (s, (x1, x2)) =>
+            s.replace(x1, x2)
+          }
+      }
     }
+
     val ruleNameRaw = ruleNameOption.getOrElse("Example").filterNot(char => char == '`' || char == '"')
     val ruleName = {
       if (isValidTermName(ruleNameRaw)) ruleNameRaw else s"`${ruleNameRaw}`"
