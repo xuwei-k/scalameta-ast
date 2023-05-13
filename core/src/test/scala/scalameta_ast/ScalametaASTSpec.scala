@@ -21,7 +21,7 @@ class ScalametaASTSpec extends AnyFreeSpec {
         ruleNameOption = None,
         dialect = None,
         patch = None,
-        removeIfMods = true,
+        removeNewFields = true,
       )
       val expect = s"""package package_name
          |
@@ -97,7 +97,39 @@ class ScalametaASTSpec extends AnyFreeSpec {
           ruleNameOption = None,
           dialect = None,
           patch = None,
-          removeIfMods = remove,
+          removeNewFields = remove,
+        )
+        assert(result.ast == expect)
+      }
+    }
+
+    "remove Term.Match mods" in {
+      Seq[(Boolean, String)](
+        true ->
+          """|Term.Match(
+             |  Term.Name("a"),
+             |  List(Case(Pat.Var(Term.Name("b")), None, Term.Block(Nil)))
+             |)
+             |""".stripMargin,
+        false ->
+          """|Term.Match(
+             |  Term.Name("a"),
+             |  List(Case(Pat.Var(Term.Name("b")), None, Term.Block(Nil))),
+             |  List(Mod.Inline())
+             |)
+             |""".stripMargin
+      ).foreach { case (remove, expect) =>
+        val result = main.convert(
+          src = """inline a match { case b => }""",
+          format = true,
+          scalafmtConfig = metaconfig.Conf.Obj.empty,
+          outputType = "",
+          packageName = None,
+          wildcardImport = false,
+          ruleNameOption = None,
+          dialect = Some("Scala3"),
+          patch = None,
+          removeNewFields = remove,
         )
         assert(result.ast == expect)
       }
@@ -114,7 +146,7 @@ class ScalametaASTSpec extends AnyFreeSpec {
         ruleNameOption = None,
         dialect = None,
         patch = None,
-        removeIfMods = true,
+        removeNewFields = true,
       )
       val expect =
         """Seq(Token.BOF, Token.LeftParen, Token.EOF)
@@ -133,7 +165,7 @@ class ScalametaASTSpec extends AnyFreeSpec {
         ruleNameOption = None,
         dialect = Some("Scala213"),
         patch = None,
-        removeIfMods = true,
+        removeNewFields = true,
       )
       val expect = """Seq(
         |  Token.BOF,
