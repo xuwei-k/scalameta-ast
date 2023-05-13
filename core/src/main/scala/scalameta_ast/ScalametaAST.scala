@@ -183,6 +183,52 @@ class ScalametaAST {
     }.map("Token." + _).mkString("Seq(", ", ", ")")
   }
 
+  private def removeModsFields(tree: Tree, str: String): String = {
+    if (
+      tree.collectFirst {
+        case _: Term.If => ()
+        case _: Term.Match => ()
+      }.nonEmpty
+    ) {
+      val positions = implicitly[Parse[Term]]
+        .apply(Input.String(str), scala.meta.dialects.Scala3)
+        .get
+        .collect {
+          case x @ Term.Apply(
+                Term.Select(
+                  Term.Name("Term"),
+                  Term.Name("If")
+                ),
+                _ :: _ :: _ :: last :: Nil
+              ) =>
+            (x.tokens, last)
+          case x @ Term.Apply(
+                Term.Select(
+                  Term.Name("Term"),
+                  Term.Name("Match")
+                ),
+                _ :: _ :: last :: Nil
+              ) =>
+            (x.tokens, last)
+        }
+        .flatMap { case (tokens, toRemove) =>
+          val startOpt =
+            tokens.reverseIterator.filter(_.is[Token.Comma]).find(_.pos.start < toRemove.pos.start).map(_.start)
+          val endOpt =
+            tokens.reverseIterator.find(_.is[Token.RightParen]).map(_.pos.end - 1)
+          startOpt.zip(endOpt)
+        }
+
+      str.zipWithIndex.flatMap { case (char, pos) =>
+        Option.unless(positions.exists { case (start, end) => start <= pos && pos < end }) {
+          char
+        }
+      }.mkString
+    } else {
+      str
+    }
+  }
+
   def convert(
     src: String,
     format: Boolean,
@@ -193,7 +239,7 @@ class ScalametaAST {
     ruleNameOption: Option[String],
     dialect: Option[String],
     patch: Option[String],
-    removeIfMods: Boolean,
+    removeNewFields: Boolean,
   ): Output = {
     val input = convert.apply(src)
     val (ast, astBuildMs) = stopwatch {
@@ -235,30 +281,8 @@ class ScalametaAST {
           val str = scalametaBugWorkaround.foldLeft(tree.structure) { case (s, (x1, x2)) =>
             s.replace(x1, x2)
           }
-          if (removeIfMods && tree.collectFirst { case _: Term.If => () }.nonEmpty) {
-            val positions = implicitly[Parse[Term]]
-              .apply(Input.String(str), scala.meta.dialects.Scala3)
-              .get
-              .collect {
-                case x @ Term.Apply(
-                      Term.Select(
-                        Term.Name("Term"),
-                        Term.Name("If")
-                      ),
-                      _ :: _ :: _ :: last :: Nil
-                    ) =>
-                  val startOpt =
-                    x.tokens.reverseIterator.filter(_.is[Token.Comma]).find(_.pos.start < last.pos.start).map(_.start)
-                  val endOpt = x.tokens.reverseIterator.find(_.is[Token.RightParen]).map(_.pos.end - 1)
-
-                  startOpt.zip(endOpt)
-              }
-              .flatten
-            str.zipWithIndex.flatMap { case (char, pos) =>
-              Option.unless(positions.exists { case (start, end) => start <= pos && pos < end }) {
-                char
-              }
-            }.mkString
+          if (removeNewFields) {
+            removeModsFields(tree = tree, str = str)
           } else {
             str
           }

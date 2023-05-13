@@ -71,7 +71,7 @@ $(() => {
         ruleName === undefined ? "" : ruleName,
         dialect === undefined ? "" : dialect,
         patch === undefined ? "" : patch,
-        $("#remove_if_mods").prop("checked") === true
+        $("#remove_new_fields").prop("checked") === true
       );
       $("#output_scala").text(r.ast);
       $("#info")
@@ -157,11 +157,11 @@ $(() => {
     );
   });
 
-  $("#remove_if_mods").change(() => {
+  $("#remove_new_fields").change(() => {
     run();
     localStorage.setItem(
-      "remove_if_mods",
-      ($("#remove_if_mods").prop("checked") === true).toString()
+      "remove_new_fields",
+      ($("#remove_new_fields").prop("checked") === true).toString()
     );
   });
 
@@ -235,8 +235,8 @@ $(() => {
       $("#wildcard_import").prop("checked", true);
     }
 
-    if (localStorage.getItem("remove_if_mods") === "false") {
-      $("#remove_if_mods").prop("checked", false);
+    if (localStorage.getItem("remove_new_fields") === "false") {
+      $("#remove_new_fields").prop("checked", false);
     }
 
     switch (localStorage.getItem("output_type")) {

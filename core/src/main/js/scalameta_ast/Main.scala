@@ -23,7 +23,7 @@ object Main {
     ruleName: String,
     dialect: String,
     patch: String,
-    removeIfMods: Boolean
+    removeNewFields: Boolean
   ): js.Object = {
     val output =
       new ScalametaAST().convert(
@@ -36,7 +36,7 @@ object Main {
         ruleNameOption = Option(ruleName).filter(_.trim.nonEmpty),
         dialect = Option(dialect).filter(_.trim.nonEmpty),
         patch = Option(patch).filter(_.trim.nonEmpty),
-        removeIfMods = removeIfMods,
+        removeNewFields = removeNewFields,
       )
     new js.Object {
       var ast = output.ast
