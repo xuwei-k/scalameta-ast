@@ -70,7 +70,8 @@ $(() => {
         $("#wildcard_import").prop("checked") === true,
         ruleName === undefined ? "" : ruleName,
         dialect === undefined ? "" : dialect,
-        patch === undefined ? "" : patch
+        patch === undefined ? "" : patch,
+        $("#remove_if_mods").prop("checked") === true
       );
       $("#output_scala").text(r.ast);
       $("#info")
@@ -156,6 +157,14 @@ $(() => {
     );
   });
 
+  $("#remove_if_mods").change(() => {
+    run();
+    localStorage.setItem(
+      "remove_if_mods",
+      ($("#remove_if_mods").prop("checked") === true).toString()
+    );
+  });
+
   $(document).ready(() => {
     hljs.addPlugin(new CopyButtonPlugin());
 
@@ -224,6 +233,10 @@ $(() => {
 
     if (localStorage.getItem("wildcard_import") === "true") {
       $("#wildcard_import").prop("checked", true);
+    }
+
+    if (localStorage.getItem("remove_if_mods") === "false") {
+      $("#remove_if_mods").prop("checked", false);
     }
 
     switch (localStorage.getItem("output_type")) {

@@ -6,6 +6,7 @@ import java.util.Date
 import scala.annotation.tailrec
 import scala.meta._
 import scala.meta.common.Convert
+import scala.meta.contrib.XtensionTreeOps
 import scala.meta.parsers.Parse
 import scala.meta.parsers.Parsed
 import scala.meta.tokenizers.Tokenize
@@ -192,6 +193,7 @@ class ScalametaAST {
     ruleNameOption: Option[String],
     dialect: Option[String],
     patch: Option[String],
+    removeIfMods: Boolean,
   ): Output = {
     val input = convert.apply(src)
     val (ast, astBuildMs) = stopwatch {
@@ -230,8 +232,35 @@ class ScalametaAST {
               x2 <- dialects
             } yield (x1, x2)
           )
-          scalametaBugWorkaround.foldLeft(tree.structure) { case (s, (x1, x2)) =>
+          val str = scalametaBugWorkaround.foldLeft(tree.structure) { case (s, (x1, x2)) =>
             s.replace(x1, x2)
+          }
+          if (removeIfMods && tree.collectFirst { case _: Term.If => () }.nonEmpty) {
+            val positions = implicitly[Parse[Term]]
+              .apply(Input.String(str), scala.meta.dialects.Scala3)
+              .get
+              .collect {
+                case x @ Term.Apply(
+                      Term.Select(
+                        Term.Name("Term"),
+                        Term.Name("If")
+                      ),
+                      _ :: _ :: _ :: last :: Nil
+                    ) =>
+                  val startOpt =
+                    x.tokens.reverseIterator.filter(_.is[Token.Comma]).find(_.pos.start < last.pos.start).map(_.start)
+                  val endOpt = x.tokens.reverseIterator.find(_.is[Token.RightParen]).map(_.pos.end - 1)
+
+                  startOpt.zip(endOpt)
+              }
+              .flatten
+            str.zipWithIndex.flatMap { case (char, pos) =>
+              Option.unless(positions.exists { case (start, end) => start <= pos && pos < end }) {
+                char
+              }
+            }.mkString
+          } else {
+            str
           }
       }
     }
