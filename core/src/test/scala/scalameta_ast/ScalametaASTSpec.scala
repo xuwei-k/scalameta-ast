@@ -21,6 +21,7 @@ class ScalametaASTSpec extends AnyFreeSpec {
         ruleNameOption = None,
         dialect = None,
         patch = None,
+        removeIfMods = true,
       )
       val expect = s"""package package_name
          |
@@ -59,6 +60,49 @@ class ScalametaASTSpec extends AnyFreeSpec {
       assert(result.ast == expect)
     }
 
+    "remove Term.If mods" in {
+      Seq[(Boolean, String)](
+        true ->
+          """|Term.If(
+           |  Term.Name("a"),
+           |  Term.Name("b"),
+           |  Term.If(
+           |    Term.Name("x"),
+           |    Term.Name("y"),
+           |    Term.Select(Term.Name("z"), Term.Name("f"))
+           |  )
+           |)
+           |""".stripMargin,
+        false ->
+          """|Term.If(
+             |  Term.Name("a"),
+             |  Term.Name("b"),
+             |  Term.If(
+             |    Term.Name("x"),
+             |    Term.Name("y"),
+             |    Term.Select(Term.Name("z"), Term.Name("f")),
+             |    Nil
+             |  ),
+             |  Nil
+             |)
+             |""".stripMargin
+      ).foreach { case (remove, expect) =>
+        val result = main.convert(
+          src = """if a then b else (if(x) y else z.f)""",
+          format = true,
+          scalafmtConfig = metaconfig.Conf.Obj.empty,
+          outputType = "",
+          packageName = None,
+          wildcardImport = false,
+          ruleNameOption = None,
+          dialect = None,
+          patch = None,
+          removeIfMods = remove,
+        )
+        assert(result.ast == expect)
+      }
+    }
+
     "invalid tree" in {
       val result = main.convert(
         src = """(""",
@@ -70,6 +114,7 @@ class ScalametaASTSpec extends AnyFreeSpec {
         ruleNameOption = None,
         dialect = None,
         patch = None,
+        removeIfMods = true,
       )
       val expect =
         """Seq(Token.BOF, Token.LeftParen, Token.EOF)
@@ -88,6 +133,7 @@ class ScalametaASTSpec extends AnyFreeSpec {
         ruleNameOption = None,
         dialect = Some("Scala213"),
         patch = None,
+        removeIfMods = true,
       )
       val expect = """Seq(
         |  Token.BOF,
