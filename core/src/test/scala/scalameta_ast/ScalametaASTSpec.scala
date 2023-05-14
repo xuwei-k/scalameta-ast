@@ -135,6 +135,116 @@ class ScalametaASTSpec extends AnyFreeSpec {
       }
     }
 
+    "remove Defn.Type bounds" in {
+      Seq[Boolean](
+        true,
+        false
+      ).foreach { remove =>
+        val result = main.convert(
+          src = """type A = B""",
+          format = true,
+          scalafmtConfig = metaconfig.Conf.Obj.empty,
+          outputType = "",
+          packageName = None,
+          wildcardImport = false,
+          ruleNameOption = None,
+          dialect = Some("Scala3"),
+          patch = None,
+          removeNewFields = remove,
+        )
+
+        val expect = ScalametaASTTestBuildInfo.scalametaVersion match {
+          case "4.6.0" =>
+            if (remove) {
+              """Defn.Type(Nil, Type.Name("A"), Nil, Type.Name("B"))
+                |""".stripMargin
+            } else {
+              """Defn.Type(Nil, Type.Name("A"), Nil, Type.Name("B"), Type.Bounds(None, None))
+                |""".stripMargin
+            }
+          case "4.7.7" =>
+            if (remove) {
+              """Defn.Type(Nil, Type.Name("A"), Type.ParamClause(Nil), Type.Name("B"))
+                |""".stripMargin
+            } else {
+              """Defn.Type(
+                |  Nil,
+                |  Type.Name("A"),
+                |  Type.ParamClause(Nil),
+                |  Type.Name("B"),
+                |  Type.Bounds(None, None)
+                |)
+                |""".stripMargin
+            }
+        }
+        assert(result.ast == expect)
+      }
+    }
+
+    "remove Template derives" in {
+      Seq[Boolean](
+        true,
+        false
+      ).foreach { remove =>
+        val result = main.convert(
+          src = """class A derives B""",
+          format = true,
+          scalafmtConfig = metaconfig.Conf.Obj.empty,
+          outputType = "",
+          packageName = None,
+          wildcardImport = false,
+          ruleNameOption = None,
+          dialect = Some("Scala3"),
+          patch = None,
+          removeNewFields = remove,
+        )
+
+        val expect = ScalametaASTTestBuildInfo.scalametaVersion match {
+          case "4.6.0" =>
+            if (remove) {
+              """Defn.Class(
+                |  Nil,
+                |  Type.Name("A"),
+                |  Nil,
+                |  Ctor.Primary(Nil, Name(""), Nil),
+                |  Template(Nil, Nil, Self(Name(""), None), Nil)
+                |)
+                |""".stripMargin
+            } else {
+              """Defn.Class(
+                |  Nil,
+                |  Type.Name("A"),
+                |  Nil,
+                |  Ctor.Primary(Nil, Name(""), Nil),
+                |  Template(Nil, Nil, Self(Name(""), None), Nil, List(Type.Name("B")))
+                |)
+                |""".stripMargin
+            }
+          case "4.7.7" =>
+            if (remove) {
+              """Defn.Class(
+                |  Nil,
+                |  Type.Name("A"),
+                |  Type.ParamClause(Nil),
+                |  Ctor.Primary(Nil, Name(""), Nil),
+                |  Template(Nil, Nil, Self(Name(""), None), Nil)
+                |)
+                |""".stripMargin
+            } else {
+              """Defn.Class(
+                |  Nil,
+                |  Type.Name("A"),
+                |  Type.ParamClause(Nil),
+                |  Ctor.Primary(Nil, Name(""), Nil),
+                |  Template(Nil, Nil, Self(Name(""), None), Nil, List(Type.Name("B")))
+                |)
+                |""".stripMargin
+            }
+        }
+        assert(result.ast == expect)
+      }
+    }
+
     "invalid tree" in {
       val result = main.convert(
         src = """(""",

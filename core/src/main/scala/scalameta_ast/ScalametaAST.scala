@@ -188,6 +188,8 @@ class ScalametaAST {
       tree.collectFirst {
         case _: Term.If => ()
         case _: Term.Match => ()
+        case _: Defn.Type => ()
+        case _: Template => ()
       }.nonEmpty
     ) {
       val positions = implicitly[Parse[Term]]
@@ -208,6 +210,19 @@ class ScalametaAST {
                   Term.Name("Match")
                 ),
                 _ :: _ :: last :: Nil
+              ) =>
+            (x.tokens, last)
+          case x @ Term.Apply(
+                Term.Select(
+                  Term.Name("Defn"),
+                  Term.Name("Type")
+                ),
+                _ :: _ :: _ :: _ :: last :: Nil
+              ) =>
+            (x.tokens, last)
+          case x @ Term.Apply(
+                Term.Name("Template"),
+                _ :: _ :: _ :: _ :: last :: Nil
               ) =>
             (x.tokens, last)
         }
