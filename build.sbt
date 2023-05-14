@@ -43,6 +43,8 @@ lazy val `scalameta-ast` = projectMatrix
   .jvmPlatform(
     scalaVersions = Scala213 :: Nil,
     settings = Def.settings(
+      metaVersion := (LocalProject("scalameta-ast-latestJS") / metaVersion).value,
+      testBuildInfo,
       libraryDependencies += "org.scalameta" %%% "scalafmt-core" % "3.7.3",
       Test / resourceGenerators += Def.task {
         val v1 = (LocalProject("scalameta-ast-latestJS") / metaTreesSource).value
@@ -77,6 +79,23 @@ lazy val `scalameta-ast` = projectMatrix
 lazy val metaVersion = taskKey[String]("")
 lazy val metaTreesSource = taskKey[String]("")
 
+lazy val testBuildInfo = {
+  Test / sourceGenerators += Def.task {
+    val x = "ScalametaASTTestBuildInfo"
+    val f = (Test / sourceManaged).value / s"${x}.scala"
+    IO.write(
+      f,
+      s"""|package scalameta_ast
+          |
+          |object ${x} {
+          |  def scalametaVersion: String = "${metaVersion.value}"
+          |}
+          |""".stripMargin
+    )
+    f :: Nil
+  }
+}
+
 lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
   scalaJSLinkerConfig ~= {
     _.withESFeatures(_.withESVersion(org.scalajs.linker.interface.ESVersion.ES2018))
@@ -106,6 +125,7 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
       IO.read(file)
     }
   },
+  testBuildInfo,
   metaVersion := {
     val s = scalaBinaryVersion.value
     val x1 = s"https/repo1.maven.org/maven2/org/scalameta/parsers_sjs1_${s}/"
