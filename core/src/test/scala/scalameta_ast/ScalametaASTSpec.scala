@@ -60,6 +60,77 @@ class ScalametaASTSpec extends AnyFreeSpec {
       assert(result.ast == expect)
     }
 
+    "import" in {
+      val result = main.convert(
+        src = (
+          "Case",
+          "Ctor",
+          "Decl",
+          "Defn",
+          "Defn",
+          "Export",
+          "Import",
+          "Importee",
+          "Init",
+          "Member",
+          "Mod",
+          "Pkg",
+          "Ref",
+          "Self",
+          "Stat",
+          "Template",
+          "Type"
+        ).toString,
+        format = true,
+        scalafmtConfig = metaconfig.Conf.Obj.empty,
+        outputType = "syntactic",
+        packageName = Option("package_name"),
+        wildcardImport = false,
+        ruleNameOption = None,
+        dialect = None,
+        patch = Some("empty"),
+        removeNewFields = true,
+      )
+      val expect =
+        s"""package package_name
+           |
+           |import scala.meta.Term
+           |import scalafix.Patch
+           |import scalafix.v1.SyntacticDocument
+           |import scalafix.v1.SyntacticRule
+           |
+           |class Example extends SyntacticRule("Example") {
+           |  override def fix(implicit doc: SyntacticDocument): Patch = {
+           |    doc.tree.collect {
+           |      case t @ Term.Tuple(
+           |            List(
+           |              Term.Name("Case"),
+           |              Term.Name("Ctor"),
+           |              Term.Name("Decl"),
+           |              Term.Name("Defn"),
+           |              Term.Name("Defn"),
+           |              Term.Name("Export"),
+           |              Term.Name("Import"),
+           |              Term.Name("Importee"),
+           |              Term.Name("Init"),
+           |              Term.Name("Member"),
+           |              Term.Name("Mod"),
+           |              Term.Name("Pkg"),
+           |              Term.Name("Ref"),
+           |              Term.Name("Self"),
+           |              Term.Name("Stat"),
+           |              Term.Name("Template"),
+           |              Term.Name("Type")
+           |            )
+           |          ) =>
+           |        Patch.empty
+           |    }.asPatch
+           |  }
+           |}
+           |""".stripMargin
+      assert(result.ast == expect)
+    }
+
     "remove Term.If mods" in {
       Seq[(Boolean, String)](
         true ->
