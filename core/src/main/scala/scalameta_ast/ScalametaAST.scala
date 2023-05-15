@@ -183,7 +183,7 @@ class ScalametaAST {
     }.map("Token." + _).mkString("Seq(", ", ", ")")
   }
 
-  private def removeModsFields(tree: Tree, str: String): String = {
+  private def removeModsFields(tree: Tree, parsed: Term, str: String): String = {
     if (
       tree.collectFirst {
         case _: Term.If => ()
@@ -192,47 +192,43 @@ class ScalametaAST {
         case _: Template => ()
       }.nonEmpty
     ) {
-      val positions = implicitly[Parse[Term]]
-        .apply(Input.String(str), scala.meta.dialects.Scala3)
-        .get
-        .collect {
-          case x @ Term.Apply(
-                Term.Select(
-                  Term.Name("Term"),
-                  Term.Name("If")
-                ),
-                _ :: _ :: _ :: last :: Nil
-              ) =>
-            (x.tokens, last)
-          case x @ Term.Apply(
-                Term.Select(
-                  Term.Name("Term"),
-                  Term.Name("Match")
-                ),
-                _ :: _ :: last :: Nil
-              ) =>
-            (x.tokens, last)
-          case x @ Term.Apply(
-                Term.Select(
-                  Term.Name("Defn"),
-                  Term.Name("Type")
-                ),
-                _ :: _ :: _ :: _ :: last :: Nil
-              ) =>
-            (x.tokens, last)
-          case x @ Term.Apply(
-                Term.Name("Template"),
-                _ :: _ :: _ :: _ :: last :: Nil
-              ) =>
-            (x.tokens, last)
-        }
-        .flatMap { case (tokens, toRemove) =>
-          val startOpt =
-            tokens.reverseIterator.filter(_.is[Token.Comma]).find(_.pos.start < toRemove.pos.start).map(_.start)
-          val endOpt =
-            tokens.reverseIterator.find(_.is[Token.RightParen]).map(_.pos.end - 1)
-          startOpt.zip(endOpt)
-        }
+      val positions = parsed.collect {
+        case x @ Term.Apply(
+              Term.Select(
+                Term.Name("Term"),
+                Term.Name("If")
+              ),
+              _ :: _ :: _ :: last :: Nil
+            ) =>
+          (x.tokens, last)
+        case x @ Term.Apply(
+              Term.Select(
+                Term.Name("Term"),
+                Term.Name("Match")
+              ),
+              _ :: _ :: last :: Nil
+            ) =>
+          (x.tokens, last)
+        case x @ Term.Apply(
+              Term.Select(
+                Term.Name("Defn"),
+                Term.Name("Type")
+              ),
+              _ :: _ :: _ :: _ :: last :: Nil
+            ) =>
+          (x.tokens, last)
+        case x @ Term.Apply(
+              Term.Name("Template"),
+              _ :: _ :: _ :: _ :: last :: Nil
+            ) =>
+          (x.tokens, last)
+      }.flatMap { case (tokens, toRemove) =>
+        val startOpt =
+          tokens.reverseIterator.filter(_.is[Token.Comma]).find(_.pos.start < toRemove.pos.start).map(_.start)
+        val endOpt =
+          tokens.reverseIterator.find(_.is[Token.RightParen]).map(_.pos.end - 1)
+        startOpt.zip(endOpt)
+      }
 
       str.zipWithIndex.flatMap { case (char, pos) =>
         Option.unless(positions.exists { case (start, end) => start <= pos && pos < end }) {
@@ -257,7 +253,7 @@ class ScalametaAST {
     removeNewFields: Boolean,
   ): Output = {
     val input = convert.apply(src)
-    val (ast, astBuildMs) = stopwatch {
+    val ((ast, parsedOpt), astBuildMs) = stopwatch {
       val dialects = dialect.fold(dialectsDefault) { x =>
         stringToDialects.getOrElse(
           x, {
@@ -283,7 +279,7 @@ class ScalametaAST {
                 implicitly[Tokenize].apply(input, d).get
             }
           }
-          tokensToString(loop(input, dialects))
+          tokensToString(loop(input, dialects)) -> None
 
         case _ =>
           val tree = loopParse(
@@ -296,10 +292,11 @@ class ScalametaAST {
           val str = scalametaBugWorkaround.foldLeft(tree.structure) { case (s, (x1, x2)) =>
             s.replace(x1, x2)
           }
+          lazy val parsed = implicitly[Parse[Term]].apply(Input.String(str), scala.meta.dialects.Scala3).get
           if (removeNewFields) {
-            removeModsFields(tree = tree, str = str)
+            removeModsFields(tree = tree, parsed = parsed, str = str) -> Some(() => parsed)
           } else {
-            str
+            str -> Some(() => parsed)
           }
       }
     }
@@ -319,6 +316,7 @@ class ScalametaAST {
             ruleName = ruleName,
             ruleNameRaw = ruleNameRaw,
             patch = patch,
+            parsed = parsedOpt.get,
           )
         case "syntactic" =>
           syntactic(
@@ -328,6 +326,7 @@ class ScalametaAST {
             ruleName = ruleName,
             ruleNameRaw = ruleNameRaw,
             patch = patch,
+            parsed = parsedOpt.get,
           )
         case _ =>
           ast
@@ -341,26 +340,30 @@ class ScalametaAST {
     Output(res, astBuildMs, formatMs)
   }
 
-  private def imports(src: String): Seq[String] = {
+  private def imports(src: String, parsed: Term): Seq[String] = {
+    val names = parsed.collect { case Term.Name(x) => x }.toSet
     // TODO more better way
-    val termName = "Term.Name"
-    val typeName = "Type.Name"
     val name = "Name"
-    val termOrTypeNameCount = src.sliding(termName.length).count(x => x == termName || x == typeName)
+    val termOrTypeNameCount = parsed.collect {
+      case Term.Select(Term.Name("Term"), Term.Name("Name")) =>
+        ()
+      case Term.Select(Term.Name("Type"), Term.Name("Name")) =>
+        ()
+    }.size
     val nameCount = src.sliding(name.length).count(_ == name)
     val values = if (termOrTypeNameCount == nameCount) {
       topLevelScalametaDefinitions.filterNot(_ == classOf[scala.meta.Name])
     } else {
       topLevelScalametaDefinitions
     }
-    values.map(_.getSimpleName).filter(src.contains).map(x => s"import scala.meta.${x}")
+    values.map(_.getSimpleName).filter(names).map(x => s"import scala.meta.${x}")
   }
 
-  private def header(x: String, packageName: Option[String], wildcardImport: Boolean): String = {
+  private def header(x: String, packageName: Option[String], wildcardImport: Boolean, parsed: () => Term): String = {
     val pkg = packageName.fold("") { x =>
       s"package ${x.split('.').map(s => if (isValidTermName(s)) s else s"`${s}`").mkString(".")}\n\n"
     }
-    val i = if (wildcardImport) "import scala.meta._" else imports(x).mkString("\n")
+    val i = if (wildcardImport) "import scala.meta._" else imports(x, parsed.apply()).mkString("\n")
     s"${pkg}${i}"
   }
 
@@ -406,6 +409,7 @@ class ScalametaAST {
     ruleName: String,
     ruleNameRaw: String,
     patch: Option[String],
+    parsed: () => Term
   ): String = {
     val p = patchCode(patch)
     val imports = List[List[String]](
@@ -416,7 +420,7 @@ class ScalametaAST {
         "scalafix.v1.SyntacticRule",
       )
     ).flatten.map("import " + _)
-    s"""${header(x = x, packageName = packageName, wildcardImport = wildcardImport)}
+    s"""${header(x = x, packageName = packageName, wildcardImport = wildcardImport, parsed = parsed)}
        |${imports.mkString("\n")}
        |
        |class ${ruleName} extends SyntacticRule("${ruleNameRaw}") {
@@ -437,6 +441,7 @@ class ScalametaAST {
     ruleName: String,
     ruleNameRaw: String,
     patch: Option[String],
+    parsed: () => Term
   ): String = {
     val p = patchCode(patch)
     val imports = List[List[String]](
@@ -447,7 +452,7 @@ class ScalametaAST {
         "scalafix.v1.SemanticRule",
       )
     ).flatten.map("import " + _)
-    s"""${header(x = x, packageName = packageName, wildcardImport = wildcardImport)}
+    s"""${header(x = x, packageName = packageName, wildcardImport = wildcardImport, parsed = parsed)}
        |${imports.mkString("\n")}
        |
        |class ${ruleName} extends SemanticRule("${ruleNameRaw}") {
