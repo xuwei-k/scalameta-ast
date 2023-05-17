@@ -252,9 +252,57 @@ class ScalametaAST {
     patch: Option[String],
     removeNewFields: Boolean,
   ): Output = {
-    val input = convert.apply(src)
+    convert(
+      outputType match {
+        case "tokens" =>
+          Args.Token(
+            src = src,
+            format = format,
+            scalafmtConfig = scalafmtConfig,
+            dialect = dialect,
+            removeNewFields = removeNewFields,
+          )
+        case "syntactic" =>
+          Args.Syntactic(
+            src = src,
+            format = format,
+            scalafmtConfig = scalafmtConfig,
+            dialect = dialect,
+            removeNewFields = removeNewFields,
+            packageName = packageName,
+            wildcardImport = wildcardImport,
+            ruleNameOption = ruleNameOption,
+            patch = patch,
+          )
+        case "semantic" =>
+          Args.Semantic(
+            src = src,
+            format = format,
+            scalafmtConfig = scalafmtConfig,
+            dialect = dialect,
+            removeNewFields = removeNewFields,
+            packageName = packageName,
+            wildcardImport = wildcardImport,
+            ruleNameOption = ruleNameOption,
+            patch = patch,
+          )
+        case _ =>
+          Args.Raw(
+            src = src,
+            format = format,
+            scalafmtConfig = scalafmtConfig,
+            dialect = dialect,
+            removeNewFields = removeNewFields,
+          )
+      }
+    )
+  }
+  def convert(
+    args: Args
+  ): Output = {
+    val input = convert.apply(args.src)
     val ((ast, parsedOpt), astBuildMs) = stopwatch {
-      val dialects = dialect.fold(dialectsDefault) { x =>
+      val dialects = args.dialect.fold(dialectsDefault) { x =>
         stringToDialects.getOrElse(
           x, {
             Console.err.println(s"invalid dialct ${x}")
@@ -263,8 +311,8 @@ class ScalametaAST {
         )
       }
 
-      outputType match {
-        case "tokens" =>
+      args match {
+        case _: Args.Token =>
           @tailrec
           def loop(input: Input, xs: List[Dialect]): Tokens = {
             (xs: @unchecked) match {
@@ -293,46 +341,52 @@ class ScalametaAST {
             s.replace(x1, x2)
           }
           lazy val parsed = implicitly[Parse[Term]].apply(Input.String(str), scala.meta.dialects.Scala3).get
-          if (removeNewFields) {
-            removeModsFields(tree = tree, parsed = parsed, str = str) -> Some(() => parsed)
+          val parsedOpt = PartialFunction.condOpt(args) { case x: ScalafixRule =>
+            ParsedValue(() => parsed, x)
+          }
+          if (args.removeNewFields) {
+            removeModsFields(tree = tree, parsed = parsed, str = str) -> parsedOpt
           } else {
-            str -> Some(() => parsed)
+            str -> parsedOpt
           }
       }
     }
 
-    val ruleNameRaw = ruleNameOption.getOrElse("Example").filterNot(char => char == '`' || char == '"')
-    val ruleName = {
-      if (isValidTermName(ruleNameRaw)) ruleNameRaw else s"`${ruleNameRaw}`"
-    }
-
     val (res, formatMs) = stopwatch {
-      val ast0 = outputType match {
-        case "semantic" =>
-          semantic(
-            x = ast,
-            packageName = packageName,
-            wildcardImport = wildcardImport,
-            ruleName = ruleName,
-            ruleNameRaw = ruleNameRaw,
-            patch = patch,
-            parsed = parsedOpt.get,
-          )
-        case "syntactic" =>
-          syntactic(
-            x = ast,
-            packageName = packageName,
-            wildcardImport = wildcardImport,
-            ruleName = ruleName,
-            ruleNameRaw = ruleNameRaw,
-            patch = patch,
-            parsed = parsedOpt.get,
-          )
+      val ast0 = parsedOpt match {
+        case Some(a0) =>
+          val ruleNameRaw = a0.args.ruleNameOption.getOrElse("Example").filterNot(char => char == '`' || char == '"')
+          val ruleName = {
+            if (isValidTermName(ruleNameRaw)) ruleNameRaw else s"`${ruleNameRaw}`"
+          }
+
+          a0.args match {
+            case a: Args.Semantic =>
+              semantic(
+                x = ast,
+                packageName = a.packageName,
+                wildcardImport = a.wildcardImport,
+                ruleName = ruleName,
+                ruleNameRaw = ruleNameRaw,
+                patch = a.patch,
+                parsed = a0.value,
+              )
+            case a: Args.Syntactic =>
+              syntactic(
+                x = ast,
+                packageName = a.packageName,
+                wildcardImport = a.wildcardImport,
+                ruleName = ruleName,
+                ruleNameRaw = ruleNameRaw,
+                patch = a.patch,
+                parsed = a0.value,
+              )
+          }
         case _ =>
           ast
       }
-      if (format) {
-        runFormat(source = ast0, scalafmtConfig)
+      if (args.format) {
+        runFormat(source = ast0, args.scalafmtConfig)
       } else {
         ast0
       }
