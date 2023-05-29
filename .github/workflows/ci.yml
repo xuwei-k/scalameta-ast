@@ -30,7 +30,7 @@ jobs:
            test
            copyFilesFull
     - if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && github.repository_owner == 'xuwei-k' }}
-      uses: JamesIves/github-pages-deploy-action@v4.4.1
+      uses: JamesIves/github-pages-deploy-action@v4.4.2
       with:
         branch: gh-pages
         folder: sources
