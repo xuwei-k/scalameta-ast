@@ -233,7 +233,7 @@ class ScalametaASTSpec extends AnyFreeSpec {
               """Defn.Type(Nil, Type.Name("A"), Nil, Type.Name("B"), Type.Bounds(None, None))
                 |""".stripMargin
             }
-          case "4.7.7" =>
+          case "4.7.8" =>
             if (remove) {
               """Defn.Type(Nil, Type.Name("A"), Type.ParamClause(Nil), Type.Name("B"))
                 |""".stripMargin
@@ -291,7 +291,7 @@ class ScalametaASTSpec extends AnyFreeSpec {
                 |)
                 |""".stripMargin
             }
-          case "4.7.7" =>
+          case "4.7.8" =>
             if (remove) {
               """Defn.Class(
                 |  Nil,
