@@ -65,8 +65,7 @@
                 <input
                   type="checkbox"
                   id="remove_new_fields"
-                  name="wremove_new_fields"
-                  checked
+                  name="remove_new_fields"
                 />
                 <label for="remove_new_fields"
                   >remove <code>@newField</code> for
@@ -149,9 +148,11 @@
                 <label for="scalameta">scalameta version</label>
                 <select name="scalameta" id="scalameta">
                   <option id="scalameta_scalafix_compat" value="scalafix">
-                    scalafix compatible
+                    scalafix 0.10.x compatible
                   </option>
-                  <option id="scalameta_latest" value="latest">latest</option>
+                  <option id="scalameta_latest" value="latest">
+                    scalafix 0.11.x compatible
+                  </option>
                 </select>
               </div>
             </div>
