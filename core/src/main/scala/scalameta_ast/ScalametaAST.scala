@@ -183,6 +183,41 @@ class ScalametaAST {
     }.map("Token." + _).mkString("Seq(", ", ", ")")
   }
 
+  private def addAfterExtractor(parsed: Term, str: String): String = {
+    if (AfterExtractor.enable) {
+      val values = parsed.collect {
+        case t @ Term.Select(Term.Name(x1), Term.Name(x2)) =>
+          AfterExtractor.values.collect { case AfterExtractor.E2(`x1`, `x2`, e) =>
+            t.pos -> e
+          }
+        case t @ Term.Name(x1) =>
+          AfterExtractor.values.collect { case AfterExtractor.E1(`x1`, e) =>
+            t.pos -> e
+          }
+      }.flatten.sortBy(_._1.start)
+
+      @tailrec
+      def loop(acc: List[String], code: String, consumed: Int, src: List[(Position, String)]): List[String] = {
+        src match {
+          case head :: tail =>
+            val (x1, x2) = code.splitAt(head._1.end - consumed)
+            loop(
+              s".${head._2}" :: x1 :: acc,
+              x2,
+              x1.length + consumed,
+              tail
+            )
+          case Nil =>
+            (code :: acc).reverse
+        }
+      }
+
+      loop(Nil, str, 0, values).mkString
+    } else {
+      str
+    }
+  }
+
   private def removeModsFields(tree: Tree, parsed: Term, str: String): String = {
     if (
       tree.collectFirst {
@@ -347,7 +382,7 @@ class ScalametaAST {
           if (args.removeNewFields) {
             removeModsFields(tree = tree, parsed = parsed, str = str) -> parsedOpt
           } else {
-            str -> parsedOpt
+            addAfterExtractor(parsed = parsed, str = str) -> parsedOpt
           }
       }
     }
