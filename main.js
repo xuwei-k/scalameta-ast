@@ -8,7 +8,7 @@ $(() => {
   [ScalametaAstMainLatest, ScalametaAstMainScalafixCompat].forEach((main) => {
     try {
       // force initialize for avoid error
-      main.convert("", true, "", "", "", false, "", "", "");
+      main.convert("", true, "", "", "", false, "", "", "", false);
     } catch (e) {
       console.log(e);
     }
