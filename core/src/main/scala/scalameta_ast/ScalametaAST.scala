@@ -183,39 +183,35 @@ class ScalametaAST {
     }.map("Token." + _).mkString("Seq(", ", ", ")")
   }
 
-  private def addAfterExtractor(parsed: Term, str: String): String = {
-    if (AfterExtractor.enable) {
-      val values = parsed.collect {
-        case t @ Term.Select(Term.Name(x1), Term.Name(x2)) =>
-          AfterExtractor.values.collect { case AfterExtractor.E2(`x1`, `x2`, e) =>
-            t.pos -> e
-          }
-        case t @ Term.Name(x1) =>
-          AfterExtractor.values.collect { case AfterExtractor.E1(`x1`, e) =>
-            t.pos -> e
-          }
-      }.flatten.sortBy(_._1.start)
-
-      @tailrec
-      def loop(acc: List[String], code: String, consumed: Int, src: List[(Position, String)]): List[String] = {
-        src match {
-          case head :: tail =>
-            val (x1, x2) = code.splitAt(head._1.end - consumed)
-            loop(
-              s".${head._2}" :: x1 :: acc,
-              x2,
-              x1.length + consumed,
-              tail
-            )
-          case Nil =>
-            (code :: acc).reverse
+  private def addExtractor(parsed: Term, str: String, extractor: String => String): String = {
+    val values = parsed.collect {
+      case t @ Term.Select(Term.Name(x1), Term.Name(x2)) =>
+        AfterExtractor.values.collect { case AfterExtractor.E2(`x1`, `x2`, e) =>
+          t.pos -> e
         }
-      }
+      case t @ Term.Name(x1) =>
+        AfterExtractor.values.collect { case AfterExtractor.E1(`x1`, e) =>
+          t.pos -> e
+        }
+    }.flatten.sortBy(_._1.start)
 
-      loop(Nil, str, 0, values).mkString
-    } else {
-      str
+    @tailrec
+    def loop(acc: List[String], code: String, consumed: Int, src: List[(Position, String)]): List[String] = {
+      src match {
+        case head :: tail =>
+          val (x1, x2) = code.splitAt(head._1.end - consumed)
+          loop(
+            s".${extractor(head._2)}" :: x1 :: acc,
+            x2,
+            x1.length + consumed,
+            tail
+          )
+        case Nil =>
+          (code :: acc).reverse
+      }
     }
+
+    loop(Nil, str, 0, values).mkString
   }
 
   private def removeModsFields(tree: Tree, parsed: Term, str: String): String = {
@@ -286,6 +282,7 @@ class ScalametaAST {
     dialect: Option[String],
     patch: Option[String],
     removeNewFields: Boolean,
+    initialExtractor: Boolean,
   ): Output = {
     convert(
       outputType match {
@@ -307,6 +304,7 @@ class ScalametaAST {
             wildcardImport = wildcardImport,
             ruleNameOption = ruleNameOption,
             patch = patch,
+            initialExtractor = initialExtractor,
           )
         case "semantic" =>
           Args.Semantic(
@@ -319,6 +317,7 @@ class ScalametaAST {
             wildcardImport = wildcardImport,
             ruleNameOption = ruleNameOption,
             patch = patch,
+            initialExtractor = initialExtractor,
           )
         case _ =>
           Args.Raw(
@@ -327,6 +326,7 @@ class ScalametaAST {
             scalafmtConfig = scalafmtConfig,
             dialect = dialect,
             removeNewFields = removeNewFields,
+            initialExtractor = initialExtractor,
           )
       }
     )
@@ -378,10 +378,24 @@ class ScalametaAST {
           val parsedOpt = PartialFunction.condOpt(args) { case x: ScalafixRule =>
             ParsedValue(() => parsed, x)
           }
-          if (a.removeNewFields && !AfterExtractor.enable) {
-            removeModsFields(tree = tree, parsed = parsed, str = str) -> parsedOpt
+
+          if (AfterExtractor.enable) {
+            addExtractor(parsed = parsed, str = str, identity) -> parsedOpt
           } else {
-            addAfterExtractor(parsed = parsed, str = str) -> parsedOpt
+            if (a.removeNewFields) {
+              val str2 = removeModsFields(tree = tree, parsed = parsed, str = str)
+              if (a.initialExtractor) {
+                val parsed2 = implicitly[Parse[Term]].apply(Input.String(str2), scala.meta.dialects.Scala3).get
+                val parsedOpt2 = PartialFunction.condOpt(args) { case x: ScalafixRule =>
+                  ParsedValue(() => parsed2, x)
+                }
+                addExtractor(parsed = parsed2, str = str2, Function.const("Initial")) -> parsedOpt2
+              } else {
+                str2 -> parsedOpt
+              }
+            } else {
+              str -> parsedOpt
+            }
           }
       }
     }
