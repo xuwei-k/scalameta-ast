@@ -379,7 +379,7 @@ class ScalametaAST {
           val parsedOpt = PartialFunction.condOpt(args) { case x: ScalafixRule =>
             ParsedValue(() => parsed, x)
           }
-          if (args.removeNewFields) {
+          if (args.removeNewFields && !AfterExtractor.enable) {
             removeModsFields(tree = tree, parsed = parsed, str = str) -> parsedOpt
           } else {
             addAfterExtractor(parsed = parsed, str = str) -> parsedOpt
