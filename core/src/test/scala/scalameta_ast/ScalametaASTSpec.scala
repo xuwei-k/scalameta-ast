@@ -22,6 +22,7 @@ class ScalametaASTSpec extends AnyFreeSpec {
         dialect = None,
         patch = None,
         removeNewFields = true,
+        initialExtractor = false,
       )
       val expect = s"""package package_name
          |
@@ -90,6 +91,7 @@ class ScalametaASTSpec extends AnyFreeSpec {
         dialect = None,
         patch = Some("empty"),
         removeNewFields = true,
+        initialExtractor = false,
       )
       val expect =
         s"""package package_name
@@ -143,6 +145,7 @@ class ScalametaASTSpec extends AnyFreeSpec {
         dialect = None,
         patch = None,
         removeNewFields = true,
+        initialExtractor = false,
       )
       val expect =
         """Seq(Token.BOF, Token.LeftParen, Token.EOF)
@@ -162,6 +165,7 @@ class ScalametaASTSpec extends AnyFreeSpec {
         dialect = Some("Scala213"),
         patch = None,
         removeNewFields = true,
+        initialExtractor = false,
       )
       val expect = """Seq(
         |  Token.BOF,

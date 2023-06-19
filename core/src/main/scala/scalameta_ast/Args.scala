@@ -12,6 +12,7 @@ sealed abstract class Args extends Product with Serializable {
 sealed abstract class NotToken extends Args {
   def removeNewFields: Boolean
 
+  def initialExtractor: Boolean
 }
 sealed abstract class ScalafixRule extends NotToken {
   def packageName: Option[String]
@@ -33,6 +34,7 @@ object Args {
     scalafmtConfig: Conf,
     dialect: Option[String],
     removeNewFields: Boolean,
+    initialExtractor: Boolean,
   ) extends NotToken
 
   case class Syntactic(
@@ -45,6 +47,7 @@ object Args {
     wildcardImport: Boolean,
     ruleNameOption: Option[String],
     patch: Option[String],
+    initialExtractor: Boolean,
   ) extends ScalafixRule
 
   case class Semantic(
@@ -57,5 +60,6 @@ object Args {
     wildcardImport: Boolean,
     ruleNameOption: Option[String],
     patch: Option[String],
+    initialExtractor: Boolean,
   ) extends ScalafixRule
 }
