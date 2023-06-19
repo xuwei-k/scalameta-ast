@@ -295,7 +295,6 @@ class ScalametaAST {
             format = format,
             scalafmtConfig = scalafmtConfig,
             dialect = dialect,
-            removeNewFields = removeNewFields,
           )
         case "syntactic" =>
           Args.Syntactic(
@@ -364,7 +363,7 @@ class ScalametaAST {
           }
           tokensToString(loop(input, dialects)) -> None
 
-        case _ =>
+        case a: NotToken =>
           val tree = loopParse(
             input,
             for {
@@ -379,7 +378,7 @@ class ScalametaAST {
           val parsedOpt = PartialFunction.condOpt(args) { case x: ScalafixRule =>
             ParsedValue(() => parsed, x)
           }
-          if (args.removeNewFields && !AfterExtractor.enable) {
+          if (a.removeNewFields && !AfterExtractor.enable) {
             removeModsFields(tree = tree, parsed = parsed, str = str) -> parsedOpt
           } else {
             addAfterExtractor(parsed = parsed, str = str) -> parsedOpt

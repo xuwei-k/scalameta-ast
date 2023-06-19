@@ -7,9 +7,13 @@ sealed abstract class Args extends Product with Serializable {
   def format: Boolean
   def scalafmtConfig: Conf
   def dialect: Option[String]
-  def removeNewFields: Boolean
 }
-sealed abstract class ScalafixRule extends Args {
+
+sealed abstract class NotToken extends Args {
+  def removeNewFields: Boolean
+
+}
+sealed abstract class ScalafixRule extends NotToken {
   def packageName: Option[String]
   def wildcardImport: Boolean
   def ruleNameOption: Option[String]
@@ -21,7 +25,6 @@ object Args {
     format: Boolean,
     scalafmtConfig: Conf,
     dialect: Option[String],
-    removeNewFields: Boolean,
   ) extends Args
 
   case class Raw(
@@ -30,7 +33,7 @@ object Args {
     scalafmtConfig: Conf,
     dialect: Option[String],
     removeNewFields: Boolean,
-  ) extends Args
+  ) extends NotToken
 
   case class Syntactic(
     src: String,
