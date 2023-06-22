@@ -8,7 +8,7 @@ $(() => {
   [ScalametaAstMainLatest, ScalametaAstMainScalafixCompat].forEach((main) => {
     try {
       // force initialize for avoid error
-      main.convert("", true, "", "", "", false, "", "", "", false);
+      main.convert("", true, "", "", "", false, "", "", "", false, false);
     } catch (e) {
       console.log(e);
     }
@@ -71,7 +71,8 @@ $(() => {
         ruleName === undefined ? "" : ruleName,
         dialect === undefined ? "" : dialect,
         patch === undefined ? "" : patch,
-        $("#remove_new_fields").prop("checked") === true
+        $("#remove_new_fields").prop("checked") === true,
+        $("#initial_extractor").prop("checked") === true
       );
       $("#output_scala").text(r.ast);
       $("#info")
@@ -165,6 +166,14 @@ $(() => {
     );
   });
 
+  $("#initial_extractor").change(() => {
+    run();
+    localStorage.setItem(
+      "initial_extractor",
+      ($("#initial_extractor").prop("checked") === true).toString()
+    );
+  });
+
   $(document).ready(() => {
     hljs.addPlugin(new CopyButtonPlugin());
 
@@ -237,6 +246,10 @@ $(() => {
 
     if (localStorage.getItem("remove_new_fields") === "false") {
       $("#remove_new_fields").prop("checked", false);
+    }
+
+    if (localStorage.getItem("initial_extractor") === "true") {
+      $("#initial_extractor").prop("checked", true);
     }
 
     switch (localStorage.getItem("output_type")) {
