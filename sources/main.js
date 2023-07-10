@@ -57,8 +57,8 @@ $(() => {
       ["package", "rule_name", "wildcard_import", "patch"].forEach((i) =>
         $(`#${i}`).prop(
           "disabled",
-          outputType === "raw" || outputType === "tokens"
-        )
+          outputType === "raw" || outputType === "tokens",
+        ),
       );
 
       const r = main.convert(
@@ -72,7 +72,7 @@ $(() => {
         dialect === undefined ? "" : dialect,
         patch === undefined ? "" : patch,
         $("#remove_new_fields").prop("checked") === true,
-        $("#initial_extractor").prop("checked") === true
+        $("#initial_extractor").prop("checked") === true,
       );
       $("#output_scala").text(r.ast);
       $("#info")
@@ -146,7 +146,7 @@ $(() => {
     run();
     localStorage.setItem(
       "format",
-      ($("#format").prop("checked") === true).toString()
+      ($("#format").prop("checked") === true).toString(),
     );
   });
 
@@ -154,7 +154,7 @@ $(() => {
     run();
     localStorage.setItem(
       "wildcard_import",
-      ($("#wildcard_import").prop("checked") === true).toString()
+      ($("#wildcard_import").prop("checked") === true).toString(),
     );
   });
 
@@ -162,7 +162,7 @@ $(() => {
     run();
     localStorage.setItem(
       "remove_new_fields",
-      ($("#remove_new_fields").prop("checked") === true).toString()
+      ($("#remove_new_fields").prop("checked") === true).toString(),
     );
   });
 
@@ -170,7 +170,7 @@ $(() => {
     run();
     localStorage.setItem(
       "initial_extractor",
-      ($("#initial_extractor").prop("checked") === true).toString()
+      ($("#initial_extractor").prop("checked") === true).toString(),
     );
   });
 
@@ -188,7 +188,7 @@ $(() => {
     if (savedScalameta != null) {
       $(`[name="scalameta"] option[value="${savedScalameta}"]`).prop(
         "selected",
-        true
+        true,
       );
     }
 
@@ -199,7 +199,7 @@ $(() => {
     if (savedDialect != null) {
       $(`[name="dialect"] option[value="${savedDialect}"]`).prop(
         "selected",
-        true
+        true,
       );
     }
 
@@ -268,13 +268,13 @@ $(() => {
 
     $.getJSON("./scalafix-compat/build_info.json", (data) => {
       document.getElementById(
-        "scalameta_scalafix_compat"
+        "scalameta_scalafix_compat",
       ).innerHTML += ` ${data.scalametaVersion}`;
     });
 
     $.getJSON("./latest/build_info.json", (data) => {
       document.getElementById(
-        "scalameta_latest"
+        "scalameta_latest",
       ).innerHTML += ` ${data.scalametaVersion}`;
 
       const githubUrl = `https://github.com/xuwei-k/scalameta-ast/tree/${data.gitHash}`;
