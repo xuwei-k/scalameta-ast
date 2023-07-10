@@ -15,6 +15,6 @@
   },
   "homepage": "https://github.com/xuwei-k/scalameta-ast#readme",
   "devDependencies": {
-    "prettier": "^2.8.8"
+    "prettier": "^3.0.0"
   }
 }
