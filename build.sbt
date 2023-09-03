@@ -28,7 +28,7 @@ commonSettings
 
 run / fork := true
 
-libraryDependencies += "org.slf4j" % "slf4j-simple" % "2.0.7" % Runtime
+libraryDependencies += "org.slf4j" % "slf4j-simple" % "2.0.9" % Runtime
 
 lazy val `scalameta-ast` = projectMatrix
   .in(file("core"))
