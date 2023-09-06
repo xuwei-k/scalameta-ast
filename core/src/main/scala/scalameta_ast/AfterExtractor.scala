@@ -52,6 +52,7 @@ object AfterExtractor extends AfterExtractorEnable {
     E2("Type", "Lambda", "After_4_6_0"),
     E2("Type", "Method", "After_4_6_0"),
     E2("Type", "Param", "After_4_6_0"),
-    E2("Type", "PolyFunction", "After_4_6_0")
+    E2("Type", "PolyFunction", "After_4_6_0"),
+    E2("Type", "TypedParam", "After_4_7_8"),
   )
 }
