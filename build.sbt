@@ -5,7 +5,7 @@ val unusedWarnings = Seq(
   "-Ywarn-unused",
 )
 
-def Scala213 = "2.13.11"
+def Scala213 = "2.13.12"
 
 val metaScalafixCompat = MetaCross("-scalafix-compat", "-scalafix_compat")
 val metaLatest = MetaCross("-latest", "-latest")
@@ -45,7 +45,7 @@ lazy val `scalameta-ast` = projectMatrix
     settings = Def.settings(
       metaVersion := (LocalProject("scalameta-ast-latestJS") / metaVersion).value,
       testBuildInfo,
-      libraryDependencies += "org.scalameta" %%% "scalafmt-core" % "3.7.4",
+      libraryDependencies += "org.scalameta" %%% "scalafmt-core" % "3.7.14",
       libraryDependencies += "com.google.inject" % "guice" % "7.0.0" % Test,
       Test / resourceGenerators += Def.task {
         val v1 = (LocalProject("scalameta-ast-latestJS") / metaTreesSource).value
