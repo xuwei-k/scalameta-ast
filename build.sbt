@@ -73,7 +73,7 @@ lazy val `scalameta-ast` = projectMatrix
     axisValues = Seq(metaLatest),
     settings = Def.settings(
       jsProjectSettings,
-      libraryDependencies += ("com.github.xuwei-k" %%% "scalafmt-core" % "3.7.4-fork-1").withSources(),
+      libraryDependencies += ("com.github.xuwei-k" %%% "scalafmt-core" % "3.7.14-fork-1").withSources(),
     )
   )
 
