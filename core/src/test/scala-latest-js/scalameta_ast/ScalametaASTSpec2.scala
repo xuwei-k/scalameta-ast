@@ -107,11 +107,11 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
            |  Nil,
            |  Type.Name("A"),
            |  Type.ParamClause(Nil),
-           |  Ctor.Primary.After_4_6_0(Nil, Name(""), Nil),
+           |  Ctor.Primary.After_4_6_0(Nil, Name.Anonymous(), Nil),
            |  Template.After_4_4_0(
            |    Nil,
            |    Nil,
-           |    Self(Name(""), None),
+           |    Self(Name.Anonymous(), None),
            |    Nil,
            |    List(Type.Name("B"))
            |  )
