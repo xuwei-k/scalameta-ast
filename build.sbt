@@ -37,7 +37,7 @@ lazy val `scalameta-ast` = projectMatrix
     commonSettings,
     libraryDependencies ++= Seq(
       "org.scalatest" %%% "scalatest-freespec" % "3.2.17" % Test,
-      "org.ekrich" %%% "sconfig" % "1.5.0",
+      "org.ekrich" %%% "sconfig" % "1.5.1",
     ),
   )
   .jvmPlatform(
