@@ -112,6 +112,10 @@ $(() => {
         }
       }
 
+      document
+        .getElementById("output_scala")
+        .removeAttribute("data-highlighted");
+
       hljs.highlightAll();
     } catch (e) {
       console.trace(e);
