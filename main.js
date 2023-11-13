@@ -271,15 +271,13 @@ $(() => {
     }
 
     $.getJSON("./scalafix-compat/build_info.json", (data) => {
-      document.getElementById(
-        "scalameta_scalafix_compat",
-      ).innerHTML += ` ${data.scalametaVersion}`;
+      document.getElementById("scalameta_scalafix_compat").innerHTML +=
+        ` ${data.scalametaVersion}`;
     });
 
     $.getJSON("./latest/build_info.json", (data) => {
-      document.getElementById(
-        "scalameta_latest",
-      ).innerHTML += ` ${data.scalametaVersion}`;
+      document.getElementById("scalameta_latest").innerHTML +=
+        ` ${data.scalametaVersion}`;
 
       const githubUrl = `https://github.com/xuwei-k/scalameta-ast/tree/${data.gitHash}`;
       const link = document.createElement("a");
