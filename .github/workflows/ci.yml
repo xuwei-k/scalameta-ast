@@ -18,7 +18,7 @@ jobs:
        npm install
        ./node_modules/.bin/prettier --write "./sources/main.js" "./sources/index.html"
        git diff --exit-code
-    - uses: actions/setup-java@v3
+    - uses: actions/setup-java@v4
       with:
         java-version: 17
         distribution: temurin
