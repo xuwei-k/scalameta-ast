@@ -69,11 +69,11 @@ object Main {
       Conf.Bool(true)
     case false =>
       Conf.Bool(false)
-    case x: js.Array[_] =>
+    case x: js.Array[?] =>
       Conf.Lst(x.map(a => convertToMetaConfig(a)).toList)
     case x: js.Object =>
       Conf.Obj(
-        x.asInstanceOf[js.Dictionary[_]].map { case (k, v) => k -> convertToMetaConfig(v) }.toList
+        x.asInstanceOf[js.Dictionary[?]].map { case (k, v) => k -> convertToMetaConfig(v) }.toList
       )
     case _ =>
       Conf.Null()
