@@ -37,7 +37,7 @@ class ScalametaAST {
     implicitly[Parse[Source]],
   ).map(_.asInstanceOf[Parse[Tree]])
 
-  val topLevelScalametaDefinitions: Seq[Class[_]] = List(
+  val topLevelScalametaDefinitions: Seq[Class[?]] = List(
     classOf[Lit],
     classOf[MultiSource],
     classOf[CaseTree],
@@ -73,7 +73,7 @@ class ScalametaAST {
     (xs: @unchecked) match {
       case (parse, dialect) :: t1 :: t2 =>
         parse.apply(input, dialect) match {
-          case s: Parsed.Success[_] =>
+          case s: Parsed.Success[?] =>
             s.get
           case _: Parsed.Error =>
             loopParse(input, t1 :: t2)
