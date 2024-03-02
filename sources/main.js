@@ -108,7 +108,7 @@ const App = () => {
               </button>
             </div>
             <div class="col">
-              <button class="btn btn-primary" id="clear_local_storage">
+              <button class="btn btn-primary" onclick=${ () => localStorage.clear() }>
                 clear local storage
               </button>
             </div>
