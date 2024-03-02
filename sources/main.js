@@ -3,6 +3,15 @@
 import { ScalametaAstMainScalafixCompat } from "./scalafix-compat/main.js";
 import { ScalametaAstMainLatest } from "./latest/main.js";
 
+[ScalametaAstMainLatest, ScalametaAstMainScalafixCompat].forEach((main) => {
+  try {
+    // force initialize for avoid error
+    main.convert("", true, "", "", "", false, "", "", "", false, false);
+  } catch (e) {
+    console.log(e);
+  }
+});
+
 import {
   html,
   render,
@@ -15,10 +24,40 @@ import hljs from "https://unpkg.com/@highlightjs/cdn-assets@11.9.0/es/highlight.
 import scala from "https://unpkg.com/@highlightjs/cdn-assets@11.9.0/es/languages/scala.min.js";
 hljs.registerLanguage("scala", scala);
 
+
 const App = () => {
+  const [summary, setSummary] = useState("close header");
+  const [scalafmtConfig, setScalafmtConfig] = useState("");
+  const [inputScala, setInputScala] = useState("def a = b");
+  const [scalameta, setScalameta] = useState("latest");
+
+  const changeDetails = (e) => {
+    switch(e.newState) {
+      case "open":
+        setSummary("close header");
+        break;
+      case "closed":
+        setSummary("open header");
+        break;
+    }
+  };
+
+  const formatInput = () => {
+    console.log(scalafmtConfig);
+    console.log(inputScala);
+    console.log(scalameta);
+
+    const main = scalameta == "latest"
+            ? ScalametaAstMainLatest
+            : ScalametaAstMainScalafixCompat;
+    const result = main.format(inputScala, scalafmtConfig);
+    console.log(result);
+    setInputScala(result);
+  };
+
   return html` <div class="container mw-100">
-    <details open id="header_all_scalafix_config">
-      <summary>close header</summary>
+    <details open ontoggle="${(e) => changeDetails(e)}">
+      <summary>${summary}</summary>
       <div class="row">
         <div class="col-5">
           <pre id="info" class="alert" style="height: 100px"></pre>
@@ -64,7 +103,7 @@ const App = () => {
           </div>
           <div class="row">
             <div class="col">
-              <button class="btn btn-primary" id="format_input">
+              <button class="btn btn-primary" onclick=${() => formatInput()}>
                 format input scala code
               </button>
             </div>
@@ -132,11 +171,15 @@ const App = () => {
           <div class="row">
             <div>
               <label for="scalameta">scalameta version</label>
-              <select name="scalameta" id="scalameta">
-                <option id="scalameta_scalafix_compat" value="scalafix">
+              <select
+                name="scalameta"
+                value=${scalameta}
+                onChange=${(e) => setScalameta(e.target.value)}
+              >
+                <option value="scalafix">
                   scalafix 0.10.x compatible
                 </option>
-                <option id="scalameta_latest" value="latest">
+                <option value="latest">
                   scalafix 0.11.x compatible
                 </option>
               </select>
@@ -180,8 +223,9 @@ const App = () => {
     <div class="row">
       <div class="col">
         <textarea
-          id="input_scala"
           style="width: 100%; height: 800px"
+          onkeyup=${(e) => setInputScala(e.target.value)}
+          value=${inputScala}
         ></textarea>
       </div>
       <div class="col">
@@ -197,7 +241,7 @@ const App = () => {
             >scalafmt config</a
           >
         </p>
-        <textarea id="scalafmt" style="width: 100%; height: 200px"></textarea>
+        <textarea style="width: 100%; height: 200px">${scalafmtConfig}</textarea>
       </div>
     </div>
     <div class="row" id="footer"></div>
