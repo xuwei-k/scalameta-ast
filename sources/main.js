@@ -99,6 +99,7 @@ const App = () => {
   };
 
   useEffect(() => {
+    run();
     outputScalaRef.current.removeAttribute("data-highlighted");
     hljs.highlightElement(outputScalaRef.current);
   });
