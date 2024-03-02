@@ -256,9 +256,7 @@ const App = () => {
                 maxlength="256"
                 id="package"
                 value=${packageName}
-                oninput=${(x) => {
-                  setPackageName(x.target.value);
-                }}
+                oninput=${(x) => setPackageName(x.target.value)}
               />
             </div>
           </div>
