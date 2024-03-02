@@ -40,11 +40,6 @@ const App = () => {
   const [initialExtractor, setInitialExtractor] = useState(false);
   const outputScalaRef = useRef();
 
-  const changeOutputType = (e) => {
-    setOutputType(e);
-    run();
-  };
-
   const changeDetails = (e) => {
     switch (e.newState) {
       case "open":
@@ -78,24 +73,29 @@ const App = () => {
       wildcardImport,
       ruleName,
     ].forEach((i) => {
-      console.log(i);
+      // console.log(i);
     });
 
-    const r = main.convert(
-      inputScala,
-      format,
-      scalafmtConfig,
-      outputType,
-      packageName,
-      wildcardImport,
-      ruleName,
-      dialect,
-      patch,
-      removeNewFields,
-      initialExtractor,
-    );
+    try {
+      const r = main.convert(
+        inputScala,
+        format,
+        scalafmtConfig,
+        outputType,
+        packageName,
+        wildcardImport,
+        ruleName,
+        dialect,
+        patch,
+        removeNewFields,
+        initialExtractor,
+      );
 
-    outputScalaRef.current.textContent = r.ast;
+      outputScalaRef.current.textContent = r.ast;
+    } catch (e) {
+      console.trace(e);
+      outputScalaRef.current.textContent = "";
+    }
   };
 
   useEffect(() => {
@@ -182,7 +182,7 @@ const App = () => {
                   name="output_type"
                   value="raw"
                   checked=${outputType === "raw"}
-                  onChange=${() => changeOutputType("raw")}
+                  onChange=${() => setOutputType("raw")}
                 />
                 <label for="raw">Raw Scalameta</label>
               </div>
@@ -192,7 +192,7 @@ const App = () => {
                   name="output_type"
                   value="syntactic"
                   checked=${outputType === "syntactic"}
-                  onChange=${() => changeOutputType("syntactic")}
+                  onChange=${() => setOutputType("syntactic")}
                 />
                 <label for="syntactic">Scalafix SyntacticRule</label>
               </div>
@@ -202,7 +202,7 @@ const App = () => {
                   name="output_type"
                   value="semantic"
                   checked=${outputType === "semantic"}
-                  onChange=${() => changeOutputType("semantic")}
+                  onChange=${() => setOutputType("semantic")}
                 />
                 <label for="semantic">Scalafix SemanticRule</label>
               </div>
@@ -212,7 +212,7 @@ const App = () => {
                   name="output_type"
                   value="tokens"
                   checked=${outputType === "tokens"}
-                  onChange=${() => changeOutputType("tokens")}
+                  onChange=${() => setOutputType("tokens")}
                 />
                 <label for="tokens">Tokens</label>
               </div>
@@ -224,10 +224,7 @@ const App = () => {
               <select
                 name="dialect"
                 value=${dialect}
-                onChange=${(e) => {
-                  setDialect(e.target.value);
-                  run();
-                }}
+                onChange=${(e) => setDialect(e.target.value)}
               >
                 <option value="Auto">Auto</option>
                 <option value="Scala3">Scala3</option>
@@ -264,7 +261,6 @@ const App = () => {
                 value=${packageName}
                 oninput=${(x) => {
                   setPackageName(x.target.value);
-                  run();
                 }}
               />
             </div>
@@ -312,10 +308,7 @@ const App = () => {
       <div class="col">
         <textarea
           style="width: 100%; height: 800px"
-          onkeyup=${(e) => {
-            setInputScala(e.target.value);
-            run();
-          }}
+          onkeyup=${(e) => setInputScala(e.target.value)}
           value=${inputScala}
         ></textarea>
       </div>
