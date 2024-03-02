@@ -50,6 +50,7 @@ object Main {
       case e: Throwable =>
         new js.Object {
           var error = e
+          var errorString: String = e.toString
         }
     }
   }
