@@ -40,6 +40,11 @@ const App = () => {
   const [initialExtractor, setInitialExtractor] = useState(false);
   const outputScalaRef = useRef();
 
+  const changeOutputType = (e) => {
+    setOutputType(e);
+    run();
+  };
+
   const changeDetails = (e) => {
     switch (e.newState) {
       case "open":
@@ -176,7 +181,7 @@ const App = () => {
                   name="output_type"
                   value="raw"
                   checked=${outputType === "raw"}
-                  onChange=${() => setOutputType("raw")}
+                  onChange=${() => changeOutputType("raw")}
                 />
                 <label for="raw">Raw Scalameta</label>
               </div>
@@ -186,7 +191,7 @@ const App = () => {
                   name="output_type"
                   value="syntactic"
                   checked=${outputType === "syntactic"}
-                  onChange=${() => setOutputType("syntactic")}
+                  onChange=${() => changeOutputType("syntactic")}
                 />
                 <label for="syntactic">Scalafix SyntacticRule</label>
               </div>
@@ -196,7 +201,7 @@ const App = () => {
                   name="output_type"
                   value="semantic"
                   checked=${outputType === "semantic"}
-                  onChange=${() => setOutputType("semantic")}
+                  onChange=${() => changeOutputType("semantic")}
                 />
                 <label for="semantic">Scalafix SemanticRule</label>
               </div>
@@ -206,7 +211,7 @@ const App = () => {
                   name="output_type"
                   value="tokens"
                   checked=${outputType === "tokens"}
-                  onChange=${() => setOutputType("tokens")}
+                  onChange=${() => changeOutputType("tokens")}
                 />
                 <label for="tokens">Tokens</label>
               </div>
@@ -215,7 +220,14 @@ const App = () => {
           <div class="row">
             <div>
               <label for="dialect">dialect</label>
-              <select name="dialect" id="dialect">
+              <select
+                name="dialect"
+                value=${dialect}
+                onChange=${(e) => {
+                  setDialect(e.target.value);
+                  run();
+                }}
+              >
                 <option value="Auto">Auto</option>
                 <option value="Scala3">Scala3</option>
                 <option value="Scala213Source3">Scala213Source3</option>
@@ -249,7 +261,10 @@ const App = () => {
                 maxlength="256"
                 id="package"
                 value=${packageName}
-                oninput=${(x) => setPackageName(x.target.value)}
+                oninput=${(x) => {
+                  setPackageName(x.target.value);
+                  run();
+                }}
               />
             </div>
           </div>
