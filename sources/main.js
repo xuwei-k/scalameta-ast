@@ -38,7 +38,7 @@ const App = () => {
   const [dialect, setDialect] = useState("Auto");
   const [removeNewFields, setRemoveNewFields] = useState(false);
   const [initialExtractor, setInitialExtractor] = useState(false);
-  const [outputScala, setOutputScala] = useState("");
+  const outputScalaRef = useRef();
 
   const changeDetails = (e) => {
     switch (e.newState) {
@@ -89,10 +89,14 @@ const App = () => {
       removeNewFields,
       initialExtractor,
     );
-    setOutputScala(r.ast);
-    document.getElementById("output_scala").removeAttribute("data-highlighted");
-    hljs.highlightAll();
+
+    outputScalaRef.current.textContent = r.ast;
   };
+
+  useEffect(() => {
+    outputScalaRef.current.removeAttribute("data-highlighted");
+    hljs.highlightElement(outputScalaRef.current);
+  });
 
   return html` <div class="container mw-100">
     <details open ontoggle="${(e) => changeDetails(e)}">
@@ -302,10 +306,10 @@ const App = () => {
       <div class="col">
         <pre>
         <code
+          ref=${outputScalaRef}
           class="language-scala"
-          id="output_scala"
           style="width: 100%; height: 800px; background-color:rgb(233, 233, 233);"
-        >${outputScala}</code>
+        ></code>
         </pre>
       </div>
     </div>
