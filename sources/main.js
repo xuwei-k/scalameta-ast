@@ -24,18 +24,49 @@ import hljs from "https://unpkg.com/@highlightjs/cdn-assets@11.9.0/es/highlight.
 import scala from "https://unpkg.com/@highlightjs/cdn-assets@11.9.0/es/languages/scala.min.js";
 hljs.registerLanguage("scala", scala);
 
+const getFromStorageOr = (key, defaultValue) => {
+  const saved = localStorage.getItem(key);
+  if (saved != null) {
+    console.log("found saved value " + saved);
+    return saved;
+  } else {
+    console.log("not found saved value. use default " + defaultValue);
+    return defaultValue;
+  }
+};
+
+const defaultScalafmtConfig = `
+        maxColumn = 50
+        runner.dialect = "Scala3"
+        align.preset = "none"
+        continuationIndent.defnSite = 2
+        continuationIndent.extendSite = 2
+      `
+  .split("\n")
+  .map((c) => c.trim())
+  .filter((c) => c.length > 0)
+  .join("\n");
+
+const initialSource = getFromStorageOr("source", "def a = b");
+const initialScalafmt = getFromStorageOr("scalafmt", defaultScalafmtConfig);
+const initialPackage = getFromStorageOr("package", "fix");
+const initialRuleName = getFromStorageOr("rule_name", "Example");
+const initialDialect = getFromStorageOr("dialect", "Auto");
+const initialScalameta = getFromStorageOr("scalameta", "latest");
+const initialPatch = getFromStorageOr("patch", "replace");
+
 const App = () => {
   const [summary, setSummary] = useState("close header");
-  const [scalafmtConfig, setScalafmtConfig] = useState("");
-  const [inputScala, setInputScala] = useState("def a = b");
-  const [scalameta, setScalameta] = useState("latest");
+  const [scalafmtConfig, setScalafmtConfig] = useState(initialScalafmt);
+  const [inputScala, setInputScala] = useState(initialSource);
+  const [scalameta, setScalameta] = useState(initialScalameta);
   const [outputType, setOutputType] = useState("syntactic");
-  const [packageName, setPackageName] = useState("fix");
-  const [patch, setPatch] = useState("replace");
+  const [packageName, setPackageName] = useState(initialPackage);
+  const [patch, setPatch] = useState(initialPatch);
   const [format, setFormat] = useState(true);
   const [wildcardImport, setWildcardImport] = useState(false);
   const [ruleName, setRuleName] = useState("Example");
-  const [dialect, setDialect] = useState("Auto");
+  const [dialect, setDialect] = useState(initialDialect);
   const [removeNewFields, setRemoveNewFields] = useState(false);
   const [initialExtractor, setInitialExtractor] = useState(false);
   const [info, setInfo] = useState("");
@@ -63,20 +94,6 @@ const App = () => {
     setInputScala(result);
   };
 
-  [
-    scalafmtConfig,
-    inputScala,
-    scalameta,
-    outputType,
-    packageName,
-    patch,
-    format,
-    wildcardImport,
-    ruleName,
-  ].forEach((i) => {
-    // console.log(i);
-  });
-
   const r = main.convert(
     inputScala,
     format,
@@ -99,11 +116,39 @@ const App = () => {
     } else {
       outputScalaRef.current.textContent = r.ast;
       setInfo(`ast: ${r.astBuildMs} ms\nfmt: ${r.formatMs} ms`);
+      console.log(r.ast);
       setInfoClass("alert alert-success");
       outputScalaRef.current.removeAttribute("data-highlighted");
       hljs.highlightElement(outputScalaRef.current);
+
+      [
+        ["patch", patch],
+        ["scalameta", scalameta],
+        ["dialect", dialect],
+        ["rule_name", ruleName],
+        ["package", packageName],
+        ["output_type", outputType],
+        ["source", inputScala],
+      ].forEach((xs) => {
+        localStorage.setItem(xs[0], xs[1]);
+      });
     }
-  });
+  }, [
+    scalafmtConfig,
+    inputScala,
+    scalameta,
+    outputType,
+    packageName,
+    patch,
+    format,
+    wildcardImport,
+    ruleName,
+    dialect,
+    removeNewFields,
+    initialExtractor,
+    info,
+    infoClass,
+  ]);
 
   return html` <div class="container mw-100">
     <details open ontoggle="${(e) => changeDetails(e)}">
