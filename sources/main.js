@@ -24,15 +24,24 @@ import hljs from "https://unpkg.com/@highlightjs/cdn-assets@11.9.0/es/highlight.
 import scala from "https://unpkg.com/@highlightjs/cdn-assets@11.9.0/es/languages/scala.min.js";
 hljs.registerLanguage("scala", scala);
 
-
 const App = () => {
   const [summary, setSummary] = useState("close header");
   const [scalafmtConfig, setScalafmtConfig] = useState("");
   const [inputScala, setInputScala] = useState("def a = b");
   const [scalameta, setScalameta] = useState("latest");
+  const [outputType, setOutputType] = useState("syntactic");
+  const [packageName, setPackageName] = useState("fix");
+  const [patch, setPatch] = useState("replace");
+  const [format, setFormat] = useState(true);
+  const [wildcardImport, setWildcardImport] = useState(false);
+  const [ruleName, setRuleName] = useState("Example");
+  const [dialect, setDialect] = useState("Auto");
+  const [removeNewFields, setRemoveNewFields] = useState(false);
+  const [initialExtractor, setInitialExtractor] = useState(false);
+  const [outputScala, setOutputScala] = useState("");
 
   const changeDetails = (e) => {
-    switch(e.newState) {
+    switch (e.newState) {
       case "open":
         setSummary("close header");
         break;
@@ -42,17 +51,47 @@ const App = () => {
     }
   };
 
-  const formatInput = () => {
-    console.log(scalafmtConfig);
-    console.log(inputScala);
-    console.log(scalameta);
+  const main =
+    scalameta == "latest"
+      ? ScalametaAstMainLatest
+      : ScalametaAstMainScalafixCompat;
 
-    const main = scalameta == "latest"
-            ? ScalametaAstMainLatest
-            : ScalametaAstMainScalafixCompat;
+  const formatInput = () => {
     const result = main.format(inputScala, scalafmtConfig);
-    console.log(result);
     setInputScala(result);
+  };
+
+  const run = () => {
+    [
+      scalafmtConfig,
+      inputScala,
+      scalameta,
+      outputType,
+      packageName,
+      patch,
+      format,
+      wildcardImport,
+      ruleName,
+    ].forEach((i) => {
+      console.log(i);
+    });
+
+    const r = main.convert(
+      inputScala,
+      format,
+      scalafmtConfig,
+      outputType,
+      packageName,
+      wildcardImport,
+      ruleName,
+      dialect,
+      patch,
+      removeNewFields,
+      initialExtractor,
+    );
+    setOutputScala(r.ast);
+    document.getElementById("output_scala").removeAttribute("data-highlighted");
+    hljs.highlightAll();
   };
 
   return html` <div class="container mw-100">
@@ -65,14 +104,20 @@ const App = () => {
         <div class="col-3">
           <div class="row">
             <div>
-              <input type="checkbox" id="format" checked />
+              <input
+                type="checkbox"
+                name="format"
+                checked=${format}
+                onChange=${(e) => setFormat(e.target.checked)}
+              />
               <label for="format">format output by scalafmt</label>
             </div>
             <div>
               <input
                 type="checkbox"
-                id="wildcard_import"
                 name="wildcard_import"
+                checked=${wildcardImport}
+                onChange=${(e) => setWildcardImport(e.target.checked)}
               />
               <label for="wildcard_import">wildcard import</label>
             </div>
@@ -108,7 +153,10 @@ const App = () => {
               </button>
             </div>
             <div class="col">
-              <button class="btn btn-primary" onclick=${ () => localStorage.clear() }>
+              <button
+                class="btn btn-primary"
+                onclick=${() => localStorage.clear()}
+              >
                 clear local storage
               </button>
             </div>
@@ -119,33 +167,42 @@ const App = () => {
             <fieldset>
               <legend>output type</legend>
               <div>
-                <input type="radio" id="raw" name="output_type" value="raw" />
+                <input
+                  type="radio"
+                  name="output_type"
+                  value="raw"
+                  checked=${outputType === "raw"}
+                  onChange=${() => setOutputType("raw")}
+                />
                 <label for="raw">Raw Scalameta</label>
               </div>
               <div>
                 <input
                   type="radio"
-                  id="syntactic"
                   name="output_type"
                   value="syntactic"
+                  checked=${outputType === "syntactic"}
+                  onChange=${() => setOutputType("syntactic")}
                 />
                 <label for="syntactic">Scalafix SyntacticRule</label>
               </div>
               <div>
                 <input
                   type="radio"
-                  id="semantic"
                   name="output_type"
                   value="semantic"
+                  checked=${outputType === "semantic"}
+                  onChange=${() => setOutputType("semantic")}
                 />
                 <label for="semantic">Scalafix SemanticRule</label>
               </div>
               <div>
                 <input
                   type="radio"
-                  id="tokens"
                   name="output_type"
                   value="tokens"
+                  checked=${outputType === "tokens"}
+                  onChange=${() => setOutputType("tokens")}
                 />
                 <label for="tokens">Tokens</label>
               </div>
@@ -176,25 +233,32 @@ const App = () => {
                 value=${scalameta}
                 onChange=${(e) => setScalameta(e.target.value)}
               >
-                <option value="scalafix">
-                  scalafix 0.10.x compatible
-                </option>
-                <option value="latest">
-                  scalafix 0.11.x compatible
-                </option>
+                <option value="scalafix">scalafix 0.10.x compatible</option>
+                <option value="latest">scalafix 0.11.x compatible</option>
               </select>
             </div>
           </div>
           <div class="row">
             <div>
               <label for="package">package</label>
-              <input type="text" id="package" maxlength="256" />
+              <input
+                maxlength="256"
+                id="package"
+                value=${packageName}
+                oninput=${(x) => setPackageName(x.target.value)}
+              />
             </div>
           </div>
           <div class="row">
             <div>
               <label for="rule_name">rule name</label>
-              <input type="text" id="rule_name" maxlength="128" />
+              <input
+                type="text"
+                id="rule_name"
+                maxlength="128"
+                value=${ruleName}
+                oninput=${(x) => setRuleName(x.target.value)}
+              />
             </div>
           </div>
           <div class="row">
@@ -206,7 +270,11 @@ const App = () => {
                   >patch</a
                 ></label
               >
-              <select name="patch" id="patch">
+              <select
+                name="patch"
+                value=${patch}
+                onChange=${(e) => setPatch(e.target.value)}
+              >
                 <option value="warn">lint warn</option>
                 <option value="error">lint error</option>
                 <option value="info">lint info</option>
@@ -224,12 +292,21 @@ const App = () => {
       <div class="col">
         <textarea
           style="width: 100%; height: 800px"
-          onkeyup=${(e) => setInputScala(e.target.value)}
+          onkeyup=${(e) => {
+            setInputScala(e.target.value);
+            run();
+          }}
           value=${inputScala}
         ></textarea>
       </div>
       <div class="col">
-        <pre><code class="language-scala" id="output_scala" style="width: 100%; height: 800px; background-color:rgb(233, 233, 233);"></code></pre>
+        <pre>
+        <code
+          class="language-scala"
+          id="output_scala"
+          style="width: 100%; height: 800px; background-color:rgb(233, 233, 233);"
+        >${outputScala}</code>
+        </pre>
       </div>
     </div>
     <div class="row">
@@ -241,7 +318,9 @@ const App = () => {
             >scalafmt config</a
           >
         </p>
-        <textarea style="width: 100%; height: 200px">${scalafmtConfig}</textarea>
+        <textarea style="width: 100%; height: 200px">
+${scalafmtConfig}</textarea
+        >
       </div>
     </div>
     <div class="row" id="footer"></div>
