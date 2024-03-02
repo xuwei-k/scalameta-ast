@@ -61,35 +61,35 @@ const App = () => {
     setInputScala(result);
   };
 
-  const run = () => {
-    [
-      scalafmtConfig,
-      inputScala,
-      scalameta,
-      outputType,
-      packageName,
-      patch,
-      format,
-      wildcardImport,
-      ruleName,
-    ].forEach((i) => {
-      // console.log(i);
-    });
+  [
+    scalafmtConfig,
+    inputScala,
+    scalameta,
+    outputType,
+    packageName,
+    patch,
+    format,
+    wildcardImport,
+    ruleName,
+  ].forEach((i) => {
+    // console.log(i);
+  });
 
-    const r = main.convert(
-      inputScala,
-      format,
-      scalafmtConfig,
-      outputType,
-      packageName,
-      wildcardImport,
-      ruleName,
-      dialect,
-      patch,
-      removeNewFields,
-      initialExtractor,
-    );
+  const r = main.convert(
+    inputScala,
+    format,
+    scalafmtConfig,
+    outputType,
+    packageName,
+    wildcardImport,
+    ruleName,
+    dialect,
+    patch,
+    removeNewFields,
+    initialExtractor,
+  );
 
+  useEffect(() => {
     if (r.ast == null) {
       outputScalaRef.current.textContent = "";
       console.trace(r.error);
@@ -97,10 +97,6 @@ const App = () => {
     } else {
       outputScalaRef.current.textContent = r.ast;
     }
-  };
-
-  useEffect(() => {
-    run();
     outputScalaRef.current.removeAttribute("data-highlighted");
     hljs.highlightElement(outputScalaRef.current);
   });
