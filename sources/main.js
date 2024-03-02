@@ -38,6 +38,8 @@ const App = () => {
   const [dialect, setDialect] = useState("Auto");
   const [removeNewFields, setRemoveNewFields] = useState(false);
   const [initialExtractor, setInitialExtractor] = useState(false);
+  const [info, setInfo] = useState("");
+  const [infoClass, setInfoClass] = useState("alert");
   const outputScalaRef = useRef();
 
   const changeDetails = (e) => {
@@ -92,13 +94,15 @@ const App = () => {
   useEffect(() => {
     if (r.ast == null) {
       outputScalaRef.current.textContent = "";
-      console.trace(r.error);
-      // TODO show error in view
+      setInfo(r.errorString);
+      setInfoClass("alert alert-danger");
     } else {
       outputScalaRef.current.textContent = r.ast;
+      setInfo(`ast: ${r.astBuildMs} ms\nfmt: ${r.formatMs} ms`);
+      setInfoClass("alert alert-success");
+      outputScalaRef.current.removeAttribute("data-highlighted");
+      hljs.highlightElement(outputScalaRef.current);
     }
-    outputScalaRef.current.removeAttribute("data-highlighted");
-    hljs.highlightElement(outputScalaRef.current);
   });
 
   return html` <div class="container mw-100">
@@ -106,7 +110,7 @@ const App = () => {
       <summary>${summary}</summary>
       <div class="row">
         <div class="col-5">
-          <pre id="info" class="alert" style="height: 100px"></pre>
+          <pre id="info" class=${infoClass} style="height: 100px">${info}</pre>
         </div>
         <div class="col-3">
           <div class="row">
