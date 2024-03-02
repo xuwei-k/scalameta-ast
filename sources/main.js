@@ -76,25 +76,26 @@ const App = () => {
       // console.log(i);
     });
 
-    try {
-      const r = main.convert(
-        inputScala,
-        format,
-        scalafmtConfig,
-        outputType,
-        packageName,
-        wildcardImport,
-        ruleName,
-        dialect,
-        patch,
-        removeNewFields,
-        initialExtractor,
-      );
+    const r = main.convert(
+      inputScala,
+      format,
+      scalafmtConfig,
+      outputType,
+      packageName,
+      wildcardImport,
+      ruleName,
+      dialect,
+      patch,
+      removeNewFields,
+      initialExtractor,
+    );
 
-      outputScalaRef.current.textContent = r.ast;
-    } catch (e) {
-      console.trace(e);
+    if (r.ast == null) {
       outputScalaRef.current.textContent = "";
+      console.trace(r.error);
+      // TODO show error in view
+    } else {
+      outputScalaRef.current.textContent = r.ast;
     }
   };
 
