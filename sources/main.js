@@ -26,18 +26,22 @@ hljs.registerLanguage("scala", scala);
 
 const getFromStorageOr = (key, defaultValue, fun) => {
   const saved = localStorage.getItem(key);
-  if (saved != null) {
-    console.log("found saved value " + saved);
-    if (fun != null) {
-      console.log("convert " + key);
-      return fun(saved);
-    } else {
-      return saved;
-    }
-  } else {
+  if (saved === null) {
     console.log("not found saved value. use default " + defaultValue);
     return defaultValue;
+  } else {
+    console.log(`found saved value "${key}" = "${saved}"`);
+    if (fun == null) {
+      return saved;
+    } else {
+      console.log("convert " + key + " " + fun(saved));
+      return fun(saved);
+    }
   }
+};
+
+const getBoolFromStorageOr = (key, defaultValue) => {
+  return getFromStorageOr(key, defaultValue, (a) => a === "true");
 };
 
 const defaultScalafmtConfig = `
@@ -52,8 +56,6 @@ const defaultScalafmtConfig = `
   .filter((c) => c.length > 0)
   .join("\n");
 
-const stringToBoolean = (a) => a === "true";
-
 const initialSource = getFromStorageOr("source", "def a = b");
 const initialScalafmt = getFromStorageOr("scalafmt", defaultScalafmtConfig);
 const initialPackage = getFromStorageOr("package", "fix");
@@ -62,24 +64,27 @@ const initialDialect = getFromStorageOr("dialect", "Auto");
 const initialScalameta = getFromStorageOr("scalameta", "latest");
 const initialPatch = getFromStorageOr("patch", "replace");
 const initialOutputType = getFromStorageOr("output_type", "syntactic");
-const initialFormat = getFromStorageOr("format", true, stringToBoolean);
-const initiaeRuleName = getFromStorageOr("rule_name", "Example");
+
+const initialFormat = getBoolFromStorageOr("format", true);
+const initialWildcardImport = getBoolFromStorageOr("wildcard_import", false);
+const initialRemoveNewFields= getBoolFromStorageOr("remove_new_fields", false);
+const initialInitialExtractor = getBoolFromStorageOr("initial_extractor", false);
 
 const App = () => {
   const [summary, setSummary] = useState("close header");
-  const [scalafmtConfig, setScalafmtConfig] = useState(initialScalafmt);
   const [inputScala, setInputScala] = useState(initialSource);
-  const [scalameta, setScalameta] = useState(initialScalameta);
-  const [outputType, setOutputType] = useState(initialOutputType);
+  const [scalafmtConfig, setScalafmtConfig] = useState(initialScalafmt);
   const [packageName, setPackageName] = useState(initialPackage);
-  const [patch, setPatch] = useState(initialPatch);
-  const [format, setFormat] = useState(initialFormat);
-  const [wildcardImport, setWildcardImport] = useState(false);
-  const [ruleName, setRuleName] = useState(initiaeRuleName);
+  const [ruleName, setRuleName] = useState(initialRuleName);
   const [dialect, setDialect] = useState(initialDialect);
-  const [removeNewFields, setRemoveNewFields] = useState(false);
-  const [initialExtractor, setInitialExtractor] = useState(false);
-  const outputScalaRef = useRef();
+  const [scalameta, setScalameta] = useState(initialScalameta);
+  const [patch, setPatch] = useState(initialPatch);
+  const [outputType, setOutputType] = useState(initialOutputType);
+
+  const [format, setFormat] = useState(initialFormat);
+  const [wildcardImport, setWildcardImport] = useState(initialWildcardImport);
+  const [removeNewFields, setRemoveNewFields] = useState(initialRemoveNewFields);
+  const [initialExtractor, setInitialExtractor] = useState(initialInitialExtractor);
 
   const changeDetails = (e) => {
     switch (e.newState) {
@@ -101,6 +106,20 @@ const App = () => {
     const result = main.format(inputScala, scalafmtConfig);
     setInputScala(result);
   };
+
+  console.log([
+      inputScala,
+      format,
+      scalafmtConfig,
+      outputType,
+      packageName,
+      wildcardImport,
+      ruleName,
+      dialect,
+      patch,
+      removeNewFields,
+      initialExtractor,
+      ]);
 
   const r = main.convert(
     inputScala,
@@ -132,18 +151,19 @@ const App = () => {
     console.log(r.ast);
 
     [
-      ["wildcard_import", wildcardImport],
-      ["format", format],
-      ["remove_new_fields", removeNewFields],
-      ["initial_extractor", initialExtractor],
-      ["patch", patch],
-      ["scalameta", scalameta],
-      ["dialect", dialect],
-      ["rule_name", ruleName],
-      ["package", packageName],
-      ["output_type", outputType],
       ["source", inputScala],
       ["scalafmt", scalafmtConfig],
+      ["package", packageName],
+      ["rule_name", ruleName],
+      ["dialect", dialect],
+      ["scalameta", scalameta],
+      ["patch", patch],
+      ["output_type", outputType],
+
+      ["format", format],
+      ["wildcard_import", wildcardImport],
+      ["remove_new_fields", removeNewFields],
+      ["initial_extractor", initialExtractor],
     ].forEach((xs) => {
       localStorage.setItem(xs[0], xs[1]);
     });
