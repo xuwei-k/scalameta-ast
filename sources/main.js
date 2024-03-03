@@ -67,8 +67,11 @@ const initialOutputType = getFromStorageOr("output_type", "syntactic");
 
 const initialFormat = getBoolFromStorageOr("format", true);
 const initialWildcardImport = getBoolFromStorageOr("wildcard_import", false);
-const initialRemoveNewFields= getBoolFromStorageOr("remove_new_fields", false);
-const initialInitialExtractor = getBoolFromStorageOr("initial_extractor", false);
+const initialRemoveNewFields = getBoolFromStorageOr("remove_new_fields", false);
+const initialInitialExtractor = getBoolFromStorageOr(
+  "initial_extractor",
+  false,
+);
 
 const App = () => {
   const [summary, setSummary] = useState("close header");
@@ -83,8 +86,12 @@ const App = () => {
 
   const [format, setFormat] = useState(initialFormat);
   const [wildcardImport, setWildcardImport] = useState(initialWildcardImport);
-  const [removeNewFields, setRemoveNewFields] = useState(initialRemoveNewFields);
-  const [initialExtractor, setInitialExtractor] = useState(initialInitialExtractor);
+  const [removeNewFields, setRemoveNewFields] = useState(
+    initialRemoveNewFields,
+  );
+  const [initialExtractor, setInitialExtractor] = useState(
+    initialInitialExtractor,
+  );
 
   const changeDetails = (e) => {
     switch (e.newState) {
@@ -108,18 +115,18 @@ const App = () => {
   };
 
   console.log([
-      inputScala,
-      format,
-      scalafmtConfig,
-      outputType,
-      packageName,
-      wildcardImport,
-      ruleName,
-      dialect,
-      patch,
-      removeNewFields,
-      initialExtractor,
-      ]);
+    inputScala,
+    format,
+    scalafmtConfig,
+    outputType,
+    packageName,
+    wildcardImport,
+    ruleName,
+    dialect,
+    patch,
+    removeNewFields,
+    initialExtractor,
+  ]);
 
   const r = main.convert(
     inputScala,
