@@ -69,8 +69,6 @@ const App = () => {
   const [dialect, setDialect] = useState(initialDialect);
   const [removeNewFields, setRemoveNewFields] = useState(false);
   const [initialExtractor, setInitialExtractor] = useState(false);
-  const [info, setInfo] = useState("");
-  const [infoClass, setInfoClass] = useState("alert");
   const outputScalaRef = useRef();
 
   const changeDetails = (e) => {
@@ -108,47 +106,33 @@ const App = () => {
     initialExtractor,
   );
 
-  useEffect(() => {
-    if (r.ast == null) {
-      outputScalaRef.current.textContent = "";
-      setInfo(r.errorString);
-      setInfoClass("alert alert-danger");
-    } else {
-      outputScalaRef.current.textContent = r.ast;
-      setInfo(`ast: ${r.astBuildMs} ms\nfmt: ${r.formatMs} ms`);
-      console.log(r.ast);
-      setInfoClass("alert alert-success");
-      outputScalaRef.current.removeAttribute("data-highlighted");
-      hljs.highlightElement(outputScalaRef.current);
+  let result = "";
+  let info = "";
+  let infoClass = "";
 
-      [
-        ["patch", patch],
-        ["scalameta", scalameta],
-        ["dialect", dialect],
-        ["rule_name", ruleName],
-        ["package", packageName],
-        ["output_type", outputType],
-        ["source", inputScala],
-      ].forEach((xs) => {
-        localStorage.setItem(xs[0], xs[1]);
-      });
-    }
-  }, [
-    scalafmtConfig,
-    inputScala,
-    scalameta,
-    outputType,
-    packageName,
-    patch,
-    format,
-    wildcardImport,
-    ruleName,
-    dialect,
-    removeNewFields,
-    initialExtractor,
-    info,
-    infoClass,
-  ]);
+  if (r.ast == null) {
+    info = r.errorString;
+    infoClass = "alert alert-danger";
+  } else {
+    result = hljs.highlight(r.ast, {
+      language: "scala",
+    }).value;
+    info = `ast: ${r.astBuildMs} ms\nfmt: ${r.formatMs} ms`;
+    infoClass = "alert alert-success";
+    console.log(r.ast);
+
+    [
+      ["patch", patch],
+      ["scalameta", scalameta],
+      ["dialect", dialect],
+      ["rule_name", ruleName],
+      ["package", packageName],
+      ["output_type", outputType],
+      ["source", inputScala],
+    ].forEach((xs) => {
+      localStorage.setItem(xs[0], xs[1]);
+    });
+  }
 
   return html` <div class="container mw-100">
     <details open ontoggle="${(e) => changeDetails(e)}">
@@ -359,8 +343,8 @@ const App = () => {
       <div class="col">
         <pre>
         <code
-          ref=${outputScalaRef}
-          class="language-scala"
+          class="language-scala hljs"
+          dangerouslySetInnerHTML=${{ __html: result }}
           style="width: 100%; height: 800px; background-color:rgb(233, 233, 233);"
         ></code>
         </pre>
