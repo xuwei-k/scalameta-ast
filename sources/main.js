@@ -24,11 +24,16 @@ import hljs from "https://unpkg.com/@highlightjs/cdn-assets@11.9.0/es/highlight.
 import scala from "https://unpkg.com/@highlightjs/cdn-assets@11.9.0/es/languages/scala.min.js";
 hljs.registerLanguage("scala", scala);
 
-const getFromStorageOr = (key, defaultValue) => {
+const getFromStorageOr = (key, defaultValue, fun) => {
   const saved = localStorage.getItem(key);
   if (saved != null) {
     console.log("found saved value " + saved);
-    return saved;
+    if (fun != null) {
+      console.log("convert " + key);
+      return fun(saved);
+    } else {
+      return saved;
+    }
   } else {
     console.log("not found saved value. use default " + defaultValue);
     return defaultValue;
@@ -47,6 +52,8 @@ const defaultScalafmtConfig = `
   .filter((c) => c.length > 0)
   .join("\n");
 
+const stringToBoolean = (a) => a === "true";
+
 const initialSource = getFromStorageOr("source", "def a = b");
 const initialScalafmt = getFromStorageOr("scalafmt", defaultScalafmtConfig);
 const initialPackage = getFromStorageOr("package", "fix");
@@ -54,18 +61,21 @@ const initialRuleName = getFromStorageOr("rule_name", "Example");
 const initialDialect = getFromStorageOr("dialect", "Auto");
 const initialScalameta = getFromStorageOr("scalameta", "latest");
 const initialPatch = getFromStorageOr("patch", "replace");
+const initialOutputType = getFromStorageOr("output_type", "syntactic");
+const initialFormat = getFromStorageOr("format", true, stringToBoolean);
+const initiaeRuleName = getFromStorageOr("rule_name", "Example");
 
 const App = () => {
   const [summary, setSummary] = useState("close header");
   const [scalafmtConfig, setScalafmtConfig] = useState(initialScalafmt);
   const [inputScala, setInputScala] = useState(initialSource);
   const [scalameta, setScalameta] = useState(initialScalameta);
-  const [outputType, setOutputType] = useState("syntactic");
+  const [outputType, setOutputType] = useState(initialOutputType);
   const [packageName, setPackageName] = useState(initialPackage);
   const [patch, setPatch] = useState(initialPatch);
-  const [format, setFormat] = useState(true);
+  const [format, setFormat] = useState(initialFormat);
   const [wildcardImport, setWildcardImport] = useState(false);
-  const [ruleName, setRuleName] = useState("Example");
+  const [ruleName, setRuleName] = useState(initiaeRuleName);
   const [dialect, setDialect] = useState(initialDialect);
   const [removeNewFields, setRemoveNewFields] = useState(false);
   const [initialExtractor, setInitialExtractor] = useState(false);
@@ -122,6 +132,10 @@ const App = () => {
     console.log(r.ast);
 
     [
+      ["wildcard_import", wildcardImport],
+      ["format", format],
+      ["remove_new_fields", removeNewFields],
+      ["initial_extractor", initialExtractor],
       ["patch", patch],
       ["scalameta", scalameta],
       ["dialect", dialect],
@@ -129,6 +143,7 @@ const App = () => {
       ["package", packageName],
       ["output_type", outputType],
       ["source", inputScala],
+      ["scalafmt", scalafmtConfig],
     ].forEach((xs) => {
       localStorage.setItem(xs[0], xs[1]);
     });
