@@ -176,6 +176,8 @@ const App = () => {
     });
   }
 
+  const disableScalafixRuleTemplateInput = outputType === "raw" || outputType === "tokens";
+
   return html` <div class="container mw-100">
     <details open ontoggle="${(e) => changeDetails(e)}">
       <summary>${summary}</summary>
@@ -198,6 +200,7 @@ const App = () => {
               <input
                 type="checkbox"
                 name="wildcard_import"
+                disabled=${disableScalafixRuleTemplateInput}
                 checked=${wildcardImport}
                 onChange=${(e) => setWildcardImport(e.target.checked)}
               />
@@ -328,6 +331,7 @@ const App = () => {
             <div>
               <label for="package">package</label>
               <input
+                disabled=${disableScalafixRuleTemplateInput}
                 maxlength="256"
                 id="package"
                 value=${packageName}
@@ -339,6 +343,7 @@ const App = () => {
             <div>
               <label for="rule_name">rule name</label>
               <input
+                disabled=${disableScalafixRuleTemplateInput}
                 type="text"
                 id="rule_name"
                 maxlength="128"
@@ -359,6 +364,7 @@ const App = () => {
               <select
                 name="patch"
                 value=${patch}
+                disabled=${disableScalafixRuleTemplateInput}
                 onChange=${(e) => setPatch(e.target.value)}
               >
                 <option value="warn">lint warn</option>
