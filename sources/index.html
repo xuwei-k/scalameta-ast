@@ -12,7 +12,9 @@
       rel="stylesheet"
       href="https://unpkg.com/highlightjs-copy@1.0.3/dist/highlightjs-copy.min.css"
     />
-    <script type="module" src="./main.js"></script>
+    <script type="module" src="./main.js">
+      render(html`<${App} />`, document.getElementById("root"));
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"

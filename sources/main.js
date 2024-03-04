@@ -13,19 +13,24 @@ import { ScalametaAstMainLatest } from "./latest/main.js";
 });
 
 import {
-  html,
   render,
+} from "./../node_modules/preact/dist/preact.js";
+
+import {
   useState,
   useRef,
   useEffect,
-} from "https://unpkg.com/htm@3.1.1/preact/standalone.module.js";
+} from "./../node_modules/preact/hooks/dist/hooks.js";
 
+import html from "./../node_modules/htm/dist/htm.js";
+/*
 import hljs from "https://unpkg.com/@highlightjs/cdn-assets@11.9.0/es/highlight.min.js";
 import scala from "https://unpkg.com/@highlightjs/cdn-assets@11.9.0/es/languages/scala.min.js";
 hljs.registerLanguage("scala", scala);
+*/
 
 const getFromStorageOr = (key, defaultValue, fun) => {
-  const saved = localStorage.getItem(key);
+  const saved = null; //localStorage.getItem(key);
   if (saved === null) {
     console.log("not found saved value. use default " + defaultValue);
     return defaultValue;
@@ -73,7 +78,7 @@ const initialInitialExtractor = getBoolFromStorageOr(
   false,
 );
 
-const App = () => {
+export const App = () => {
   const [summary, setSummary] = useState("close header");
   const [inputScala, setInputScala] = useState(initialSource);
   const [scalafmtConfig, setScalafmtConfig] = useState(initialScalafmt);
@@ -172,7 +177,7 @@ const App = () => {
       ["remove_new_fields", removeNewFields],
       ["initial_extractor", initialExtractor],
     ].forEach((xs) => {
-      localStorage.setItem(xs[0], xs[1]);
+      //localStorage.setItem(xs[0], xs[1]);
     });
   }
 
@@ -240,7 +245,6 @@ const App = () => {
             <div class="col">
               <button
                 class="btn btn-primary"
-                onclick=${() => localStorage.clear()}
               >
                 clear local storage
               </button>
@@ -416,4 +420,3 @@ ${scalafmtConfig}</textarea
   </div>`;
 };
 
-render(html`<${App} />`, document.getElementById("root"));
