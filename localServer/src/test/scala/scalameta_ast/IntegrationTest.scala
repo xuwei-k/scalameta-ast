@@ -43,8 +43,7 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
         val context = browser.newContext()
         val page = context.newPage()
         page.navigate(s"http://127.0.0.1:${port()}/")
-        page.setDefaultTimeout(3000)
-        clearLocalStorage(page)
+        page.setDefaultTimeout(5000)
         try {
           f(browser, page)
         } finally {
@@ -54,6 +53,9 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
     }
   }
 
+  private def formatInput(page: Page): Unit = {
+    clickButtonById(page, "format_input")
+  }
   private def clickButtonById(page: Page, id: String): Unit = {
     getById(page, AriaRole.BUTTON, id).click()
   }
@@ -143,7 +145,7 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
     ).mkString("\n")
     setInput(page, notFormatted)
     val input1 = inputElem(page).inputValue()
-    clickButtonById(page, "format_input")
+    formatInput(page)
     val input2 = inputElem(page).inputValue()
     assert(input1 != input2)
     val formatted = Seq(
@@ -206,5 +208,24 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
     page.selectOption("select#scalameta", "scalafix")
     assert(!output(page).textContent().contains("Defn.Def.After_4_7_3("))
     assert(output(page).textContent().contains("Defn.Def("))
+  }
+
+  "scalafmt config" in withBrowser { (browser, page) =>
+    setInput(page, "import foo._")
+    formatInput(page)
+    val input1 = inputElem(page).inputValue()
+    assert(input1.contains("import foo._"))
+    assert(!input1.contains("import foo.*"))
+    getTextboxById(page, "scalafmt").fill(
+      Seq(
+        """rewrite.scala3.convertToNewSyntax = true""",
+        """runner.dialect = scala3"""
+      ).mkString("\n")
+    )
+    formatInput(page)
+    val input2 = inputElem(page).inputValue()
+    assert(input1 != input2)
+    assert(input2.contains("import foo.*"))
+    assert(!input2.contains("import foo._"))
   }
 }
