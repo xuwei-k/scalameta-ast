@@ -1,0 +1,36 @@
+package fix
+
+import scala.meta.Defn
+import scala.meta.Term
+import scalafix.Patch
+import scalafix.lint.Diagnostic
+import scalafix.lint.LintSeverity
+import scalafix.v1.SyntacticDocument
+import scalafix.v1.SyntacticRule
+
+class Example extends SyntacticRule("Example") {
+  override def fix(implicit
+    doc: SyntacticDocument
+  ): Patch = {
+    doc.tree.collect {
+      case t @ Defn.Def(
+            Nil,
+            Term.Name("a"),
+            Nil,
+            Nil,
+            None,
+            Term.Name("b")
+          ) =>
+        Patch.lint(
+          Diagnostic(
+            id = "",
+            message = "",
+            position = t.pos,
+            explanation = "",
+            severity = LintSeverity.Warning
+          )
+        )
+    }.asPatch
+  }
+}
+

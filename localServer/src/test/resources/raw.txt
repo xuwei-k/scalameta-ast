@@ -1,0 +1,9 @@
+Defn.Def(
+  Nil,
+  Term.Name("a"),
+  Nil,
+  Nil,
+  None,
+  Term.Name("b")
+)
+

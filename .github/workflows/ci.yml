@@ -5,10 +5,14 @@ on:
   workflow_dispatch:
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: "${{ matrix.os }}"
     timeout-minutes: 20
     strategy:
       fail-fast: false
+      matrix:
+        os:
+        - "ubuntu-latest"
+        - "macos-latest"
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
@@ -29,7 +33,7 @@ jobs:
            updateClassifiers
            test
            copyFilesFull
-    - if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && github.repository_owner == 'xuwei-k' }}
+    - if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && github.repository_owner == 'xuwei-k' && matrix.os == 'ubuntu-latest' }}
       uses: JamesIves/github-pages-deploy-action@v4.5.0
       with:
         branch: gh-pages
