@@ -9,7 +9,11 @@ import scala.io.Source
 import scala.jdk.CollectionConverters._
 import scala.util.Using
 
-class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
+class IntegrationTestChromium extends IntegrationTest(_.chromium())
+class IntegrationTestWebkit extends IntegrationTest(_.webkit())
+class IntegrationTestFirefox extends IntegrationTest(_.firefox())
+
+abstract class IntegrationTest(browserType: Playwright => BrowserType) extends AnyFreeSpec with BeforeAndAfterAll {
 
   private var server: Server = null
   private var playwright: Playwright = null
@@ -34,21 +38,15 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
   }
 
   private def withBrowser[A](f: Page => A): Unit = {
-    Seq(
-      playwright.chromium(),
-      playwright.webkit(),
-      playwright.firefox(),
-    ).foreach { browserType =>
-      Using.resource(browserType.launch()) { browser =>
-        val context = browser.newContext()
-        val page = context.newPage()
-        page.navigate(s"http://127.0.0.1:${port()}/")
-        page.setDefaultTimeout(5000)
-        try {
-          f(page)
-        } finally {
-          clearLocalStorage(page)
-        }
+    Using.resource(browserType(playwright).launch()) { browser =>
+      val context = browser.newContext()
+      val page = context.newPage()
+      page.navigate(s"http://127.0.0.1:${port()}/")
+      page.setDefaultTimeout(5000)
+      try {
+        f(page)
+      } finally {
+        clearLocalStorage(page)
       }
     }
   }
@@ -275,5 +273,30 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
         )
       )
     }
+  }
+
+  "Initial extractor" in withBrowser { page =>
+    def render(): Unit = inputElem(page).press("\n")
+
+    changeOutputType(page, "raw")
+    setScalafmtConfig(
+      page,
+      Seq(
+        "maxColumn = 100"
+      )
+    )
+    setInput(page, "if (a) 2 else 3")
+    render()
+
+    def outSingleLine(): String =
+      output(page).textContent().linesIterator.next()
+
+    assert(outSingleLine() == """Term.If(Term.Name("a"), Lit.Int(2), Lit.Int(3), Nil)""")
+
+    getById(page, AriaRole.CHECKBOX, "remove_new_fields").check()
+    assert(outSingleLine() == """Term.If(Term.Name("a"), Lit.Int(2), Lit.Int(3))""")
+
+    getById(page, AriaRole.CHECKBOX, "initial_extractor").check()
+    assert(outSingleLine() == """Term.If.Initial(Term.Name("a"), Lit.Int(2), Lit.Int(3))""")
   }
 }
