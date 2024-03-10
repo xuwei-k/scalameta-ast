@@ -9,7 +9,7 @@
 ### development
 
 ```sh
-sbt copyFilesFast run
+sbt copyFilesFast localServer/run
 ```
 
 ### run local without JVM
