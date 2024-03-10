@@ -24,12 +24,6 @@ lazy val commonSettings = Def.settings(
   Seq(Compile, Test).flatMap(c => c / console / scalacOptions --= unusedWarnings),
 )
 
-commonSettings
-
-run / fork := true
-
-libraryDependencies += "org.slf4j" % "slf4j-simple" % "2.0.12" % Runtime
-
 lazy val `scalameta-ast` = projectMatrix
   .in(file("core"))
   .settings(
@@ -151,11 +145,15 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
 
 val genBuildInfo = taskKey[String]("")
 
+commonSettings
+
 lazy val localServer = project.settings(
-  scalaVersion := Scala213,
+  commonSettings,
+  run / fork := true,
   Test / testOptions += Tests.Argument("-oD"),
   Test / test := (Test / test).dependsOn(LocalRootProject / copyFilesFast).value,
   libraryDependencies ++= Seq(
+    "org.slf4j" % "slf4j-simple" % "2.0.12" % Runtime,
     "ws.unfiltered" %% "unfiltered-filter" % "0.12.0",
     "ws.unfiltered" %% "unfiltered-jetty" % "0.12.0",
     "org.scalatest" %%% "scalatest-freespec" % "3.2.18" % Test,

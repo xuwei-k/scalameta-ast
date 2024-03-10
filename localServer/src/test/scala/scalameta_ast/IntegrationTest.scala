@@ -75,6 +75,17 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
   private def getTextboxById(page: Page, id: String): Locator =
     getById(page, AriaRole.TEXTBOX, id)
 
+  private def scalafmtConfig(page: Page): Locator = {
+    getTextboxById(page, "scalafmt")
+  }
+  private def setScalafmtConfig(page: Page, values: Seq[String]): Unit = {
+    scalafmtConfig(page).fill(values.mkString("\n"))
+  }
+
+  private def addScalafmtConfig(page: Page, values: Seq[String]): Unit = {
+    setScalafmtConfig(page, scalafmtConfig(page).inputValue() +: values)
+  }
+
   private def inputElem(page: Page): Locator =
     getTextboxById(page, "input_scala")
 
@@ -82,6 +93,10 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
     val input = inputElem(page)
     input.fill(sourceCode)
     input.press("\n")
+  }
+
+  private def wildcardImport(page: Page): Locator = {
+    getById(page, AriaRole.CHECKBOX, "wildcard_import")
   }
 
   private def changeOutputType(page: Page, outputType: String): Unit = {
@@ -175,7 +190,7 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
     render()
 
     assert(output(page).textContent().contains("class OtherRuleName"))
-    getById(page, AriaRole.CHECKBOX, "wildcard_import").check()
+    wildcardImport(page).check()
 
     render()
 
@@ -210,22 +225,55 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
     assert(output(page).textContent().contains("Defn.Def("))
   }
 
-  "scalafmt config" in withBrowser { (browser, page) =>
-    setInput(page, "import foo._")
-    formatInput(page)
-    val input1 = inputElem(page).inputValue()
-    assert(input1.contains("import foo._"))
-    assert(!input1.contains("import foo.*"))
-    getTextboxById(page, "scalafmt").fill(
-      Seq(
-        """rewrite.scala3.convertToNewSyntax = true""",
-        """runner.dialect = scala3"""
-      ).mkString("\n")
-    )
-    formatInput(page)
-    val input2 = inputElem(page).inputValue()
-    assert(input1 != input2)
-    assert(input2.contains("import foo.*"))
-    assert(!input2.contains("import foo._"))
+  "scalafmt config" - {
+    "input" in withBrowser { (browser, page) =>
+      setInput(page, "import foo._")
+      formatInput(page)
+      val input1 = inputElem(page).inputValue()
+      assert(input1.contains("import foo._"))
+      assert(!input1.contains("import foo.*"))
+      setScalafmtConfig(
+        page,
+        Seq(
+          """rewrite.scala3.convertToNewSyntax = true""",
+          """runner.dialect = scala3"""
+        )
+      )
+      formatInput(page)
+      val input2 = inputElem(page).inputValue()
+      assert(input1 != input2)
+      assert(input2.contains("import foo.*"))
+      assert(!input2.contains("import foo._"))
+    }
+
+    "output" in withBrowser { (browser, page) =>
+      def render(): Unit = inputElem(page).press("\n")
+      changeOutputType(page, "syntactic")
+      wildcardImport(page).check()
+      render()
+      val output1 = output(page).textContent()
+
+      addScalafmtConfig(
+        page,
+        Seq(
+          """rewrite.scala3.convertToNewSyntax = true""",
+          """runner.dialect = scala3"""
+        )
+      )
+      render()
+
+      val output2 = output(page).textContent()
+      val diff = output1.linesIterator
+        .zip(output2.linesIterator)
+        .filter { case (x1, x2) =>
+          x1 != x2
+        }
+        .toList
+      assert(
+        diff == List(
+          ("import scala.meta._", "import scala.meta.*")
+        )
+      )
+    }
   }
 }
