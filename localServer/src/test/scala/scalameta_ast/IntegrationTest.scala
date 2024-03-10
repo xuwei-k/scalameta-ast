@@ -47,8 +47,16 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
     }
   }
 
+  private def clickButton(page: Page, f: Locator => Boolean): Unit = {
+    page.getByRole(AriaRole.BUTTON).all().asScala.find(f).getOrElse(sys.error("not found button")).click()
+  }
+
+  private def clickButtonById(page: Page, id: String): Unit = {
+    clickButton(page, _.getAttribute("id") == id)
+  }
+
   private def clearLocalStorage(page: Page): Unit = {
-    page.getByRole(AriaRole.BUTTON).all().asScala.find(_.getAttribute("id") == "clear_local_storage").foreach(_.click())
+    clickButtonById(page, "clear_local_storage")
   }
 
   private def output(page: Page): Locator = {
@@ -60,13 +68,17 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
       .getOrElse(sys.error("not found"))
   }
 
-  private def setInput(page: Page, sourceCode: String): Unit = {
-    val input = page
+  private def inputElem(page: Page): Locator = {
+    page
       .getByRole(AriaRole.TEXTBOX)
       .all()
       .asScala
       .find(_.getAttribute("id") == "input_scala")
       .getOrElse(sys.error("not found"))
+  }
+
+  private def setInput(page: Page, sourceCode: String): Unit = {
+    val input = inputElem(page)
     input.fill(sourceCode)
     input.press("\n")
   }
@@ -123,5 +135,23 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
       changeOutputType(page, "tokens")
       assert(output(page).textContent() == fromResource("tokens.txt"))
     }
+  }
+
+  "format input" in withBrowser { (browser, page) =>
+    val notFormatted = Seq(
+      """def a = """,
+      """     b""",
+    ).mkString("\n")
+    setInput(page, notFormatted)
+    val input1 = inputElem(page).inputValue()
+    clickButtonById(page, "format_input")
+    val input2 = inputElem(page).inputValue()
+    assert(input1 != input2)
+    val formatted = Seq(
+      """def a =""",
+      """  b""",
+      "",
+    ).mkString("\n")
+    assert(inputElem(page).inputValue() == formatted)
   }
 }
