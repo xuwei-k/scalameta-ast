@@ -152,6 +152,19 @@ lazy val localServer = project.settings(
   run / fork := true,
   Test / testOptions += Tests.Argument("-oD"),
   Test / test := (Test / test).dependsOn(LocalRootProject / copyFilesFast).value,
+  Test / testOptions ++= {
+    if (scala.util.Properties.isMac) {
+      Nil
+    } else {
+      Seq(
+        Tests.Exclude(
+          Seq(
+            "scalameta_ast.IntegrationTestWebkit",
+          )
+        )
+      )
+    }
+  },
   libraryDependencies ++= Seq(
     "org.slf4j" % "slf4j-simple" % "2.0.12" % Runtime,
     "ws.unfiltered" %% "unfiltered-filter" % "0.12.0",
