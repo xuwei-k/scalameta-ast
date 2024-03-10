@@ -116,15 +116,16 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
   "change input" in withBrowser { page =>
     setInput(page, "class A")
     val expect = Seq(
-      """Defn.Class(""",
+      """Defn.Class.After_4_6_0(""",
       """  Nil,""",
       """  Type.Name("A"),""",
-      """  Nil,""",
-      """  Ctor.Primary(Nil, Name(""), Nil),""",
-      """  Template(""",
+      """  Type.ParamClause(Nil),""",
+      """  Ctor.Primary""",
+      """    .After_4_6_0(Nil, Name.Anonymous(), Nil),""",
+      """  Template.After_4_4_0(""",
       """    Nil,""",
       """    Nil,""",
-      """    Self(Name(""), None),""",
+      """    Self(Name.Anonymous(), None),""",
       """    Nil,""",
       """    Nil""",
       """  )""",
@@ -278,6 +279,7 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
   }
 
   "Initial extractor" in withBrowser { page =>
+    page.selectOption("select#scalameta", "scalafix")
     changeOutputType(page, "raw")
     setScalafmtConfig(
       page,
