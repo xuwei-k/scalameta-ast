@@ -95,8 +95,20 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
     input.press("\n")
   }
 
+  private def formatOutput(page: Page): Locator = {
+    getById(page, AriaRole.CHECKBOX, "format")
+  }
+
   private def wildcardImport(page: Page): Locator = {
     getById(page, AriaRole.CHECKBOX, "wildcard_import")
+  }
+
+  private def removeNewFields(page: Page): Locator = {
+    getById(page, AriaRole.CHECKBOX, "remove_new_fields")
+  }
+
+  private def initialExtractor(page: Page): Locator = {
+    getById(page, AriaRole.CHECKBOX, "initial_extractor")
   }
 
   private def changeOutputType(page: Page, outputType: String): Unit = {
@@ -119,6 +131,17 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
 
   private def ruleName(page: Page): Locator = {
     getTextboxById(page, "rule_name")
+  }
+
+  private def selectedDialect(page: Page): String = {
+    page.getByLabel("dialect").all().asScala.map(_.inputValue()).toList match {
+      case List(value) =>
+        value
+      case Nil =>
+        sys.error("not found dialect")
+      case values =>
+        sys.error(s"found multi values ${values}")
+    }
   }
 
   "change input" in withBrowser { page =>
@@ -211,6 +234,7 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
     changeOutputType(page, "raw")
     assert(output(page).textContent() contains """Term.Select(Term.Name("enum"), Term.Name("A"))""")
     page.selectOption("select#dialect", "Scala3")
+    assert(selectedDialect(page) == "Scala3")
     assert(output(page).textContent() contains "Defn.Enum")
   }
 
@@ -302,32 +326,36 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
 
     assert(outSingleLine() == """Term.If(Term.Name("a"), Lit.Int(2), Lit.Int(3), Nil)""")
 
-    getById(page, AriaRole.CHECKBOX, "remove_new_fields").check()
+    removeNewFields(page).check()
     assert(outSingleLine() == """Term.If(Term.Name("a"), Lit.Int(2), Lit.Int(3))""")
 
-    getById(page, AriaRole.CHECKBOX, "initial_extractor").check()
+    initialExtractor(page).check()
     assert(outSingleLine() == """Term.If.Initial(Term.Name("a"), Lit.Int(2), Lit.Int(3))""")
   }
 
   "localStorage" in withBrowser { page =>
     def check(
       scalafmt: String,
+      formatOut: Boolean,
       wildcard: Boolean,
+      _initialExtractor: Boolean,
       outputType: String,
+      dialect: String,
       pkg: String,
       rule: String,
       input: String
     ) = {
       assert(scalafmtConfig(page).inputValue() == scalafmt)
+      assert(formatOutput(page).isChecked == formatOut)
       assert(wildcardImport(page).isChecked == wildcard)
+      assert(initialExtractor(page).isChecked == _initialExtractor)
       assert(
         page.getByRole(AriaRole.RADIO).all().asScala.filter(_.isChecked).map(_.getAttribute("id")) == Seq(outputType)
       )
+      assert(selectedDialect(page) == dialect)
       assert(packageName(page).inputValue() == pkg)
       assert(ruleName(page).inputValue() == rule)
       assert(inputElem(page).inputValue() == input)
-
-      // TODO check more inputs
     }
 
     changeOutputType(page, "syntactic")
@@ -340,16 +368,22 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
         """continuationIndent.defnSite = 2""",
         """continuationIndent.extendSite = 2""",
       ).mkString("\n"),
+      formatOut = true,
       wildcard = false,
+      _initialExtractor = false,
       outputType = "syntactic",
+      dialect = "Auto",
       pkg = "fix",
       rule = "",
       input = "def a = b",
     )
 
     setScalafmtConfig(page, Seq("runner.dialect = Scala213"))
+    formatOutput(page).uncheck()
     wildcardImport(page).check()
+    initialExtractor(page).check()
     changeOutputType(page, "semantic")
+    page.selectOption("select#dialect", "Scala211")
     packageName(page).fill("ppppppppp")
     ruleName(page).fill("FFFFFFFFFF")
     setInput(page, "aaa")
@@ -358,8 +392,11 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
 
     check(
       scalafmt = "runner.dialect = Scala213",
+      formatOut = false,
       wildcard = true,
+      _initialExtractor = true,
       outputType = "semantic",
+      dialect = "Scala211",
       pkg = "ppppppppp",
       rule = "FFFFFFFFFF",
       input = "aaa\n",
