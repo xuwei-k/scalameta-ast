@@ -24,6 +24,8 @@ lazy val commonSettings = Def.settings(
   Seq(Compile, Test).flatMap(c => c / console / scalacOptions --= unusedWarnings),
 )
 
+commonSettings
+
 lazy val `scalameta-ast` = projectMatrix
   .in(file("core"))
   .settings(
@@ -145,11 +147,10 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
 
 val genBuildInfo = taskKey[String]("")
 
-commonSettings
-
 lazy val localServer = project.settings(
   commonSettings,
   run / fork := true,
+  run / baseDirectory := (LocalRootProject / baseDirectory).value,
   Test / testOptions += Tests.Argument("-oD"),
   Test / test := (Test / test).dependsOn(LocalRootProject / copyFilesFast).value,
   Test / testOptions ++= {
