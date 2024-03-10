@@ -33,26 +33,29 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
     super.afterAll()
   }
 
-  private def withBrowser[A](f: (Browser, Page) => A): A = {
-    Using.resource(playwright.chromium().launch()) { browser =>
-      val context = browser.newContext()
-      val page = context.newPage()
-      page.navigate(s"http://127.0.0.1:${port()}/")
-      clearLocalStorage(page)
-      try {
-        f(browser, page)
-      } finally {
+  private def withBrowser[A](f: (Browser, Page) => A): Unit = {
+    Seq(
+      playwright.chromium(),
+      playwright.webkit(),
+      playwright.firefox(),
+    ).foreach { browserType =>
+      Using.resource(browserType.launch()) { browser =>
+        val context = browser.newContext()
+        val page = context.newPage()
+        page.navigate(s"http://127.0.0.1:${port()}/")
+        page.setDefaultTimeout(3000)
         clearLocalStorage(page)
+        try {
+          f(browser, page)
+        } finally {
+          clearLocalStorage(page)
+        }
       }
     }
   }
 
-  private def clickButton(page: Page, f: Locator => Boolean): Unit = {
-    page.getByRole(AriaRole.BUTTON).all().asScala.find(f).getOrElse(sys.error("not found button")).click()
-  }
-
   private def clickButtonById(page: Page, id: String): Unit = {
-    clickButton(page, _.getAttribute("id") == id)
+    getById(page, AriaRole.BUTTON, id).click()
   }
 
   private def clearLocalStorage(page: Page): Unit = {
@@ -60,22 +63,18 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
   }
 
   private def output(page: Page): Locator = {
-    page
-      .getByRole(AriaRole.CODE)
-      .all()
-      .asScala
-      .find(_.getAttribute("id") == "output_scala")
-      .getOrElse(sys.error("not found"))
+    getById(page, AriaRole.CODE, "output_scala")
   }
 
-  private def inputElem(page: Page): Locator = {
-    page
-      .getByRole(AriaRole.TEXTBOX)
-      .all()
-      .asScala
-      .find(_.getAttribute("id") == "input_scala")
-      .getOrElse(sys.error("not found"))
+  private def getById(page: Page, role: AriaRole, id: String): Locator = {
+    page.getByRole(role).all().asScala.find(_.getAttribute("id") == id).getOrElse(sys.error("not found"))
   }
+
+  private def getTextboxById(page: Page, id: String): Locator =
+    getById(page, AriaRole.TEXTBOX, id)
+
+  private def inputElem(page: Page): Locator =
+    getTextboxById(page, "input_scala")
 
   private def setInput(page: Page, sourceCode: String): Unit = {
     val input = inputElem(page)
@@ -153,5 +152,59 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
       "",
     ).mkString("\n")
     assert(inputElem(page).inputValue() == formatted)
+  }
+
+  "change rule details" in withBrowser { (browser, page) =>
+    def render(): Unit = inputElem(page).press("\n")
+
+    assert(!output(page).textContent().contains("import scala.meta._"))
+    assert(!output(page).textContent().contains("package aaa"))
+    assert(!output(page).textContent().contains("class OtherRuleName"))
+
+    changeOutputType(page, "syntactic")
+    output(page).textContent()
+    getTextboxById(page, "package").fill("aaa")
+
+    render()
+
+    assert(output(page).textContent().contains("package aaa"))
+    getTextboxById(page, "rule_name").fill("OtherRuleName")
+
+    render()
+
+    assert(output(page).textContent().contains("class OtherRuleName"))
+    getById(page, AriaRole.CHECKBOX, "wildcard_import").check()
+
+    render()
+
+    assert(output(page).textContent().contains("import scala.meta._"))
+  }
+
+  "dialect" in withBrowser { (browser, page) =>
+    setInput(page, "enum A")
+    changeOutputType(page, "raw")
+    assert(output(page).textContent() contains """Term.Select(Term.Name("enum"), Term.Name("A"))""")
+    page.selectOption("select#dialect", "Scala3")
+    assert(output(page).textContent() contains "Defn.Enum")
+  }
+
+  "patch" in withBrowser { (browser, page) =>
+    changeOutputType(page, "syntactic")
+    assert(output(page).textContent().contains("LintSeverity.Warning"))
+    page.selectOption("select#patch", "replace")
+    assert(output(page).textContent().contains("Patch.replace"))
+    page.selectOption("select#patch", "empty")
+    assert(output(page).textContent().contains("Patch.empty"))
+  }
+
+  "scalameta version" in withBrowser { (browser, page) =>
+    changeOutputType(page, "raw")
+
+    page.selectOption("select#scalameta", "latest")
+    assert(output(page).textContent().contains("Defn.Def.After_4_7_3("))
+
+    page.selectOption("select#scalameta", "scalafix")
+    assert(!output(page).textContent().contains("Defn.Def.After_4_7_3("))
+    assert(output(page).textContent().contains("Defn.Def("))
   }
 }
