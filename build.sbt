@@ -18,7 +18,6 @@ lazy val commonSettings = Def.settings(
     "-unchecked",
     "-Xlint",
     "-language:existentials",
-    "-language:higherKinds",
   ),
   scalacOptions ++= unusedWarnings,
   Seq(Compile, Test).flatMap(c => c / console / scalacOptions --= unusedWarnings),
