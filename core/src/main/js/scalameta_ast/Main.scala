@@ -26,24 +26,32 @@ object Main {
     removeNewFields: Boolean,
     initialExtractor: Boolean,
   ): js.Object = {
-    val output =
-      new ScalametaAST().convert(
-        src = source,
-        format = format,
-        scalafmtConfig = hoconToMetaConfig(scalafmtConfJsonStr),
-        outputType = outputType,
-        packageName = Option(packageName).filter(_.trim.nonEmpty),
-        wildcardImport = wildcardImport,
-        ruleNameOption = Option(ruleName).filter(_.trim.nonEmpty),
-        dialect = Option(dialect).filter(_.trim.nonEmpty),
-        patch = Option(patch).filter(_.trim.nonEmpty),
-        removeNewFields = removeNewFields,
-        initialExtractor = initialExtractor,
-      )
-    new js.Object {
-      var ast = output.ast
-      var astBuildMs = output.astBuildMs.toDouble
-      var formatMs = output.formatMs.toDouble
+    try {
+      val output =
+        new ScalametaAST().convert(
+          src = source,
+          format = format,
+          scalafmtConfig = hoconToMetaConfig(scalafmtConfJsonStr),
+          outputType = outputType,
+          packageName = Option(packageName).filter(_.trim.nonEmpty),
+          wildcardImport = wildcardImport,
+          ruleNameOption = Option(ruleName).filter(_.trim.nonEmpty),
+          dialect = Option(dialect).filter(_.trim.nonEmpty),
+          patch = Option(patch).filter(_.trim.nonEmpty),
+          removeNewFields = removeNewFields,
+          initialExtractor = initialExtractor,
+        )
+      new js.Object {
+        var ast = output.ast
+        var astBuildMs = output.astBuildMs.toDouble
+        var formatMs = output.formatMs.toDouble
+      }
+    } catch {
+      case e: Throwable =>
+        new js.Object {
+          var error = e
+          var errorString: String = e.toString
+        }
     }
   }
 

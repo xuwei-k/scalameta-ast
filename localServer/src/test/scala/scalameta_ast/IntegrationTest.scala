@@ -9,11 +9,15 @@ import scala.io.Source
 import scala.jdk.CollectionConverters._
 import scala.util.Using
 
-class IntegrationTestChromium extends IntegrationTest(_.chromium())
-class IntegrationTestWebkit extends IntegrationTest(_.webkit())
-class IntegrationTestFirefox extends IntegrationTest(_.firefox())
+class IntegrationTestChromium extends IntegrationTest(_.chromium(), scalameta_ast.BrowserType.Chromium)
+class IntegrationTestWebkit extends IntegrationTest(_.webkit(), scalameta_ast.BrowserType.Webkit)
+class IntegrationTestFirefox extends IntegrationTest(_.firefox(), scalameta_ast.BrowserType.Firefox)
 
-abstract class IntegrationTest(browserType: Playwright => BrowserType) extends AnyFreeSpec with BeforeAndAfterAll {
+abstract class IntegrationTest(
+  toBrowserType: Playwright => com.microsoft.playwright.BrowserType,
+  browserType: scalameta_ast.BrowserType
+) extends AnyFreeSpec
+    with BeforeAndAfterAll {
 
   private var server: Server = null
   private var playwright: Playwright = null
@@ -38,8 +42,18 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
   }
 
   private def withBrowser[A](f: Page => A): Unit = {
-    Using.resource(browserType(playwright).launch()) { browser =>
+    Using.resource(toBrowserType(playwright).launch()) { browser =>
       val context = browser.newContext()
+      browserType match {
+        case scalameta_ast.BrowserType.Chromium =>
+          context.grantPermissions(
+            java.util.List.of(
+              "clipboard-read",
+              "clipboard-write",
+            )
+          )
+        case _ =>
+      }
       val page = context.newPage()
       page.navigate(s"http://127.0.0.1:${port()}/")
       page.setDefaultTimeout(5000)
@@ -123,7 +137,7 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
       .getByRole(AriaRole.RADIO)
       .all()
       .asScala
-      .find(_.getAttribute("id") == outputType)
+      .find(_.getAttribute("value") == outputType)
       .getOrElse(sys.error(s"not found ${outputType}"))
       .check()
   }
@@ -372,7 +386,7 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
       assert(wildcardImport(page).isChecked == wildcard)
       assert(initialExtractor(page).isChecked == _initialExtractor)
       assert(
-        page.getByRole(AriaRole.RADIO).all().asScala.filter(_.isChecked).map(_.getAttribute("id")) == Seq(outputType)
+        page.getByRole(AriaRole.RADIO).all().asScala.filter(_.isChecked).map(_.getAttribute("value")) == Seq(outputType)
       )
       assert(selectedDialect(page) == dialect)
       assert(packageName(page).inputValue() == pkg)
@@ -429,5 +443,27 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
     setInput(page, "def")
     assert(infoElem(page).getAttribute("class") == "alert alert-danger")
     assert(infoElem(page).textContent() contains "error: identifier expected but end of file found")
+  }
+
+  "copy button" in withBrowser { page =>
+    browserType match {
+      case scalameta_ast.BrowserType.Chromium =>
+        assert(page.evaluate("navigator.clipboard.readText()") == "")
+        clickButtonById(page, "copy")
+        assert(
+          page.evaluate("navigator.clipboard.readText()") == Seq(
+            """Defn.Def.After_4_7_3(""",
+            """  Nil,""",
+            """  Term.Name("a"),""",
+            """  Nil,""",
+            """  None,""",
+            """  Term.Name("b")""",
+            """)""",
+            "",
+          ).mkString("\n")
+        )
+      case _ =>
+        pending
+    }
   }
 }
