@@ -1,6 +1,7 @@
 "use strict";
 
 import { ScalametaAstMainScalafixCompat } from "./scalafix-compat/main.js";
+
 import { ScalametaAstMainLatest } from "./latest/main.js";
 
 [ScalametaAstMainLatest, ScalametaAstMainScalafixCompat].forEach((main) => {
@@ -16,8 +17,6 @@ import {
   html,
   render,
   useState,
-  useRef,
-  useEffect,
 } from "https://unpkg.com/htm@3.1.1/preact/standalone.module.js";
 
 import hljs from "https://unpkg.com/@highlightjs/cdn-assets@11.9.0/es/highlight.min.js";

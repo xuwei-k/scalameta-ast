@@ -249,7 +249,6 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
 
     "output" in withBrowser { page =>
       def render(): Unit = inputElem(page).press("\n")
-
       changeOutputType(page, "syntactic")
       wildcardImport(page).check()
       render()
