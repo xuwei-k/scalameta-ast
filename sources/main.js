@@ -4,291 +4,457 @@ import { ScalametaAstMainScalafixCompat } from "./scalafix-compat/main.js";
 
 import { ScalametaAstMainLatest } from "./latest/main.js";
 
-$(() => {
-  [ScalametaAstMainLatest, ScalametaAstMainScalafixCompat].forEach((main) => {
-    try {
-      // force initialize for avoid error
-      main.convert("", true, "", "", "", false, "", "", "", false, false);
-    } catch (e) {
-      console.log(e);
-    }
-  });
+[ScalametaAstMainLatest, ScalametaAstMainScalafixCompat].forEach((main) => {
+  try {
+    // force initialize for avoid error
+    main.convert("", true, "", "", "", false, "", "", "", false, false);
+  } catch (e) {
+    console.log(e);
+  }
+});
 
-  const headerAllConfig = document.getElementById("header_all_scalafix_config");
-  headerAllConfig.addEventListener("toggle", (event) => {
-    const summary = headerAllConfig.getElementsByTagName("summary")[0];
-    if (headerAllConfig.open) {
-      summary.innerHTML = "close header";
+import {
+  html,
+  render,
+  useState,
+} from "https://unpkg.com/htm@3.1.1/preact/standalone.module.js";
+
+import hljs from "https://unpkg.com/@highlightjs/cdn-assets@11.9.0/es/highlight.min.js";
+import scala from "https://unpkg.com/@highlightjs/cdn-assets@11.9.0/es/languages/scala.min.js";
+hljs.registerLanguage("scala", scala);
+
+const getFromStorageOr = (key, defaultValue, fun) => {
+  const saved = localStorage.getItem(key);
+  if (saved === null) {
+    console.log("not found saved value. use default " + defaultValue);
+    return defaultValue;
+  } else {
+    console.log(`found saved value "${key}" = "${saved}"`);
+    if (fun == null) {
+      return saved;
     } else {
-      summary.innerHTML = "open header";
+      console.log("convert " + key + " " + fun(saved));
+      return fun(saved);
     }
-  });
+  }
+};
 
-  $("#format_input").click(() => {
-    const input = $("#input_scala").val();
-    const scalafmt = $("#scalafmt").val();
-    const main =
-      $("#scalameta").val() == "latest"
-        ? ScalametaAstMainLatest
-        : ScalametaAstMainScalafixCompat;
-    const result = main.format(input, scalafmt);
-    if (input != result) {
-      $("#input_scala").val(result);
-    }
-  });
+const getBoolFromStorageOr = (key, defaultValue) => {
+  return getFromStorageOr(key, defaultValue, (a) => a === "true");
+};
 
-  $("#clear_local_storage").click(() => localStorage.clear());
-
-  const run = () => {
-    try {
-      const scalafmt = $("#scalafmt").val();
-      const input = $("#input_scala").val();
-      const outputType = $("input[name=output_type]:checked").val();
-      const packageName = $("#package").val();
-      const ruleName = $("#rule_name").val();
-      const dialect = $("#dialect").val();
-      const scalameta = $("#scalameta").val();
-      const main =
-        scalameta == "latest"
-          ? ScalametaAstMainLatest
-          : ScalametaAstMainScalafixCompat;
-      const patch = $("#patch").val();
-
-      ["package", "rule_name", "wildcard_import", "patch"].forEach((i) =>
-        $(`#${i}`).prop(
-          "disabled",
-          outputType === "raw" || outputType === "tokens",
-        ),
-      );
-
-      const r = main.convert(
-        input,
-        $("#format").prop("checked") === true,
-        scalafmt,
-        outputType === undefined ? "" : outputType,
-        packageName === undefined ? "" : packageName,
-        $("#wildcard_import").prop("checked") === true,
-        ruleName === undefined ? "" : ruleName,
-        dialect === undefined ? "" : dialect,
-        patch === undefined ? "" : patch,
-        $("#remove_new_fields").prop("checked") === true,
-        $("#initial_extractor").prop("checked") === true,
-      );
-      $("#output_scala").text(r.ast);
-      $("#info")
-        .text(`ast: ${r.astBuildMs} ms\nfmt: ${r.formatMs} ms`)
-        .addClass("alert-success")
-        .removeClass("alert-danger");
-
-      const saveLimit = 1024;
-
-      [
-        ["patch", patch],
-        ["scalameta", scalameta],
-        ["dialect", dialect],
-        ["rule_name", ruleName],
-        ["package", packageName],
-        ["output_type", outputType],
-      ].forEach((xs) => {
-        try {
-          localStorage.setItem(xs[0], xs[1]);
-        } catch (e) {
-          console.trace(e);
-        }
-      });
-
-      if (input.length < saveLimit) {
-        try {
-          localStorage.setItem("source", input);
-        } catch (e) {
-          console.trace(e);
-        }
-      }
-      if (scalafmt.length < saveLimit) {
-        try {
-          localStorage.setItem("scalafmt", scalafmt);
-        } catch (e) {
-          console.trace(e);
-        }
-      }
-
-      document
-        .getElementById("output_scala")
-        .removeAttribute("data-highlighted");
-
-      hljs.highlightAll();
-    } catch (e) {
-      console.trace(e);
-      $("#output_scala").text("");
-      $("#info").text(e).addClass("alert-danger").removeClass("alert-success");
-    }
-  };
-
-  document.getElementById("output_scala").addEventListener("dblclick", (e) => {
-    const s = window.getSelection();
-    const r = document.createRange();
-    r.selectNodeContents(e.target);
-    s.removeAllRanges();
-    s.addRange(r);
-  });
-
-  $("#input_scala").keyup((event) => run());
-
-  $("#package").keyup((event) => run());
-
-  $("#rule_name").keyup((event) => run());
-
-  $("input[name=output_type]").on("change", () => run());
-
-  $("#dialect").change(() => run());
-
-  $("#patch").change(() => run());
-
-  $("#scalameta").change(() => run());
-
-  $("#format").change(() => {
-    run();
-    localStorage.setItem(
-      "format",
-      ($("#format").prop("checked") === true).toString(),
-    );
-  });
-
-  $("#wildcard_import").change(() => {
-    run();
-    localStorage.setItem(
-      "wildcard_import",
-      ($("#wildcard_import").prop("checked") === true).toString(),
-    );
-  });
-
-  $("#remove_new_fields").change(() => {
-    run();
-    localStorage.setItem(
-      "remove_new_fields",
-      ($("#remove_new_fields").prop("checked") === true).toString(),
-    );
-  });
-
-  $("#initial_extractor").change(() => {
-    run();
-    localStorage.setItem(
-      "initial_extractor",
-      ($("#initial_extractor").prop("checked") === true).toString(),
-    );
-  });
-
-  $(document).ready(() => {
-    hljs.addPlugin(new CopyButtonPlugin());
-
-    const savedSource = localStorage.getItem("source");
-    const savedScalafmt = localStorage.getItem("scalafmt");
-    const savedPackage = localStorage.getItem("package");
-    const savedRuleName = localStorage.getItem("rule_name");
-    const savedDialect = localStorage.getItem("dialect");
-    const savedScalameta = localStorage.getItem("scalameta");
-    const savedPatch = localStorage.getItem("patch");
-
-    if (savedScalameta != null) {
-      $(`[name="scalameta"] option[value="${savedScalameta}"]`).prop(
-        "selected",
-        true,
-      );
-    } else {
-      $(`[name="scalameta"] option[value="latest"]`).prop("selected", true);
-    }
-
-    if (savedPatch != null) {
-      $(`[name="patch"] option[value="${savedPatch}"]`).prop("selected", true);
-    }
-
-    if (savedDialect != null) {
-      $(`[name="dialect"] option[value="${savedDialect}"]`).prop(
-        "selected",
-        true,
-      );
-    }
-
-    if (savedPackage != null) {
-      $("#rule_name").val(savedRuleName);
-    }
-
-    if (savedPackage != null) {
-      $("#package").val(savedPackage);
-    } else {
-      $("#package").val("fix");
-    }
-
-    if (savedScalafmt != null) {
-      $("#scalafmt").val(savedScalafmt);
-    } else {
-      const defaultConfig = `
+const defaultScalafmtConfig = `
         maxColumn = 50
         runner.dialect = "Scala3"
         align.preset = "none"
         continuationIndent.defnSite = 2
         continuationIndent.extendSite = 2
       `
-        .split("\n")
-        .map((c) => c.trim())
-        .filter((c) => c.length > 0)
-        .join("\n");
-      $("#scalafmt").val(defaultConfig);
-    }
+  .split("\n")
+  .map((c) => c.trim())
+  .filter((c) => c.length > 0)
+  .join("\n");
 
-    if (savedSource != null) {
-      $("#input_scala").val(savedSource);
-    } else {
-      $("#input_scala").val("def a = b");
-    }
+const initialSource = getFromStorageOr("source", "def a = b");
+const initialScalafmt = getFromStorageOr("scalafmt", defaultScalafmtConfig);
+const initialPackage = getFromStorageOr("package", "fix");
+const initialRuleName = getFromStorageOr("rule_name", "");
+const initialDialect = getFromStorageOr("dialect", "Auto");
+const initialScalameta = getFromStorageOr("scalameta", "latest");
+const initialPatch = getFromStorageOr("patch", "warn");
+const initialOutputType = getFromStorageOr("output_type", "raw");
 
-    if (localStorage.getItem("format") === "false") {
-      $("#format").prop("checked", false);
-    }
+const initialFormat = getBoolFromStorageOr("format", true);
+const initialWildcardImport = getBoolFromStorageOr("wildcard_import", false);
+const initialRemoveNewFields = getBoolFromStorageOr("remove_new_fields", false);
+const initialInitialExtractor = getBoolFromStorageOr(
+  "initial_extractor",
+  false,
+);
 
-    if (localStorage.getItem("wildcard_import") === "true") {
-      $("#wildcard_import").prop("checked", true);
-    }
+const App = () => {
+  const [summary, setSummary] = useState("close header");
+  const [inputScala, setInputScala] = useState(initialSource);
+  const [scalafmtConfig, setScalafmtConfig] = useState(initialScalafmt);
+  const [packageName, setPackageName] = useState(initialPackage);
+  const [ruleName, setRuleName] = useState(initialRuleName);
+  const [dialect, setDialect] = useState(initialDialect);
+  const [scalameta, setScalameta] = useState(initialScalameta);
+  const [patch, setPatch] = useState(initialPatch);
+  const [outputType, setOutputType] = useState(initialOutputType);
 
-    if (localStorage.getItem("remove_new_fields") === "false") {
-      $("#remove_new_fields").prop("checked", false);
-    }
+  const [format, setFormat] = useState(initialFormat);
+  const [wildcardImport, setWildcardImport] = useState(initialWildcardImport);
+  const [removeNewFields, setRemoveNewFields] = useState(
+    initialRemoveNewFields,
+  );
+  const [initialExtractor, setInitialExtractor] = useState(
+    initialInitialExtractor,
+  );
 
-    if (localStorage.getItem("initial_extractor") === "true") {
-      $("#initial_extractor").prop("checked", true);
-    }
-
-    switch (localStorage.getItem("output_type")) {
-      case "semantic":
-        $("input[name=output_type][value='semantic']").prop("checked", true);
+  const changeDetails = (e) => {
+    switch (e.newState) {
+      case "open":
+        setSummary("close header");
         break;
-      case "syntactic":
-        $("input[name=output_type][value='syntactic']").prop("checked", true);
+      case "closed":
+        setSummary("open header");
         break;
-      case "tokens":
-        $("input[name=output_type][value='tokens']").prop("checked", true);
-        break;
-      default:
-        $("input[name=output_type][value='raw']").prop("checked", true);
     }
+  };
 
-    $.getJSON("./scalafix-compat/build_info.json", (data) => {
-      document.getElementById("scalameta_scalafix_compat").innerHTML +=
-        ` ${data.scalametaVersion}`;
+  const main =
+    scalameta == "latest"
+      ? ScalametaAstMainLatest
+      : ScalametaAstMainScalafixCompat;
+
+  const formatInput = () => {
+    const result = main.format(inputScala, scalafmtConfig);
+    setInputScala(result);
+  };
+
+  console.log([
+    inputScala,
+    format,
+    scalafmtConfig,
+    outputType,
+    packageName,
+    wildcardImport,
+    ruleName,
+    dialect,
+    patch,
+    removeNewFields,
+    initialExtractor,
+  ]);
+
+  const r = main.convert(
+    inputScala,
+    format,
+    scalafmtConfig,
+    outputType,
+    packageName,
+    wildcardImport,
+    ruleName,
+    dialect,
+    patch,
+    removeNewFields,
+    initialExtractor,
+  );
+
+  let result = "";
+  let info = "";
+  let infoClass = "";
+
+  if (r.ast == null) {
+    info = r.errorString;
+    infoClass = "alert alert-danger";
+  } else {
+    result = hljs.highlight(r.ast, {
+      language: "scala",
+    }).value;
+    info = `ast: ${r.astBuildMs} ms\nfmt: ${r.formatMs} ms`;
+    infoClass = "alert alert-success";
+    console.log(r.ast);
+
+    [
+      ["source", inputScala],
+      ["scalafmt", scalafmtConfig],
+      ["package", packageName],
+      ["rule_name", ruleName],
+      ["dialect", dialect],
+      ["scalameta", scalameta],
+      ["patch", patch],
+      ["output_type", outputType],
+
+      ["format", format],
+      ["wildcard_import", wildcardImport],
+      ["remove_new_fields", removeNewFields],
+      ["initial_extractor", initialExtractor],
+    ].forEach((xs) => {
+      localStorage.setItem(xs[0], xs[1]);
     });
+  }
 
-    $.getJSON("./latest/build_info.json", (data) => {
-      document.getElementById("scalameta_latest").innerHTML +=
-        ` ${data.scalametaVersion}`;
+  const disableScalafixRuleTemplateInput =
+    outputType === "raw" || outputType === "tokens";
 
-      const githubUrl = `https://github.com/xuwei-k/scalameta-ast/tree/${data.gitHash}`;
-      const link = document.createElement("a");
-      link.append(githubUrl);
-      link.href = githubUrl;
-      link.target = "_blank";
-      document.getElementById("footer").appendChild(link);
-    });
+  return html` <div class="container mw-100">
+    <details open ontoggle="${(e) => changeDetails(e)}">
+      <summary>${summary}</summary>
+      <div class="row">
+        <div class="col-5">
+          <pre id="info" class=${infoClass} style="height: 100px">${info}</pre>
+        </div>
+        <div class="col-3">
+          <div class="row">
+            <div>
+              <input
+                type="checkbox"
+                name="format"
+                id="format"
+                checked=${format}
+                onChange=${(e) => setFormat(e.target.checked)}
+              />
+              <label for="format">format output by scalafmt</label>
+            </div>
+            <div>
+              <input
+                type="checkbox"
+                name="wildcard_import"
+                id="wildcard_import"
+                disabled=${disableScalafixRuleTemplateInput}
+                checked=${wildcardImport}
+                onChange=${(e) => setWildcardImport(e.target.checked)}
+              />
+              <label for="wildcard_import">wildcard import</label>
+            </div>
+            <div>
+              <input
+                type="checkbox"
+                id="remove_new_fields"
+                name="remove_new_fields"
+                checked=${removeNewFields}
+                onChange=${(e) => setRemoveNewFields(e.target.checked)}
+              />
+              <label for="remove_new_fields"
+                >remove <code>@newField</code> for
+                <code>unapply</code> compatibility</label
+              >
+            </div>
+            <div>
+              <input
+                type="checkbox"
+                id="initial_extractor"
+                name="initial_extractor"
+                checked=${initialExtractor}
+                onChange=${(e) => setInitialExtractor(e.target.checked)}
+              />
+              <label for="initial_extractor"
+                ><code>Initial</code> extractor</label
+              >
+            </div>
+          </div>
+          <div class="row">
+            <p></p>
+          </div>
+          <div class="row">
+            <div class="col">
+              <button
+                class="btn btn-primary"
+                id="copy"
+                onclick=${() => {
+                  navigator.clipboard.writeText(r.ast);
+                  if (window.getSelection) {
+                    const selection = window.getSelection();
+                    const range = document.createRange();
+                    range.selectNodeContents(
+                      document.getElementById("output_scala"),
+                    );
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                  }
+                }}
+              >
+                copy
+              </button>
+            </div>
+            <div class="col">
+              <button
+                class="btn btn-primary"
+                onclick=${() => formatInput()}
+                id="format_input"
+              >
+                format input scala code
+              </button>
+            </div>
+            <div class="col">
+              <button
+                class="btn btn-primary"
+                id="clear_local_storage"
+                onclick=${() => localStorage.clear()}
+              >
+                clear local storage
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="row">
+            <fieldset>
+              <legend>output type</legend>
+              <div>
+                <input
+                  type="radio"
+                  name="output_type"
+                  value="raw"
+                  checked=${outputType === "raw"}
+                  onChange=${() => setOutputType("raw")}
+                />
+                <label for="raw">Raw Scalameta</label>
+              </div>
+              <div>
+                <input
+                  type="radio"
+                  name="output_type"
+                  value="syntactic"
+                  checked=${outputType === "syntactic"}
+                  onChange=${() => setOutputType("syntactic")}
+                />
+                <label for="syntactic">Scalafix SyntacticRule</label>
+              </div>
+              <div>
+                <input
+                  type="radio"
+                  name="output_type"
+                  value="semantic"
+                  checked=${outputType === "semantic"}
+                  onChange=${() => setOutputType("semantic")}
+                />
+                <label for="semantic">Scalafix SemanticRule</label>
+              </div>
+              <div>
+                <input
+                  type="radio"
+                  name="output_type"
+                  value="tokens"
+                  checked=${outputType === "tokens"}
+                  onChange=${() => setOutputType("tokens")}
+                />
+                <label for="tokens">Tokens</label>
+              </div>
+            </fieldset>
+          </div>
+          <div class="row">
+            <div>
+              <label for="dialect">dialect</label>
+              <select
+                name="dialect"
+                id="dialect"
+                value=${dialect}
+                onChange=${(e) => setDialect(e.target.value)}
+              >
+                <option value="Auto">Auto</option>
+                <option value="Scala3">Scala3</option>
+                <option value="Scala213Source3">Scala213Source3</option>
+                <option value="Scala213">Scala213</option>
+                <option value="Scala212Source3">Scala212Source3</option>
+                <option value="Scala212">Scala212</option>
+                <option value="Scala211">Scala211</option>
+                <option value="Scala210">Scala210</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="row">
+            <div>
+              <label for="scalameta">scalameta version</label>
+              <select
+                name="scalameta"
+                id="scalameta"
+                value=${scalameta}
+                onChange=${(e) => setScalameta(e.target.value)}
+              >
+                <option value="scalafix">scalafix 0.10.x compatible</option>
+                <option value="latest">scalafix 0.11.x compatible</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label for="package">package</label>
+              <input
+                disabled=${disableScalafixRuleTemplateInput}
+                maxlength="256"
+                id="package"
+                value=${packageName}
+                oninput=${(x) => setPackageName(x.target.value)}
+              />
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label for="rule_name">rule name</label>
+              <input
+                disabled=${disableScalafixRuleTemplateInput}
+                type="text"
+                id="rule_name"
+                maxlength="128"
+                value=${ruleName}
+                oninput=${(x) => setRuleName(x.target.value)}
+              />
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label for="patch"
+                ><a
+                  target="_blank"
+                  href="https://scalacenter.github.io/scalafix/docs/developers/patch.html"
+                  >patch</a
+                ></label
+              >
+              <select
+                name="patch"
+                id="patch"
+                value=${patch}
+                disabled=${disableScalafixRuleTemplateInput}
+                onChange=${(e) => setPatch(e.target.value)}
+              >
+                <option value="warn">lint warn</option>
+                <option value="error">lint error</option>
+                <option value="info">lint info</option>
+                <option value="replace">replace</option>
+                <option value="left">add left</option>
+                <option value="right">add right</option>
+                <option value="empty">empty</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </details>
+    <div class="row">
+      <div class="col">
+        <textarea
+          style="width: 100%; height: 800px"
+          id="input_scala"
+          onkeyup=${(e) => setInputScala(e.target.value)}
+          onChange=${(e) => setInputScala(e.target.value)}
+          value=${inputScala}
+        ></textarea>
+      </div>
+      <div class="col">
+        <pre>
+        <code
+          id="output_scala"
+          class="language-scala hljs"
+          dangerouslySetInnerHTML=${{ __html: result }}
+          style="width: 100%; height: 800px; background-color:rgb(233, 233, 233);"
+        ></code>
+        </pre>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <p>
+          <a
+            href="https://scalameta.org/scalafmt/docs/configuration.html"
+            target="_blank"
+            >scalafmt config</a
+          >
+        </p>
+        <textarea
+          style="width: 100%; height: 200px"
+          id="scalafmt"
+          onkeyup=${(e) => setScalafmtConfig(e.target.value)}
+          onChange=${(e) => setScalafmtConfig(e.target.value)}
+          value=${scalafmtConfig}
+        ></textarea>
+      </div>
+    </div>
+    <div class="row" id="footer"></div>
+  </div>`;
+};
 
-    run();
-  });
-});
+render(html`<${App} />`, document.getElementById("root"));

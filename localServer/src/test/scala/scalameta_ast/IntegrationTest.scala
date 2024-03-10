@@ -40,6 +40,12 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
   private def withBrowser[A](f: Page => A): Unit = {
     Using.resource(browserType(playwright).launch()) { browser =>
       val context = browser.newContext()
+      context.grantPermissions(
+        java.util.List.of(
+          "clipboard-read",
+          "clipboard-write",
+        )
+      )
       val page = context.newPage()
       page.navigate(s"http://127.0.0.1:${port()}/")
       page.setDefaultTimeout(5000)
@@ -123,7 +129,7 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
       .getByRole(AriaRole.RADIO)
       .all()
       .asScala
-      .find(_.getAttribute("id") == outputType)
+      .find(_.getAttribute("value") == outputType)
       .getOrElse(sys.error(s"not found ${outputType}"))
       .check()
   }
@@ -372,7 +378,7 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
       assert(wildcardImport(page).isChecked == wildcard)
       assert(initialExtractor(page).isChecked == _initialExtractor)
       assert(
-        page.getByRole(AriaRole.RADIO).all().asScala.filter(_.isChecked).map(_.getAttribute("id")) == Seq(outputType)
+        page.getByRole(AriaRole.RADIO).all().asScala.filter(_.isChecked).map(_.getAttribute("value")) == Seq(outputType)
       )
       assert(selectedDialect(page) == dialect)
       assert(packageName(page).inputValue() == pkg)
@@ -429,5 +435,22 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
     setInput(page, "def")
     assert(infoElem(page).getAttribute("class") == "alert alert-danger")
     assert(infoElem(page).textContent() contains "error: identifier expected but end of file found")
+  }
+
+  "copy button" in withBrowser { page =>
+    assert(page.evaluate("navigator.clipboard.readText()") == "")
+    clickButtonById(page, "copy")
+    assert(
+      page.evaluate("navigator.clipboard.readText()") == Seq(
+        """Defn.Def.After_4_7_3(""",
+        """  Nil,""",
+        """  Term.Name("a"),""",
+        """  Nil,""",
+        """  None,""",
+        """  Term.Name("b")""",
+        """)""",
+        "",
+      ).mkString("\n")
+    )
   }
 }
