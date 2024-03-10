@@ -68,7 +68,7 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
   }
 
   private def getById(page: Page, role: AriaRole, id: String): Locator = {
-    page.getByRole(role).all().asScala.find(_.getAttribute("id") == id).getOrElse(sys.error("not found"))
+    page.getByRole(role).all().asScala.find(_.getAttribute("id") == id).getOrElse(sys.error(s"not found $id"))
   }
 
   private def getTextboxById(page: Page, id: String): Locator =
