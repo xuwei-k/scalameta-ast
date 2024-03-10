@@ -54,6 +54,7 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
   private def formatInput(page: Page): Unit = {
     clickButtonById(page, "format_input")
   }
+
   private def clickButtonById(page: Page, id: String): Unit = {
     getById(page, AriaRole.BUTTON, id).click()
   }
@@ -76,6 +77,7 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
   private def scalafmtConfig(page: Page): Locator = {
     getTextboxById(page, "scalafmt")
   }
+
   private def setScalafmtConfig(page: Page, values: Seq[String]): Unit = {
     scalafmtConfig(page).fill(values.mkString("\n"))
   }
