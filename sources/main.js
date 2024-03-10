@@ -241,6 +241,25 @@ const App = () => {
             <div class="col">
               <button
                 class="btn btn-primary"
+                onclick=${() => {
+                  navigator.clipboard.writeText(r.ast);
+                  if (window.getSelection) {
+                    const selection = window.getSelection();
+                    const range = document.createRange();
+                    range.selectNodeContents(
+                      document.getElementById("output_scala"),
+                    );
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                  }
+                }}
+              >
+                copy
+              </button>
+            </div>
+            <div class="col">
+              <button
+                class="btn btn-primary"
                 onclick=${() => formatInput()}
                 id="format_input"
               >
