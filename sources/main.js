@@ -194,6 +194,8 @@ $(() => {
         "selected",
         true,
       );
+    } else {
+      $(`[name="scalameta"] option[value="latest"]`).prop("selected", true);
     }
 
     if (savedPatch != null) {

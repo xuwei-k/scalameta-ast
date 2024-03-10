@@ -13,10 +13,9 @@ class Example extends SyntacticRule("Example") {
     doc: SyntacticDocument
   ): Patch = {
     doc.tree.collect {
-      case t @ Defn.Def(
+      case t @ Defn.Def.After_4_7_3(
             Nil,
             Term.Name("a"),
-            Nil,
             Nil,
             None,
             Term.Name("b")
