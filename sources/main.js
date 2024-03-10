@@ -176,7 +176,8 @@ const App = () => {
     });
   }
 
-  const disableScalafixRuleTemplateInput = outputType === "raw" || outputType === "tokens";
+  const disableScalafixRuleTemplateInput =
+    outputType === "raw" || outputType === "tokens";
 
   return html` <div class="container mw-100">
     <details open ontoggle="${(e) => changeDetails(e)}">
@@ -200,6 +201,7 @@ const App = () => {
               <input
                 type="checkbox"
                 name="wildcard_import"
+                id="wildcard_import"
                 disabled=${disableScalafixRuleTemplateInput}
                 checked=${wildcardImport}
                 onChange=${(e) => setWildcardImport(e.target.checked)}
@@ -211,6 +213,8 @@ const App = () => {
                 type="checkbox"
                 id="remove_new_fields"
                 name="remove_new_fields"
+                checked=${removeNewFields}
+                onChange=${(e) => setRemoveNewFields(e.target.checked)}
               />
               <label for="remove_new_fields"
                 >remove <code>@newField</code> for
@@ -222,6 +226,9 @@ const App = () => {
                 type="checkbox"
                 id="initial_extractor"
                 name="initial_extractor"
+                checked=${initialExtractor}
+                onChange=${(e) => setInitialExtractor(e.target.checked)}
+              />
               />
               <label for="initial_extractor"
                 ><code>Initial</code> extractor</label
@@ -233,13 +240,18 @@ const App = () => {
           </div>
           <div class="row">
             <div class="col">
-              <button class="btn btn-primary" onclick=${() => formatInput()}>
+              <button
+                class="btn btn-primary"
+                onclick=${() => formatInput()}
+                id="format_input"
+              >
                 format input scala code
               </button>
             </div>
             <div class="col">
               <button
                 class="btn btn-primary"
+                id="clear_local_storage"
                 onclick=${() => localStorage.clear()}
               >
                 clear local storage
@@ -298,6 +310,7 @@ const App = () => {
               <label for="dialect">dialect</label>
               <select
                 name="dialect"
+                id="dialect"
                 value=${dialect}
                 onChange=${(e) => setDialect(e.target.value)}
               >
@@ -319,6 +332,7 @@ const App = () => {
               <label for="scalameta">scalameta version</label>
               <select
                 name="scalameta"
+                id="scalameta"
                 value=${scalameta}
                 onChange=${(e) => setScalameta(e.target.value)}
               >
@@ -363,6 +377,7 @@ const App = () => {
               >
               <select
                 name="patch"
+                id="patch"
                 value=${patch}
                 disabled=${disableScalafixRuleTemplateInput}
                 onChange=${(e) => setPatch(e.target.value)}
@@ -384,13 +399,16 @@ const App = () => {
       <div class="col">
         <textarea
           style="width: 100%; height: 800px"
+          id="input_scala"
           onkeyup=${(e) => setInputScala(e.target.value)}
+          onChange=${(e) => setInputScala(e.target.value)}
           value=${inputScala}
         ></textarea>
       </div>
       <div class="col">
         <pre>
         <code
+          id="output_scala"
           class="language-scala hljs"
           dangerouslySetInnerHTML=${{ __html: result }}
           style="width: 100%; height: 800px; background-color:rgb(233, 233, 233);"
@@ -407,9 +425,13 @@ const App = () => {
             >scalafmt config</a
           >
         </p>
-        <textarea style="width: 100%; height: 200px">
-${scalafmtConfig}</textarea
-        >
+        <textarea
+          style="width: 100%; height: 200px"
+          id="scalafmt"
+          onkeyup=${(e) => setScalafmtConfig(e.target.value)}
+          onChange=${(e) => setScalafmtConfig(e.target.value)}
+          value=${scalafmtConfig}
+        ></textarea>
       </div>
     </div>
     <div class="row" id="footer"></div>

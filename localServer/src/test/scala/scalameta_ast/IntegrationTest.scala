@@ -104,7 +104,7 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
       .getByRole(AriaRole.RADIO)
       .all()
       .asScala
-      .find(_.getAttribute("id") == outputType)
+      .find(_.getAttribute("value") == outputType)
       .getOrElse(sys.error(s"not found ${outputType}"))
       .check()
   }
@@ -114,23 +114,24 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
   }
 
   "change input" in withBrowser { page =>
+    changeOutputType(page, "raw")
     setInput(page, "class A")
     val expect = Seq(
-      """Defn.Class(""",
+      """Defn.Class.After_4_6_0(""",
       """  Nil,""",
       """  Type.Name("A"),""",
-      """  Nil,""",
-      """  Ctor.Primary(Nil, Name(""), Nil),""",
-      """  Template(""",
+      """  Type.ParamClause(Nil),""",
+      """  Ctor.Primary""",
+      """    .After_4_6_0(Nil, Name.Anonymous(), Nil),""",
+      """  Template.After_4_4_0(""",
       """    Nil,""",
       """    Nil,""",
-      """    Self(Name(""), None),""",
+      """    Self(Name.Anonymous(), None),""",
       """    Nil,""",
       """    Nil""",
       """  )""",
       """)""",
-      "",
-    ).mkString("\n")
+    ).mkString("", "\n", "\n")
     assert(output(page).textContent() == expect)
   }
 
@@ -207,9 +208,9 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
 
   "patch" in withBrowser { page =>
     changeOutputType(page, "syntactic")
-    assert(output(page).textContent().contains("LintSeverity.Warning"))
-    page.selectOption("select#patch", "replace")
     assert(output(page).textContent().contains("Patch.replace"))
+    page.selectOption("select#patch", "warn")
+    assert(output(page).textContent().contains("LintSeverity.Warning"))
     page.selectOption("select#patch", "empty")
     assert(output(page).textContent().contains("Patch.empty"))
   }
@@ -248,6 +249,7 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
 
     "output" in withBrowser { page =>
       def render(): Unit = inputElem(page).press("\n")
+
       changeOutputType(page, "syntactic")
       wildcardImport(page).check()
       render()
@@ -278,6 +280,7 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
   }
 
   "Initial extractor" in withBrowser { page =>
+    page.selectOption("select#scalameta", "scalafix")
     changeOutputType(page, "raw")
     setScalafmtConfig(
       page,
