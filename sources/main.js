@@ -228,7 +228,6 @@ const App = () => {
                 checked=${initialExtractor}
                 onChange=${(e) => setInitialExtractor(e.target.checked)}
               />
-              />
               <label for="initial_extractor"
                 ><code>Initial</code> extractor</label
               >
