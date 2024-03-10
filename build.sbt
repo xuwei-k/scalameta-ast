@@ -25,10 +25,6 @@ lazy val commonSettings = Def.settings(
 
 commonSettings
 
-run / fork := true
-
-libraryDependencies += "org.slf4j" % "slf4j-simple" % "2.0.12" % Runtime
-
 lazy val `scalameta-ast` = projectMatrix
   .in(file("core"))
   .settings(
@@ -150,9 +146,32 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
 
 val genBuildInfo = taskKey[String]("")
 
-libraryDependencies ++= Seq(
-  "ws.unfiltered" %% "unfiltered-filter" % "0.12.0",
-  "ws.unfiltered" %% "unfiltered-jetty" % "0.12.0",
+lazy val localServer = project.settings(
+  commonSettings,
+  run / fork := true,
+  run / baseDirectory := (LocalRootProject / baseDirectory).value,
+  Test / testOptions += Tests.Argument("-oD"),
+  Test / test := (Test / test).dependsOn(LocalRootProject / copyFilesFull).value,
+  Test / testOptions ++= {
+    if (scala.util.Properties.isMac) {
+      Nil
+    } else {
+      Seq(
+        Tests.Exclude(
+          Seq(
+            "scalameta_ast.IntegrationTestWebkit",
+          )
+        )
+      )
+    }
+  },
+  libraryDependencies ++= Seq(
+    "org.slf4j" % "slf4j-simple" % "2.0.12" % Runtime,
+    "ws.unfiltered" %% "unfiltered-filter" % "0.12.0",
+    "ws.unfiltered" %% "unfiltered-jetty" % "0.12.0",
+    "org.scalatest" %%% "scalatest-freespec" % "3.2.18" % Test,
+    "com.microsoft.playwright" % "playwright" % "1.41.2" % Test,
+  )
 )
 
 val srcDir = (LocalRootProject / baseDirectory).apply(_ / "sources")
@@ -181,12 +200,14 @@ def cp(
   }
 }
 
+val copyFilesFull = taskKey[Unit]("")
+
 TaskKey[Unit]("copyFilesFast") := {
   cp(metaScalafixCompat, scalafixCompatOutJSDir, fastLinkJS, fastLinkJSOutput).value
   cp(metaLatest, latestOutJSDir, fastLinkJS, fastLinkJSOutput).value
 }
 
-TaskKey[Unit]("copyFilesFull") := {
+copyFilesFull := {
   cp(metaScalafixCompat, scalafixCompatOutJSDir, fullLinkJS, fullLinkJSOutput).value
   cp(metaLatest, latestOutJSDir, fullLinkJS, fullLinkJSOutput).value
 }

@@ -1,0 +1,12 @@
+Seq(
+  Token.BOF,
+  Token.KwDef,
+  Token.Space,
+  Token.Ident("a"),
+  Token.Space,
+  Token.Equals,
+  Token.Space,
+  Token.Ident("b"),
+  Token.EOF
+)
+
