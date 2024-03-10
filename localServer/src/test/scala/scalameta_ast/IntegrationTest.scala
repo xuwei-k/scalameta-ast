@@ -33,7 +33,7 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
     super.afterAll()
   }
 
-  private def withBrowser[A](f: (Browser, Page) => A): Unit = {
+  private def withBrowser[A](f: Page => A): Unit = {
     Seq(
       playwright.chromium(),
       playwright.webkit(),
@@ -45,7 +45,7 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
         page.navigate(s"http://127.0.0.1:${port()}/")
         page.setDefaultTimeout(5000)
         try {
-          f(browser, page)
+          f(page)
         } finally {
           clearLocalStorage(page)
         }
@@ -109,7 +109,7 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
       .check()
   }
 
-  "change input" in withBrowser { (browser, page) =>
+  "change input" in withBrowser { page =>
     setInput(page, "class A")
     val expect = Seq(
       """Defn.Class(""",
@@ -135,25 +135,25 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
   }
 
   "output type" - {
-    "raw" in withBrowser { (browser, page) =>
+    "raw" in withBrowser { page =>
       changeOutputType(page, "raw")
       assert(output(page).textContent() == fromResource("raw.txt"))
     }
-    "SyntacticRule" in withBrowser { (browser, page) =>
+    "SyntacticRule" in withBrowser { page =>
       changeOutputType(page, "syntactic")
       assert(output(page).textContent() == fromResource("syntactic.txt"))
     }
-    "SemanticRule" in withBrowser { (browser, page) =>
+    "SemanticRule" in withBrowser { page =>
       changeOutputType(page, "semantic")
       assert(output(page).textContent() == fromResource("semantic.txt"))
     }
-    "Tokens" in withBrowser { (browser, page) =>
+    "Tokens" in withBrowser { page =>
       changeOutputType(page, "tokens")
       assert(output(page).textContent() == fromResource("tokens.txt"))
     }
   }
 
-  "format input" in withBrowser { (browser, page) =>
+  "format input" in withBrowser { page =>
     val notFormatted = Seq(
       """def a = """,
       """     b""",
@@ -171,7 +171,7 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
     assert(inputElem(page).inputValue() == formatted)
   }
 
-  "change rule details" in withBrowser { (browser, page) =>
+  "change rule details" in withBrowser { page =>
     def render(): Unit = inputElem(page).press("\n")
 
     assert(!output(page).textContent().contains("import scala.meta._"))
@@ -197,7 +197,7 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
     assert(output(page).textContent().contains("import scala.meta._"))
   }
 
-  "dialect" in withBrowser { (browser, page) =>
+  "dialect" in withBrowser { page =>
     setInput(page, "enum A")
     changeOutputType(page, "raw")
     assert(output(page).textContent() contains """Term.Select(Term.Name("enum"), Term.Name("A"))""")
@@ -205,7 +205,7 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
     assert(output(page).textContent() contains "Defn.Enum")
   }
 
-  "patch" in withBrowser { (browser, page) =>
+  "patch" in withBrowser { page =>
     changeOutputType(page, "syntactic")
     assert(output(page).textContent().contains("LintSeverity.Warning"))
     page.selectOption("select#patch", "replace")
@@ -214,7 +214,7 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
     assert(output(page).textContent().contains("Patch.empty"))
   }
 
-  "scalameta version" in withBrowser { (browser, page) =>
+  "scalameta version" in withBrowser { page =>
     changeOutputType(page, "raw")
 
     page.selectOption("select#scalameta", "latest")
@@ -226,7 +226,7 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
   }
 
   "scalafmt config" - {
-    "input" in withBrowser { (browser, page) =>
+    "input" in withBrowser { page =>
       setInput(page, "import foo._")
       formatInput(page)
       val input1 = inputElem(page).inputValue()
@@ -246,7 +246,7 @@ class IntegrationTest extends AnyFreeSpec with BeforeAndAfterAll {
       assert(!input2.contains("import foo._"))
     }
 
-    "output" in withBrowser { (browser, page) =>
+    "output" in withBrowser { page =>
       def render(): Unit = inputElem(page).press("\n")
       changeOutputType(page, "syntactic")
       wildcardImport(page).check()
