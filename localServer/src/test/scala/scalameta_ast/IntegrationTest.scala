@@ -113,6 +113,14 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
     Source.fromURL(getClass.getResource("/" + path)).getLines().mkString("\n")
   }
 
+  private def packageName(page: Page): Locator = {
+    getTextboxById(page, "package")
+  }
+
+  private def ruleName(page: Page): Locator = {
+    getTextboxById(page, "rule_name")
+  }
+
   "change input" in withBrowser { page =>
     setInput(page, "class A")
     val expect = Seq(
@@ -181,12 +189,12 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
 
     changeOutputType(page, "syntactic")
     output(page).textContent()
-    getTextboxById(page, "package").fill("aaa")
+    packageName(page).fill("aaa")
 
     render()
 
     assert(output(page).textContent().contains("package aaa"))
-    getTextboxById(page, "rule_name").fill("OtherRuleName")
+    ruleName(page).fill("OtherRuleName")
 
     render()
 
@@ -299,5 +307,62 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
 
     getById(page, AriaRole.CHECKBOX, "initial_extractor").check()
     assert(outSingleLine() == """Term.If.Initial(Term.Name("a"), Lit.Int(2), Lit.Int(3))""")
+  }
+
+  "localStorage" in withBrowser { page =>
+    def check(
+      scalafmt: String,
+      wildcard: Boolean,
+      outputType: String,
+      pkg: String,
+      rule: String,
+      input: String
+    ) = {
+      assert(scalafmtConfig(page).inputValue() == scalafmt)
+      assert(wildcardImport(page).isChecked == wildcard)
+      assert(
+        page.getByRole(AriaRole.RADIO).all().asScala.filter(_.isChecked).map(_.getAttribute("id")) == Seq(outputType)
+      )
+      assert(packageName(page).inputValue() == pkg)
+      assert(ruleName(page).inputValue() == rule)
+      assert(inputElem(page).inputValue() == input)
+
+      // TODO check more inputs
+    }
+
+    changeOutputType(page, "syntactic")
+
+    check(
+      scalafmt = Seq(
+        """maxColumn = 50""",
+        """runner.dialect = "Scala3"""",
+        """align.preset = "none"""",
+        """continuationIndent.defnSite = 2""",
+        """continuationIndent.extendSite = 2""",
+      ).mkString("\n"),
+      wildcard = false,
+      outputType = "syntactic",
+      pkg = "fix",
+      rule = "",
+      input = "def a = b",
+    )
+
+    setScalafmtConfig(page, Seq("runner.dialect = Scala213"))
+    wildcardImport(page).check()
+    changeOutputType(page, "semantic")
+    packageName(page).fill("ppppppppp")
+    ruleName(page).fill("FFFFFFFFFF")
+    setInput(page, "aaa")
+
+    page.reload()
+
+    check(
+      scalafmt = "runner.dialect = Scala213",
+      wildcard = true,
+      outputType = "semantic",
+      pkg = "ppppppppp",
+      rule = "FFFFFFFFFF",
+      input = "aaa\n",
+    )
   }
 }
