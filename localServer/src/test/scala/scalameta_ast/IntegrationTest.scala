@@ -43,10 +43,17 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
       val page = context.newPage()
       page.navigate(s"http://127.0.0.1:${port()}/")
       page.setDefaultTimeout(5000)
+      var err: String = null
+      page.onPageError { e =>
+        err = e
+      }
       try {
         f(page)
       } finally {
         clearLocalStorage(page)
+      }
+      if (err != null) {
+        throw new AssertionError(s"page error: $err")
       }
     }
   }
