@@ -369,74 +369,88 @@ abstract class IntegrationTest(
     assert(outSingleLine() == """Term.If.Initial(Term.Name("a"), Lit.Int(2), Lit.Int(3))""")
   }
 
-  "localStorage" in withBrowser { page =>
-    def check(
-      scalafmt: String,
-      formatOut: Boolean,
-      wildcard: Boolean,
-      _initialExtractor: Boolean,
-      outputType: String,
-      dialect: String,
-      pkg: String,
-      rule: String,
-      input: String
-    ) = {
-      assert(scalafmtConfig(page).inputValue() == scalafmt)
-      assert(formatOutput(page).isChecked == formatOut)
-      assert(wildcardImport(page).isChecked == wildcard)
-      assert(initialExtractor(page).isChecked == _initialExtractor)
-      assert(
-        page.getByRole(AriaRole.RADIO).all().asScala.filter(_.isChecked).map(_.getAttribute("value")) == Seq(outputType)
+  "localStorage" - {
+    "save values" in withBrowser { page =>
+      def check(
+        scalafmt: String,
+        formatOut: Boolean,
+        wildcard: Boolean,
+        _initialExtractor: Boolean,
+        outputType: String,
+        dialect: String,
+        pkg: String,
+        rule: String,
+        input: String
+      ) = {
+        assert(scalafmtConfig(page).inputValue() == scalafmt)
+        assert(formatOutput(page).isChecked == formatOut)
+        assert(wildcardImport(page).isChecked == wildcard)
+        assert(initialExtractor(page).isChecked == _initialExtractor)
+        assert(
+          page.getByRole(AriaRole.RADIO).all().asScala.filter(_.isChecked).map(_.getAttribute("value")) == Seq(
+            outputType
+          )
+        )
+        assert(selectedDialect(page) == dialect)
+        assert(packageName(page).inputValue() == pkg)
+        assert(ruleName(page).inputValue() == rule)
+        assert(inputElem(page).inputValue() == input)
+      }
+
+      changeOutputType(page, "syntactic")
+
+      check(
+        scalafmt = Seq(
+          """maxColumn = 50""",
+          """runner.dialect = "Scala3"""",
+          """align.preset = "none"""",
+          """continuationIndent.defnSite = 2""",
+          """continuationIndent.extendSite = 2""",
+        ).mkString("\n"),
+        formatOut = true,
+        wildcard = false,
+        _initialExtractor = false,
+        outputType = "syntactic",
+        dialect = "Auto",
+        pkg = "fix",
+        rule = "",
+        input = "def a = b",
       )
-      assert(selectedDialect(page) == dialect)
-      assert(packageName(page).inputValue() == pkg)
-      assert(ruleName(page).inputValue() == rule)
-      assert(inputElem(page).inputValue() == input)
+
+      setScalafmtConfig(page, Seq("runner.dialect = Scala213"))
+      formatOutput(page).uncheck()
+      wildcardImport(page).check()
+      initialExtractor(page).check()
+      changeOutputType(page, "semantic")
+      page.selectOption("select#dialect", "Scala211")
+      packageName(page).fill("ppppppppp")
+      ruleName(page).fill("FFFFFFFFFF")
+      setInput(page, "aaa")
+
+      page.reload()
+
+      check(
+        scalafmt = "runner.dialect = Scala213",
+        formatOut = false,
+        wildcard = true,
+        _initialExtractor = true,
+        outputType = "semantic",
+        dialect = "Scala211",
+        pkg = "ppppppppp",
+        rule = "FFFFFFFFFF",
+        input = "aaa\n",
+      )
     }
 
-    changeOutputType(page, "syntactic")
-
-    check(
-      scalafmt = Seq(
-        """maxColumn = 50""",
-        """runner.dialect = "Scala3"""",
-        """align.preset = "none"""",
-        """continuationIndent.defnSite = 2""",
-        """continuationIndent.extendSite = 2""",
-      ).mkString("\n"),
-      formatOut = true,
-      wildcard = false,
-      _initialExtractor = false,
-      outputType = "syntactic",
-      dialect = "Auto",
-      pkg = "fix",
-      rule = "",
-      input = "def a = b",
-    )
-
-    setScalafmtConfig(page, Seq("runner.dialect = Scala213"))
-    formatOutput(page).uncheck()
-    wildcardImport(page).check()
-    initialExtractor(page).check()
-    changeOutputType(page, "semantic")
-    page.selectOption("select#dialect", "Scala211")
-    packageName(page).fill("ppppppppp")
-    ruleName(page).fill("FFFFFFFFFF")
-    setInput(page, "aaa")
-
-    page.reload()
-
-    check(
-      scalafmt = "runner.dialect = Scala213",
-      formatOut = false,
-      wildcard = true,
-      _initialExtractor = true,
-      outputType = "semantic",
-      dialect = "Scala211",
-      pkg = "ppppppppp",
-      rule = "FFFFFFFFFF",
-      input = "aaa\n",
-    )
+    "limit" in withBrowser { page =>
+      val x = "x" * 1023
+      setInput(page, x)
+      page.reload()
+      assert(inputElem(page).inputValue() == (x + "\n"))
+      setInput(page, "n" * 1024)
+      page.reload()
+      assert(inputElem(page).inputValue() == (x + "\n"))
+    }
   }
 
   "invalid input" in withBrowser { page =>
