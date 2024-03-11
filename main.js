@@ -69,6 +69,8 @@ const initialInitialExtractor = getBoolFromStorageOr(
   false,
 );
 
+let initialized = false;
+
 const App = () => {
   const [scalametaV1, setScalametaV1] = useState("");
   const [scalametaV2, setScalametaV2] = useState("");
@@ -165,18 +167,21 @@ const App = () => {
     });
   }
 
-  fetch("./scalafix-compat/build_info.json")
-    .then((res) => res.json())
-    .then((json) => setScalametaV1(json.scalametaVersion));
+  if (initialized === false) {
+    fetch("./scalafix-compat/build_info.json")
+      .then((res) => res.json())
+      .then((json) => setScalametaV1(json.scalametaVersion));
 
-  fetch("./latest/build_info.json")
-    .then((res) => res.json())
-    .then((json) => {
-      setScalametaV2(json.scalametaVersion);
-      setGithubUrl(
-        `https://github.com/xuwei-k/scalameta-ast/tree/${json.gitHash}`,
-      );
-    });
+    fetch("./latest/build_info.json")
+      .then((res) => res.json())
+      .then((json) => {
+        initialized = true;
+        setScalametaV2(json.scalametaVersion);
+        setGithubUrl(
+          `https://github.com/xuwei-k/scalameta-ast/tree/${json.gitHash}`,
+        );
+      });
+  }
 
   const disableScalafixRuleTemplateInput =
     outputType === "raw" || outputType === "tokens";
