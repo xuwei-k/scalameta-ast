@@ -177,6 +177,18 @@ abstract class IntegrationTest(
     )
   }
 
+  private def changeScalametaVersion(page: Page, v: ScalametaV): Unit = {
+    page.selectOption(
+      "select#scalameta",
+      v match {
+        case ScalametaV.V_0_10 =>
+          "scalafix"
+        case ScalametaV.V_0_11 =>
+          "latest"
+      }
+    )
+  }
+
   "change input" in withBrowser { page =>
     setInput(page, "class A")
     assert(infoElem(page).getAttribute("class") == "alert alert-success")
@@ -286,10 +298,10 @@ abstract class IntegrationTest(
   "scalameta version" in withBrowser { page =>
     changeOutputType(page, "raw")
 
-    page.selectOption("select#scalameta", "latest")
+    changeScalametaVersion(page, ScalametaV.V_0_11)
     assert(output(page).textContent().contains("Defn.Def.After_4_7_3("))
 
-    page.selectOption("select#scalameta", "scalafix")
+    changeScalametaVersion(page, ScalametaV.V_0_10)
     assert(!output(page).textContent().contains("Defn.Def.After_4_7_3("))
     assert(output(page).textContent().contains("Defn.Def("))
   }
@@ -347,7 +359,10 @@ abstract class IntegrationTest(
   }
 
   "Initial extractor" in withBrowser { page =>
-    page.selectOption("select#scalameta", "scalafix")
+    changeScalametaVersion(page, ScalametaV.V_0_10)
+    assert(removeNewFields(page).isEnabled())
+    assert(initialExtractor(page).isEnabled())
+
     changeOutputType(page, "raw")
     setScalafmtConfig(
       page,
@@ -367,6 +382,10 @@ abstract class IntegrationTest(
 
     initialExtractor(page).check()
     assert(outSingleLine() == """Term.If.Initial(Term.Name("a"), Lit.Int(2), Lit.Int(3))""")
+
+    changeScalametaVersion(page, ScalametaV.V_0_11)
+    assert(!removeNewFields(page).isEnabled())
+    assert(!initialExtractor(page).isEnabled())
   }
 
   "localStorage" - {
@@ -400,6 +419,7 @@ abstract class IntegrationTest(
       }
 
       changeOutputType(page, "syntactic")
+      changeScalametaVersion(page, ScalametaV.V_0_10)
 
       check(
         scalafmt = Seq(

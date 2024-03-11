@@ -186,6 +186,8 @@ const App = () => {
   const disableScalafixRuleTemplateInput =
     outputType === "raw" || outputType === "tokens";
 
+  const disableCompat = scalameta != "scalafix";
+
   return html` <div class="container mw-100">
     <details open ontoggle="${(e) => changeDetails(e)}">
       <summary>${summary}</summary>
@@ -221,6 +223,7 @@ const App = () => {
                 type="checkbox"
                 id="remove_new_fields"
                 name="remove_new_fields"
+                disabled=${disableCompat}
                 checked=${removeNewFields}
                 onChange=${(e) => setRemoveNewFields(e.target.checked)}
               />
@@ -234,6 +237,7 @@ const App = () => {
                 type="checkbox"
                 id="initial_extractor"
                 name="initial_extractor"
+                disabled=${disableCompat}
                 checked=${initialExtractor}
                 onChange=${(e) => setInitialExtractor(e.target.checked)}
               />
