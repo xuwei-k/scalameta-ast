@@ -150,7 +150,7 @@ lazy val localServer = project.settings(
   commonSettings,
   run / fork := true,
   run / baseDirectory := (LocalRootProject / baseDirectory).value,
-  Test / testOptions += Tests.Argument("-oD"),
+  Test / testOptions += Tests.Argument("-oDF"),
   Test / test := (Test / test).dependsOn(LocalRootProject / copyFilesFull).value,
   Test / testOptions ++= {
     if (scala.util.Properties.isMac) {
