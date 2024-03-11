@@ -421,5 +421,6 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
   "invalid input" in withBrowser { page =>
     setInput(page, "def")
     assert(infoElem(page).getAttribute("class") == "alert alert-danger")
+    assert(infoElem(page).textContent() contains "error: identifier expected but end of file found")
   }
 }
