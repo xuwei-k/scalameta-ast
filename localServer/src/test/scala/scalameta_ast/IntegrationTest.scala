@@ -375,6 +375,7 @@ abstract class IntegrationTest(
         scalafmt: String,
         formatOut: Boolean,
         wildcard: Boolean,
+        _removeNewFields: Boolean,
         _initialExtractor: Boolean,
         outputType: String,
         dialect: String,
@@ -385,6 +386,7 @@ abstract class IntegrationTest(
         assert(scalafmtConfig(page).inputValue() == scalafmt)
         assert(formatOutput(page).isChecked == formatOut)
         assert(wildcardImport(page).isChecked == wildcard)
+        assert(removeNewFields(page).isChecked == _removeNewFields)
         assert(initialExtractor(page).isChecked == _initialExtractor)
         assert(
           page.getByRole(AriaRole.RADIO).all().asScala.filter(_.isChecked).map(_.getAttribute("value")) == Seq(
@@ -409,6 +411,7 @@ abstract class IntegrationTest(
         ).mkString("\n"),
         formatOut = true,
         wildcard = false,
+        _removeNewFields = false,
         _initialExtractor = false,
         outputType = "syntactic",
         dialect = "Auto",
@@ -421,6 +424,7 @@ abstract class IntegrationTest(
       formatOutput(page).uncheck()
       wildcardImport(page).check()
       initialExtractor(page).check()
+      removeNewFields(page).check()
       changeOutputType(page, "semantic")
       page.selectOption("select#dialect", "Scala211")
       packageName(page).fill("ppppppppp")
@@ -433,6 +437,7 @@ abstract class IntegrationTest(
         scalafmt = "runner.dialect = Scala213",
         formatOut = false,
         wildcard = true,
+        _removeNewFields = true,
         _initialExtractor = true,
         outputType = "semantic",
         dialect = "Scala211",
