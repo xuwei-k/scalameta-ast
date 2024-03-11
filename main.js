@@ -70,6 +70,10 @@ const initialInitialExtractor = getBoolFromStorageOr(
 );
 
 const App = () => {
+  const [scalametaV1, setScalametaV1] = useState("");
+  const [scalametaV2, setScalametaV2] = useState("");
+  const [githubUrl, setGithubUrl] = useState("");
+
   const [summary, setSummary] = useState("close header");
   const [inputScala, setInputScala] = useState(initialSource);
   const [scalafmtConfig, setScalafmtConfig] = useState(initialScalafmt);
@@ -153,9 +157,26 @@ const App = () => {
       ["remove_new_fields", removeNewFields],
       ["initial_extractor", initialExtractor],
     ].forEach((xs) => {
-      localStorage.setItem(xs[0], xs[1]);
+      const key = xs[0];
+      const val = xs[1];
+      if (val.toString().length <= 1024) {
+        localStorage.setItem(key, val);
+      }
     });
   }
+
+  fetch("./scalafix-compat/build_info.json")
+    .then((res) => res.json())
+    .then((json) => setScalametaV1(json.scalametaVersion));
+
+  fetch("./latest/build_info.json")
+    .then((res) => res.json())
+    .then((json) => {
+      setScalametaV2(json.scalametaVersion);
+      setGithubUrl(
+        `https://github.com/xuwei-k/scalameta-ast/tree/${json.gitHash}`,
+      );
+    });
 
   const disableScalafixRuleTemplateInput =
     outputType === "raw" || outputType === "tokens";
@@ -337,8 +358,12 @@ const App = () => {
                 value=${scalameta}
                 onChange=${(e) => setScalameta(e.target.value)}
               >
-                <option value="scalafix">scalafix 0.10.x compatible</option>
-                <option value="latest">scalafix 0.11.x compatible</option>
+                <option value="scalafix">
+                  scalafix 0.10.x compatible ${scalametaV1}
+                </option>
+                <option value="latest">
+                  scalafix 0.11.x compatible ${scalametaV2}
+                </option>
               </select>
             </div>
           </div>
@@ -435,7 +460,9 @@ const App = () => {
         ></textarea>
       </div>
     </div>
-    <div class="row" id="footer"></div>
+    <div class="row" id="footer">
+      <a target="_blank" href=${githubUrl}>${githubUrl}</a>
+    </div>
   </div>`;
 };
 
