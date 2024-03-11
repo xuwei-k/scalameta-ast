@@ -133,19 +133,34 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
     getTextboxById(page, "rule_name")
   }
 
-  private def selectedDialect(page: Page): String = {
-    page.getByLabel("dialect").all().asScala.map(_.inputValue()).toList match {
+  private def singleOrError[A](list: List[A]): A = {
+    list match {
       case List(value) =>
         value
       case Nil =>
-        sys.error("not found dialect")
+        sys.error("not found")
       case values =>
         sys.error(s"found multi values ${values}")
     }
   }
 
+  private def selectedDialect(page: Page): String = {
+    singleOrError(
+      page.getByLabel("dialect").all().asScala.map(_.inputValue()).toList
+    )
+  }
+
+  private def infoElem(page: Page): Locator = {
+    singleOrError(
+      page.locator("pre").all().asScala.filter(_.getAttribute("id") == "info").toList
+    )
+  }
+
   "change input" in withBrowser { page =>
     setInput(page, "class A")
+    assert(infoElem(page).getAttribute("class") == "alert alert-success")
+    val info = infoElem(page).textContent()
+    Seq("ast: ", "fmt: ", " ms").forall(info contains _)
     val expect = Seq(
       """Defn.Class.After_4_6_0(""",
       """  Nil,""",
@@ -401,5 +416,10 @@ abstract class IntegrationTest(browserType: Playwright => BrowserType) extends A
       rule = "FFFFFFFFFF",
       input = "aaa\n",
     )
+  }
+
+  "invalid input" in withBrowser { page =>
+    setInput(page, "def")
+    assert(infoElem(page).getAttribute("class") == "alert alert-danger")
   }
 }
