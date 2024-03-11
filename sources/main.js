@@ -153,7 +153,11 @@ const App = () => {
       ["remove_new_fields", removeNewFields],
       ["initial_extractor", initialExtractor],
     ].forEach((xs) => {
-      localStorage.setItem(xs[0], xs[1]);
+      const key = xs[0];
+      const val = xs[1];
+      if (val.toString().length <= 1024) {
+        localStorage.setItem(key, val);
+      }
     });
   }
 
