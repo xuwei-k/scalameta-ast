@@ -186,6 +186,8 @@ const App = () => {
   const disableScalafixRuleTemplateInput =
     outputType === "raw" || outputType === "tokens";
 
+  const disableCompat = scalameta != "scalafix";
+
   return html` <div class="container mw-100">
     <details open ontoggle="${(e) => changeDetails(e)}">
       <summary>${summary}</summary>
@@ -221,6 +223,7 @@ const App = () => {
                 type="checkbox"
                 id="remove_new_fields"
                 name="remove_new_fields"
+                disabled=${disableCompat}
                 checked=${removeNewFields}
                 onChange=${(e) => setRemoveNewFields(e.target.checked)}
               />
@@ -234,6 +237,7 @@ const App = () => {
                 type="checkbox"
                 id="initial_extractor"
                 name="initial_extractor"
+                disabled=${disableCompat}
                 checked=${initialExtractor}
                 onChange=${(e) => setInitialExtractor(e.target.checked)}
               />
@@ -290,7 +294,7 @@ const App = () => {
           <div class="row">
             <fieldset>
               <legend>output type</legend>
-              <div>
+              <label>
                 <input
                   type="radio"
                   name="output_type"
@@ -298,9 +302,9 @@ const App = () => {
                   checked=${outputType === "raw"}
                   onChange=${() => setOutputType("raw")}
                 />
-                <label for="raw">Raw Scalameta</label>
-              </div>
-              <div>
+                <span>Raw Scalameta</span>
+              </label>
+              <label>
                 <input
                   type="radio"
                   name="output_type"
@@ -308,9 +312,9 @@ const App = () => {
                   checked=${outputType === "syntactic"}
                   onChange=${() => setOutputType("syntactic")}
                 />
-                <label for="syntactic">Scalafix SyntacticRule</label>
-              </div>
-              <div>
+                <span>Scalafix SyntacticRule</span>
+              </label>
+              <label>
                 <input
                   type="radio"
                   name="output_type"
@@ -318,9 +322,9 @@ const App = () => {
                   checked=${outputType === "semantic"}
                   onChange=${() => setOutputType("semantic")}
                 />
-                <label for="semantic">Scalafix SemanticRule</label>
-              </div>
-              <div>
+                <span>Scalafix SemanticRule</span>
+              </label>
+              <label>
                 <input
                   type="radio"
                   name="output_type"
@@ -328,8 +332,8 @@ const App = () => {
                   checked=${outputType === "tokens"}
                   onChange=${() => setOutputType("tokens")}
                 />
-                <label for="tokens">Tokens</label>
-              </div>
+                <span>Tokens</span>
+              </label>
             </fieldset>
           </div>
           <div class="row">
