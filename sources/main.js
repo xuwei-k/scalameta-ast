@@ -294,7 +294,7 @@ const App = () => {
           <div class="row">
             <fieldset>
               <legend>output type</legend>
-              <div>
+              <label>
                 <input
                   type="radio"
                   name="output_type"
@@ -302,9 +302,9 @@ const App = () => {
                   checked=${outputType === "raw"}
                   onChange=${() => setOutputType("raw")}
                 />
-                <label for="raw">Raw Scalameta</label>
-              </div>
-              <div>
+                <span>Raw Scalameta</span>
+              </label>
+              <label>
                 <input
                   type="radio"
                   name="output_type"
@@ -312,9 +312,9 @@ const App = () => {
                   checked=${outputType === "syntactic"}
                   onChange=${() => setOutputType("syntactic")}
                 />
-                <label for="syntactic">Scalafix SyntacticRule</label>
-              </div>
-              <div>
+                <span>Scalafix SyntacticRule</span>
+              </label>
+              <label>
                 <input
                   type="radio"
                   name="output_type"
@@ -322,9 +322,9 @@ const App = () => {
                   checked=${outputType === "semantic"}
                   onChange=${() => setOutputType("semantic")}
                 />
-                <label for="semantic">Scalafix SemanticRule</label>
-              </div>
-              <div>
+                <span>Scalafix SemanticRule</span>
+              </label>
+              <label>
                 <input
                   type="radio"
                   name="output_type"
@@ -332,8 +332,8 @@ const App = () => {
                   checked=${outputType === "tokens"}
                   onChange=${() => setOutputType("tokens")}
                 />
-                <label for="tokens">Tokens</label>
-              </div>
+                <span>Tokens</span>
+              </label>
             </fieldset>
           </div>
           <div class="row">
