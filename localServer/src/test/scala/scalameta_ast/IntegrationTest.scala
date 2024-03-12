@@ -230,6 +230,9 @@ abstract class IntegrationTest(
     "Tokens" in withBrowser { page =>
       changeOutputType(page, "tokens")
       assert(output(page).textContent() == fromResource("tokens.txt"))
+      assert(!wildcardImport(page).isEnabled())
+      assert(!removeNewFields(page).isEnabled())
+      assert(!initialExtractor(page).isEnabled())
     }
   }
 

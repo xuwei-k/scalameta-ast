@@ -186,7 +186,7 @@ const App = () => {
   const disableScalafixRuleTemplateInput =
     outputType === "raw" || outputType === "tokens";
 
-  const disableCompat = scalameta != "scalafix";
+  const disableCompat = scalameta != "scalafix" || outputType === "tokens";
 
   return html` <div class="container mw-100">
     <details open ontoggle="${(e) => changeDetails(e)}">
