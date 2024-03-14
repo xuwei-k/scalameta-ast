@@ -241,6 +241,31 @@ abstract class IntegrationTest(
       assert(!packageName(page).isEnabled())
       assert(!ruleName(page).isEnabled())
     }
+    "Comment" in withBrowser { page =>
+      changeOutputType(page, "comment")
+      assert(!wildcardImport(page).isEnabled())
+      assert(!removeNewFields(page).isEnabled())
+      assert(!initialExtractor(page).isEnabled())
+      assert(!packageName(page).isEnabled())
+      assert(!ruleName(page).isEnabled())
+      setInput(
+        page,
+        Seq(
+          """/**""",
+          """ * @param a1 a2""",
+          """ * @tparam a3 a4""",
+          """ * @throws a5 a6""",
+          """ * @see example.com""",
+          """ * @note a7""",
+          """ *""",
+          """ * {{{""",
+          """ *    def x = List("y", 2)""",
+          """ * }}}""",
+          """ */""",
+        ).mkString("\n")
+      )
+      assert(output(page).textContent() == fromResource("comment.txt"))
+    }
   }
 
   "format input" in withBrowser { page =>

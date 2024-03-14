@@ -28,6 +28,13 @@ object Args {
     dialect: Option[String],
   ) extends Args
 
+  case class Comment(
+    src: String,
+    format: Boolean,
+    scalafmtConfig: Conf,
+    dialect: Option[String],
+  ) extends Args
+
   case class Raw(
     src: String,
     format: Boolean,
