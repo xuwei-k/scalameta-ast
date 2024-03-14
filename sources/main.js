@@ -294,46 +294,54 @@ const App = () => {
           <div class="row">
             <fieldset>
               <legend>output type</legend>
-              <label>
-                <input
-                  type="radio"
-                  name="output_type"
-                  value="raw"
-                  checked=${outputType === "raw"}
-                  onChange=${() => setOutputType("raw")}
-                />
-                <span>Raw Scalameta</span>
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="output_type"
-                  value="syntactic"
-                  checked=${outputType === "syntactic"}
-                  onChange=${() => setOutputType("syntactic")}
-                />
-                <span>Scalafix SyntacticRule</span>
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="output_type"
-                  value="semantic"
-                  checked=${outputType === "semantic"}
-                  onChange=${() => setOutputType("semantic")}
-                />
-                <span>Scalafix SemanticRule</span>
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="output_type"
-                  value="tokens"
-                  checked=${outputType === "tokens"}
-                  onChange=${() => setOutputType("tokens")}
-                />
-                <span>Tokens</span>
-              </label>
+              <div>
+                <label>
+                  <input
+                    type="radio"
+                    name="output_type"
+                    value="raw"
+                    checked=${outputType === "raw"}
+                    onChange=${() => setOutputType("raw")}
+                  />
+                  <span>Raw Scalameta</span>
+                </label>
+              </div>
+              <div>
+                <label>
+                  <input
+                    type="radio"
+                    name="output_type"
+                    value="syntactic"
+                    checked=${outputType === "syntactic"}
+                    onChange=${() => setOutputType("syntactic")}
+                  />
+                  <span>Scalafix SyntacticRule</span>
+                </label>
+              </div>
+              <div>
+                <label>
+                  <input
+                    type="radio"
+                    name="output_type"
+                    value="semantic"
+                    checked=${outputType === "semantic"}
+                    onChange=${() => setOutputType("semantic")}
+                  />
+                  <span>Scalafix SemanticRule</span>
+                </label>
+              </div>
+              <div>
+                <label>
+                  <input
+                    type="radio"
+                    name="output_type"
+                    value="tokens"
+                    checked=${outputType === "tokens"}
+                    onChange=${() => setOutputType("tokens")}
+                  />
+                  <span>Tokens</span>
+                </label>
+              </div>
             </fieldset>
           </div>
           <div class="row">
