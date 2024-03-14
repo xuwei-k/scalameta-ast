@@ -218,14 +218,19 @@ abstract class IntegrationTest(
     "raw" in withBrowser { page =>
       changeOutputType(page, "raw")
       assert(output(page).textContent() == fromResource("raw.txt"))
+      assert(!packageName(page).isEnabled())
+      assert(!ruleName(page).isEnabled())
+      assert(!wildcardImport(page).isEnabled())
     }
     "SyntacticRule" in withBrowser { page =>
       changeOutputType(page, "syntactic")
       assert(output(page).textContent() == fromResource("syntactic.txt"))
+      assert(wildcardImport(page).isEnabled())
     }
     "SemanticRule" in withBrowser { page =>
       changeOutputType(page, "semantic")
       assert(output(page).textContent() == fromResource("semantic.txt"))
+      assert(wildcardImport(page).isEnabled())
     }
     "Tokens" in withBrowser { page =>
       changeOutputType(page, "tokens")
@@ -233,6 +238,8 @@ abstract class IntegrationTest(
       assert(!wildcardImport(page).isEnabled())
       assert(!removeNewFields(page).isEnabled())
       assert(!initialExtractor(page).isEnabled())
+      assert(!packageName(page).isEnabled())
+      assert(!ruleName(page).isEnabled())
     }
   }
 
