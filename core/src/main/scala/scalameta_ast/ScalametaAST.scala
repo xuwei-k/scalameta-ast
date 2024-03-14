@@ -127,7 +127,7 @@ class ScalametaAST {
   private def tokensToString(tokens: Tokens): String = {
     tokens.tokens.map { x =>
       val n = x.getClass.getSimpleName
-      def q(a: String): String = s"(\"${a}\")"
+      def q(a: String): String = s"(${scala.meta.Lit.String(a)})"
 
       PartialFunction
         .condOpt(x) {

@@ -240,6 +240,22 @@ abstract class IntegrationTest(
       assert(!initialExtractor(page).isEnabled())
       assert(!packageName(page).isEnabled())
       assert(!ruleName(page).isEnabled())
+      setInput(
+        page,
+        "\"\\n\""
+      )
+      assert(
+        output(page).textContent() == Seq(
+          "Seq(",
+          "  Token.BOF,",
+          "  Token.Constant.String(\"\"\"",
+          "\"\"\"),",
+          "  Token.LF,",
+          "  Token.EOF",
+          ")",
+          "",
+        ).mkString("\n")
+      )
     }
     "Comment" in withBrowser { page =>
       changeOutputType(page, "comment")
