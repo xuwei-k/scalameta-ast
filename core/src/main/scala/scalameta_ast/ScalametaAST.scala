@@ -319,6 +319,13 @@ class ScalametaAST {
             patch = patch,
             initialExtractor = initialExtractor,
           )
+        case "comment" =>
+          Args.Comment(
+            src = src,
+            format = format,
+            scalafmtConfig = scalafmtConfig,
+            dialect = dialect,
+          )
         case _ =>
           Args.Raw(
             src = src,
@@ -334,7 +341,7 @@ class ScalametaAST {
   def convert(
     args: Args
   ): Output = {
-    val input = convert.apply(args.src)
+    lazy val input = convert.apply(args.src)
     val ((ast, parsedOpt), astBuildMs) = stopwatch {
       val dialects = args.dialect.fold(dialectsDefault) { x =>
         stringToDialects.getOrElse(
@@ -362,6 +369,23 @@ class ScalametaAST {
             }
           }
           tokensToString(loop(input, dialects)) -> None
+
+        case _: Args.Comment =>
+          scala.meta.contrib.CommentOps
+            .docTokens(
+              new scala.meta.tokens.Token.Comment(
+                input = Input.String(args.src),
+                dialect = dialects.head,
+                start = 0,
+                end = args.src.length,
+                value = args.src
+              )
+            )
+            .map(_.map { x =>
+              val q: String => String = s => scala.meta.Lit.String(s).toString
+              s"""DocToken(kind = ${x.kind}, name = ${x.name.map(q)}, body = ${x.body.map(q)})"""
+            })
+            .toString -> None
 
         case a: NotToken =>
           val tree = loopParse(

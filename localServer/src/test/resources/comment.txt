@@ -1,0 +1,40 @@
+Some(
+  List(
+    DocToken(
+      kind = Param,
+      name = Some("a1"),
+      body = Some("a2")
+    ),
+    DocToken(
+      kind = TypeParam,
+      name = Some("a3"),
+      body = Some("a4")
+    ),
+    DocToken(
+      kind = Throws,
+      name = Some("a5"),
+      body = Some("a6")
+    ),
+    DocToken(
+      kind = See,
+      name = None,
+      body = Some("example.com")
+    ),
+    DocToken(
+      kind = Note,
+      name = None,
+      body = Some("a7")
+    ),
+    DocToken(
+      kind = Paragraph,
+      name = None,
+      body = None
+    ),
+    DocToken(
+      kind = CodeBlock,
+      name = None,
+      body = Some("def x = List(\"y\", 2)")
+    )
+  )
+)
+

@@ -183,10 +183,14 @@ const App = () => {
       });
   }
 
-  const disableScalafixRuleTemplateInput =
-    outputType === "raw" || outputType === "tokens";
+  const disableScalafixRuleTemplateInput = [
+    "raw",
+    "tokens",
+    "comment",
+  ].includes(outputType);
 
-  const disableCompat = scalameta != "scalafix" || outputType === "tokens";
+  const disableCompat =
+    scalameta != "scalafix" || ["tokens", "comment"].includes(outputType);
 
   return html` <div class="container mw-100">
     <details open ontoggle="${(e) => changeDetails(e)}">
@@ -340,6 +344,18 @@ const App = () => {
                     onChange=${() => setOutputType("tokens")}
                   />
                   <span>Tokens</span>
+                </label>
+              </div>
+              <div>
+                <label>
+                  <input
+                    type="radio"
+                    name="output_type"
+                    value="comment"
+                    checked=${outputType === "comment"}
+                    onChange=${() => setOutputType("comment")}
+                  />
+                  <span>Comment</span>
                 </label>
               </div>
             </fieldset>
