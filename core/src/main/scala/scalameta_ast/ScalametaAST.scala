@@ -539,13 +539,15 @@ class ScalametaAST {
   ): String = {
     val p = patchCode(patch)
     val imports = List[List[String]](
-      List("scalafix.Patch"),
       p.imports,
       List(
+        "scala.meta.transversers._",
+        "scalafix.Patch",
         "scalafix.v1.SyntacticDocument",
         "scalafix.v1.SyntacticRule",
+        "scalafix.v1.XtensionSeqPatch",
       )
-    ).flatten.map("import " + _)
+    ).flatten.map("import " + _).sorted
     s"""${header(x = x, packageName = packageName, wildcardImport = wildcardImport, parsed = parsed)}
        |${imports.mkString("\n")}
        |
@@ -571,13 +573,15 @@ class ScalametaAST {
   ): String = {
     val p = patchCode(patch)
     val imports = List[List[String]](
-      List("scalafix.Patch"),
       p.imports,
       List(
+        "scala.meta.transversers._",
+        "scalafix.Patch",
         "scalafix.v1.SemanticDocument",
         "scalafix.v1.SemanticRule",
+        "scalafix.v1.XtensionSeqPatch",
       )
-    ).flatten.map("import " + _)
+    ).flatten.map("import " + _).sorted
     s"""${header(x = x, packageName = packageName, wildcardImport = wildcardImport, parsed = parsed)}
        |${imports.mkString("\n")}
        |
