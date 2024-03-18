@@ -404,7 +404,6 @@ abstract class IntegrationTest(
       assert(
         diff == List(
           ("import scala.meta._", "import scala.meta.*"),
-          ("import scala.meta.transversers._", "import scala.meta.transversers.*"),
         )
       )
     }
