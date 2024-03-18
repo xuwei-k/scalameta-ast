@@ -523,6 +523,10 @@ class ScalametaAST {
         PatchValue(imports = Nil, """Patch.replaceTree(t, "")""")
       case "empty" =>
         PatchValue(imports = Nil, "Patch.empty")
+      case "remove" =>
+        PatchValue(imports = Nil, """Patch.removeTokens(t.tokens)""")
+      case "around" =>
+        PatchValue(imports = Nil, """Patch.addAround(t, "", "")""")
     }.getOrElse {
       lint("Warning")
     }
