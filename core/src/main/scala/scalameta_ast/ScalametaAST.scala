@@ -540,8 +540,12 @@ class ScalametaAST {
     val p = patchCode(patch)
     val imports = List[List[String]](
       p.imports,
+      if (wildcardImport) {
+        Nil
+      } else {
+        List("scala.meta.transversers._")
+      },
       List(
-        "scala.meta.transversers._",
         "scalafix.Patch",
         "scalafix.v1.SyntacticDocument",
         "scalafix.v1.SyntacticRule",
@@ -574,8 +578,12 @@ class ScalametaAST {
     val p = patchCode(patch)
     val imports = List[List[String]](
       p.imports,
+      if (wildcardImport) {
+        Nil
+      } else {
+        List("scala.meta.transversers._")
+      },
       List(
-        "scala.meta.transversers._",
         "scalafix.Patch",
         "scalafix.v1.SemanticDocument",
         "scalafix.v1.SemanticRule",
