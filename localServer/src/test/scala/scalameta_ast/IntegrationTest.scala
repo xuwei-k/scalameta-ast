@@ -340,10 +340,28 @@ abstract class IntegrationTest(
   "patch" in withBrowser { page =>
     changeOutputType(page, "syntactic")
     assert(output(page).textContent().contains("LintSeverity.Warning"))
-    page.selectOption("select#patch", "replace")
-    assert(output(page).textContent().contains("Patch.replace"))
-    page.selectOption("select#patch", "empty")
-    assert(output(page).textContent().contains("Patch.empty"))
+    def changePatch(value: String): Unit = {
+      page.selectOption("select#patch", value)
+    }
+    changePatch("replace")
+    val text1 = output(page).textContent()
+    def diff(): List[(String, String)] = text1.linesIterator
+      .zip(output(page).textContent().linesIterator)
+      .filter { case (x1, x2) =>
+        x1 != x2
+      }
+      .toList
+    val replaceTreeLine = """        Patch.replaceTree(t, "")"""
+    List(
+      "left" -> """        Patch.addLeft(t, "")""",
+      "right" -> """        Patch.addRight(t, "")""",
+      "empty" -> """        Patch.empty""",
+      "remove" -> """        Patch.removeTokens(t.tokens)""",
+      "around" -> """        Patch.addAround(t, "", "")""",
+    ).foreach { case (arg, expect) =>
+      changePatch(arg)
+      assert(diff() == List(replaceTreeLine -> expect))
+    }
   }
 
   "scalameta version" in withBrowser { page =>

@@ -448,6 +448,8 @@ const App = () => {
                 <option value="left">add left</option>
                 <option value="right">add right</option>
                 <option value="empty">empty</option>
+                <option value="remove">remove tokens</option>
+                <option value="around">add around</option>
               </select>
             </div>
           </div>
