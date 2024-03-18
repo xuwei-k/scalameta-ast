@@ -30,11 +30,13 @@ class ScalametaASTSpec extends AnyFreeSpec {
          |import scala.meta.Lit
          |import scala.meta.Pat
          |import scala.meta.Term
+         |import scala.meta.transversers._
          |import scalafix.Patch
          |import scalafix.lint.Diagnostic
          |import scalafix.lint.LintSeverity
          |import scalafix.v1.SyntacticDocument
          |import scalafix.v1.SyntacticRule
+         |import scalafix.v1.XtensionSeqPatch
          |
          |class Example extends SyntacticRule("Example") {
          |  override def fix(implicit doc: SyntacticDocument): Patch = {
@@ -97,9 +99,11 @@ class ScalametaASTSpec extends AnyFreeSpec {
         s"""package package_name
            |
            |import scala.meta.Term
+           |import scala.meta.transversers._
            |import scalafix.Patch
            |import scalafix.v1.SyntacticDocument
            |import scalafix.v1.SyntacticRule
+           |import scalafix.v1.XtensionSeqPatch
            |
            |class Example extends SyntacticRule("Example") {
            |  override def fix(implicit doc: SyntacticDocument): Patch = {
