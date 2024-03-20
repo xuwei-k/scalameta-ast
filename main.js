@@ -40,8 +40,25 @@ const getBoolFromStorageOr = (key, defaultValue) => {
   return getFromStorageOr(key, defaultValue, (a) => a === "true");
 };
 
+const screenWidth = Math.max(
+  document.body.scrollWidth,
+  document.documentElement.scrollWidth,
+  document.body.offsetWidth,
+  document.documentElement.offsetWidth,
+  document.documentElement.clientWidth,
+);
+
+let defaultMaxColumn = 50;
+if (screenWidth >= 1500) {
+  defaultMaxColumn = 80;
+} else if (screenWidth >= 1400) {
+  defaultMaxColumn = 70;
+} else if (screenWidth >= 1300) {
+  defaultMaxColumn = 60;
+}
+
 const defaultScalafmtConfig = `
-        maxColumn = 50
+        maxColumn = ${defaultMaxColumn}
         runner.dialect = "Scala3"
         align.preset = "none"
         continuationIndent.defnSite = 2
@@ -112,44 +129,38 @@ const App = () => {
       : ScalametaAstMainScalafixCompat;
 
   const formatInput = () => {
-    const result = ScalametaAstMainLatest.format(inputScala, scalafmtConfig);
-    setInputScala(result);
+    const res = ScalametaAstMainLatest.format(inputScala, scalafmtConfig);
+    if (res.error === null) {
+      setInputScala(res.result);
+    }
   };
 
-  let r;
-  if (scalameta === "latest") {
-    r = main.convert(
-      inputScala,
-      outputType,
-      packageName,
-      wildcardImport,
-      ruleName,
-      dialect,
-      patch,
-      removeNewFields,
-      initialExtractor,
-    );
-  } else {
-    r = main.convert(
-      inputScala,
-      outputType,
-      packageName,
-      wildcardImport,
-      ruleName,
-      dialect,
-      patch,
-      removeNewFields,
-      initialExtractor,
-    );
-  }
+  let r = main.convert(
+    inputScala,
+    outputType,
+    packageName,
+    wildcardImport,
+    ruleName,
+    dialect,
+    patch,
+    removeNewFields,
+    initialExtractor,
+  );
 
   if (r.ast == null || format === false) {
   } else {
-    const formatted = ScalametaAstMainLatest.format(r.ast, scalafmtConfig);
-    r = {
-      ast: formatted,
-      astBuildMs: r.astBuildMs,
-    };
+    const res = ScalametaAstMainLatest.format(r.ast, scalafmtConfig);
+    if (res.error === null) {
+      r = {
+        ast: res.result,
+        astBuildMs: r.astBuildMs,
+      };
+    } else {
+      r = {
+        ast: null,
+        errorString: res.error,
+      };
+    }
   }
 
   let result = "";
