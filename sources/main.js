@@ -116,32 +116,17 @@ const App = () => {
     setInputScala(result);
   };
 
-  let r;
-  if (scalameta === "latest") {
-    r = main.convert(
-      inputScala,
-      outputType,
-      packageName,
-      wildcardImport,
-      ruleName,
-      dialect,
-      patch,
-      removeNewFields,
-      initialExtractor,
-    );
-  } else {
-    r = main.convert(
-      inputScala,
-      outputType,
-      packageName,
-      wildcardImport,
-      ruleName,
-      dialect,
-      patch,
-      removeNewFields,
-      initialExtractor,
-    );
-  }
+  let r = main.convert(
+    inputScala,
+    outputType,
+    packageName,
+    wildcardImport,
+    ruleName,
+    dialect,
+    patch,
+    removeNewFields,
+    initialExtractor,
+  );
 
   if (r.ast == null || format === false) {
   } else {
