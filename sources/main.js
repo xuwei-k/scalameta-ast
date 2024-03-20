@@ -80,6 +80,7 @@ const initialOutputType = getFromStorageOr("output_type", "raw");
 
 const initialFormat = getBoolFromStorageOr("format", true);
 const initialWildcardImport = getBoolFromStorageOr("wildcard_import", false);
+const initialExplanation = getBoolFromStorageOr("explanation", true);
 const initialRemoveNewFields = getBoolFromStorageOr("remove_new_fields", false);
 const initialInitialExtractor = getBoolFromStorageOr(
   "initial_extractor",
@@ -105,6 +106,7 @@ const App = () => {
 
   const [format, setFormat] = useState(initialFormat);
   const [wildcardImport, setWildcardImport] = useState(initialWildcardImport);
+  const [explanation, setExplanation] = useState(initialExplanation);
   const [removeNewFields, setRemoveNewFields] = useState(
     initialRemoveNewFields,
   );
@@ -145,6 +147,7 @@ const App = () => {
     patch,
     removeNewFields,
     initialExtractor,
+    explanation,
   );
 
   if (r.ast == null || format === false) {
@@ -212,6 +215,7 @@ const App = () => {
       ["wildcard_import", wildcardImport],
       ["remove_new_fields", removeNewFields],
       ["initial_extractor", initialExtractor],
+      ["explanation", explanation],
     ].forEach((xs) => {
       const key = xs[0];
       const val = xs[1];
@@ -478,6 +482,17 @@ const App = () => {
                 oninput=${(x) => setRuleName(x.target.value)}
               />
             </div>
+          </div>
+          <div>
+            <input
+              type="checkbox"
+              name="explanation"
+              id="explanation"
+              disabled=${disableScalafixRuleTemplateInput}
+              checked=${explanation}
+              onChange=${(e) => setExplanation(e.target.checked)}
+            />
+            <label for="explanation">explanation</label>
           </div>
           <div class="row">
             <div>

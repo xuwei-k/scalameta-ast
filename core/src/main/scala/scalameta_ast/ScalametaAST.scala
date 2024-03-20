@@ -258,6 +258,7 @@ class ScalametaAST {
     patch: Option[String],
     removeNewFields: Boolean,
     initialExtractor: Boolean,
+    explanation: Boolean,
   ): Output = {
     convert(
       outputType match {
@@ -276,6 +277,7 @@ class ScalametaAST {
             ruleNameOption = ruleNameOption,
             patch = patch,
             initialExtractor = initialExtractor,
+            explanation = explanation,
           )
         case "semantic" =>
           Args.Semantic(
@@ -287,6 +289,7 @@ class ScalametaAST {
             ruleNameOption = ruleNameOption,
             patch = patch,
             initialExtractor = initialExtractor,
+            explanation = explanation,
           )
         case "comment" =>
           Args.Comment(
@@ -407,6 +410,7 @@ class ScalametaAST {
                 ruleNameRaw = ruleNameRaw,
                 patch = a.patch,
                 parsed = a0.value,
+                explanation = a.explanation,
               )
             case a: Args.Syntactic =>
               syntactic(
@@ -417,6 +421,7 @@ class ScalametaAST {
                 ruleNameRaw = ruleNameRaw,
                 patch = a.patch,
                 parsed = a0.value,
+                explanation = a.explanation,
               )
           }
         case _ =>
@@ -453,21 +458,25 @@ class ScalametaAST {
     s"${pkg}${i}"
   }
 
-  private def patchCode(patch: Option[String]): PatchValue = {
+  private def patchCode(patch: Option[String], explanation: Boolean): PatchValue = {
     def lint(serverity: String): PatchValue = PatchValue(
       imports = List(
         "scalafix.lint.Diagnostic",
         "scalafix.lint.LintSeverity",
       ),
-      value = indent => s"""Patch.lint(
-           |  Diagnostic(
-           |    id = "",
-           |    message = "",
-           |    position = t.pos,
-           |    explanation = "",
-           |    severity = LintSeverity.${serverity}
-           |  )
-           |)""".stripMargin.linesIterator.map(x => s"${" " * indent}$x").mkString("\n")
+      value = indent => {
+        List(
+          """Patch.lint(""",
+          """  Diagnostic(""",
+          """    id = "",""",
+          """    message = "",""",
+          """    position = t.pos,""",
+          if (explanation) """    explanation = "",""" else "",
+          s"""    severity = LintSeverity.${serverity}""",
+          """  )""",
+          """)"""
+        ).filter(_.nonEmpty).map(x => s"${" " * indent}$x").mkString("\n")
+      }
     )
 
     patch.collect {
@@ -499,9 +508,10 @@ class ScalametaAST {
     ruleName: String,
     ruleNameRaw: String,
     patch: Option[String],
-    parsed: () => Term
+    parsed: () => Term,
+    explanation: Boolean,
   ): String = {
-    val p = patchCode(patch)
+    val p = patchCode(patch, explanation)
     val imports = List[List[String]](
       p.imports,
       if (wildcardImport) {
@@ -537,9 +547,10 @@ class ScalametaAST {
     ruleName: String,
     ruleNameRaw: String,
     patch: Option[String],
-    parsed: () => Term
+    parsed: () => Term,
+    explanation: Boolean,
   ): String = {
-    val p = patchCode(patch)
+    val p = patchCode(patch, explanation)
     val imports = List[List[String]](
       p.imports,
       if (wildcardImport) {

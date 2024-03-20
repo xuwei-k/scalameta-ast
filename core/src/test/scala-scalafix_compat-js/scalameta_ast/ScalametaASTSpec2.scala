@@ -30,7 +30,8 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
             dialect = None,
             patch = None,
             removeNewFields = arg.remove,
-            initialExtractor = arg.initial
+            initialExtractor = arg.initial,
+            explanation = true,
           )
           assert(result.ast == expect, arg)
         }
@@ -61,6 +62,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
             patch = None,
             removeNewFields = arg.remove,
             initialExtractor = arg.initial,
+            explanation = true,
           )
           assert(result.ast == expect, arg)
         }
@@ -91,6 +93,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
             patch = None,
             removeNewFields = arg.remove,
             initialExtractor = arg.initial,
+            explanation = true,
           )
           assert(result.ast == expect, arg)
         }
@@ -121,6 +124,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
             patch = None,
             removeNewFields = arg.remove,
             initialExtractor = arg.initial,
+            explanation = true,
           )
           assert(result.ast == expect, arg)
         }

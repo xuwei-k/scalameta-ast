@@ -15,6 +15,7 @@ sealed abstract class ScalafixRule extends NotToken {
   def wildcardImport: Boolean
   def ruleNameOption: Option[String]
   def patch: Option[String]
+  def explanation: Boolean
 }
 object Args {
   case class Token(
@@ -43,6 +44,7 @@ object Args {
     ruleNameOption: Option[String],
     patch: Option[String],
     initialExtractor: Boolean,
+    explanation: Boolean,
   ) extends ScalafixRule
 
   case class Semantic(
@@ -54,5 +56,6 @@ object Args {
     ruleNameOption: Option[String],
     patch: Option[String],
     initialExtractor: Boolean,
+    explanation: Boolean,
   ) extends ScalafixRule
 }
