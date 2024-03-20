@@ -1,17 +1,14 @@
 package scalameta_ast
 
-import metaconfig.Conf
-import org.scalafmt.config.ScalafmtConfig
 import java.util.Date
 import scala.annotation.tailrec
 import scala.meta._
 import scala.meta.common.Convert
 import scala.meta.contrib.XtensionTreeOps
+import scala.meta.tokens.Token
 import scala.meta.parsers.Parse
 import scala.meta.parsers.Parsed
 import scala.meta.tokenizers.Tokenize
-import scala.meta.tokens.Token
-import scala.util.control.NonFatal
 
 class ScalametaAST {
   private val dialectsDefault = List(dialects.Scala213Source3, dialects.Scala3)
@@ -91,26 +88,6 @@ class ScalametaAST {
     val end = new Date()
     val diffMs = end.getTime - begin.getTime
     (result, diffMs)
-  }
-
-  def runFormat(source: String, scalafmtConfig: Conf): String =
-    runFormat(
-      source = source,
-      conf = metaConfigToScalafmtConfig(scalafmtConfig)
-    )
-
-  private def runFormat(source: String, conf: ScalafmtConfig): String = {
-    try {
-      org.scalafmt.Scalafmt.format(source, conf).get
-    } catch {
-      case NonFatal(e) =>
-        e.printStackTrace()
-        source
-    }
-  }
-
-  private def metaConfigToScalafmtConfig(conf: Conf): ScalafmtConfig = {
-    ScalafmtConfig.decoder.read(None, conf).get
   }
 
   // TODO remove when scalafix depends on new scalameta version
@@ -273,8 +250,6 @@ class ScalametaAST {
 
   def convert(
     src: String,
-    format: Boolean,
-    scalafmtConfig: Conf,
     outputType: String,
     packageName: Option[String],
     wildcardImport: Boolean,
@@ -289,15 +264,11 @@ class ScalametaAST {
         case "tokens" =>
           Args.Token(
             src = src,
-            format = format,
-            scalafmtConfig = scalafmtConfig,
             dialect = dialect,
           )
         case "syntactic" =>
           Args.Syntactic(
             src = src,
-            format = format,
-            scalafmtConfig = scalafmtConfig,
             dialect = dialect,
             removeNewFields = removeNewFields,
             packageName = packageName,
@@ -309,8 +280,6 @@ class ScalametaAST {
         case "semantic" =>
           Args.Semantic(
             src = src,
-            format = format,
-            scalafmtConfig = scalafmtConfig,
             dialect = dialect,
             removeNewFields = removeNewFields,
             packageName = packageName,
@@ -322,15 +291,11 @@ class ScalametaAST {
         case "comment" =>
           Args.Comment(
             src = src,
-            format = format,
-            scalafmtConfig = scalafmtConfig,
             dialect = dialect,
           )
         case _ =>
           Args.Raw(
             src = src,
-            format = format,
-            scalafmtConfig = scalafmtConfig,
             dialect = dialect,
             removeNewFields = removeNewFields,
             initialExtractor = initialExtractor,
@@ -425,7 +390,7 @@ class ScalametaAST {
     }
 
     val (res, formatMs) = stopwatch {
-      val ast0 = parsedOpt match {
+      parsedOpt match {
         case Some(a0) =>
           val ruleNameRaw = a0.args.ruleNameOption.getOrElse("Example").filterNot(char => char == '`' || char == '"')
           val ruleName = {
@@ -456,11 +421,6 @@ class ScalametaAST {
           }
         case _ =>
           ast
-      }
-      if (args.format) {
-        runFormat(source = ast0, args.scalafmtConfig)
-      } else {
-        ast0
       }
     }
     Output(res, astBuildMs, formatMs)
@@ -499,7 +459,7 @@ class ScalametaAST {
         "scalafix.lint.Diagnostic",
         "scalafix.lint.LintSeverity",
       ),
-      value = s"""Patch.lint(
+      value = indent => s"""Patch.lint(
            |  Diagnostic(
            |    id = "",
            |    message = "",
@@ -507,7 +467,7 @@ class ScalametaAST {
            |    explanation = "",
            |    severity = LintSeverity.${serverity}
            |  )
-           |)""".stripMargin
+           |)""".stripMargin.linesIterator.map(x => s"${" " * indent}$x").mkString("\n")
     )
 
     patch.collect {
@@ -516,17 +476,17 @@ class ScalametaAST {
       case "info" =>
         lint("Info")
       case "left" =>
-        PatchValue(imports = Nil, """Patch.addLeft(t, "")""")
+        PatchValue(imports = Nil, indent => s"""${" " * indent}Patch.addLeft(t, "")""")
       case "right" =>
-        PatchValue(imports = Nil, """Patch.addRight(t, "")""")
+        PatchValue(imports = Nil, indent => s"""${" " * indent}Patch.addRight(t, "")""")
       case "replace" =>
-        PatchValue(imports = Nil, """Patch.replaceTree(t, "")""")
+        PatchValue(imports = Nil, indent => s"""${" " * indent}Patch.replaceTree(t, "")""")
       case "empty" =>
-        PatchValue(imports = Nil, "Patch.empty")
+        PatchValue(imports = Nil, indent => s"""${" " * indent}Patch.empty""")
       case "remove" =>
-        PatchValue(imports = Nil, """Patch.removeTokens(t.tokens)""")
+        PatchValue(imports = Nil, indent => s"""${" " * indent}Patch.removeTokens(t.tokens)""")
       case "around" =>
-        PatchValue(imports = Nil, """Patch.addAround(t, "", "")""")
+        PatchValue(imports = Nil, indent => s"""${" " * indent}Patch.addAround(t, "", "")""")
     }.getOrElse {
       lint("Warning")
     }
@@ -563,7 +523,7 @@ class ScalametaAST {
        |  override def fix(implicit doc: SyntacticDocument): Patch = {
        |    doc.tree.collect {
        |      case t @ ${x} =>
-       |        ${p.value}
+       |${p.value(8)}
        |    }.asPatch
        |  }
        |}
@@ -601,7 +561,7 @@ class ScalametaAST {
        |  override def fix(implicit doc: SemanticDocument): Patch = {
        |    doc.tree.collect {
        |      case t @ ${x} =>
-       |        ${p.value}
+       |${p.value(8)}
        |    }.asPatch
        |  }
        |}
