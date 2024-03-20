@@ -40,8 +40,25 @@ const getBoolFromStorageOr = (key, defaultValue) => {
   return getFromStorageOr(key, defaultValue, (a) => a === "true");
 };
 
+const screenWidth = Math.max(
+  document.body.scrollWidth,
+  document.documentElement.scrollWidth,
+  document.body.offsetWidth,
+  document.documentElement.offsetWidth,
+  document.documentElement.clientWidth,
+);
+
+let defaultMaxColumn = 50;
+if (screenWidth >= 1500) {
+  defaultMaxColumn = 80;
+} else if (screenWidth >= 1400) {
+  defaultMaxColumn = 70;
+} else if (screenWidth >= 1300) {
+  defaultMaxColumn = 60;
+}
+
 const defaultScalafmtConfig = `
-        maxColumn = 50
+        maxColumn = ${defaultMaxColumn}
         runner.dialect = "Scala3"
         align.preset = "none"
         continuationIndent.defnSite = 2
