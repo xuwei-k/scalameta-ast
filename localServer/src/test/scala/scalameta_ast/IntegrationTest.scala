@@ -425,6 +425,35 @@ abstract class IntegrationTest(
         )
       )
     }
+
+    "invalid config" in withBrowser { page =>
+      def render(): Unit = inputElem(page).press("\n")
+      setInput(page, "null")
+      setScalafmtConfig(
+        page,
+        Seq(
+          """invalid = """,
+        )
+      )
+      render()
+      assert(output(page).textContent() == "")
+      assert(infoElem(page).getAttribute("class") == "alert alert-danger")
+      assert(
+        infoElem(page)
+          .textContent() == "org.ekrich.config.ConfigException$Parse: String: 1: Expecting a value but got wrong token: end of file"
+      )
+      setScalafmtConfig(
+        page,
+        Nil
+      )
+      render()
+      assert(output(page).textContent() == "Lit.Null()\n")
+      assert(infoElem(page).getAttribute("class") == "alert alert-success")
+      val x = infoElem(page).textContent()
+      assert(x.contains("ast:"))
+      assert(x.contains(" ms"))
+      assert(!x.contains("Exception"))
+    }
   }
 
   "Initial extractor" in withBrowser { page =>
