@@ -129,8 +129,10 @@ const App = () => {
       : ScalametaAstMainScalafixCompat;
 
   const formatInput = () => {
-    const result = ScalametaAstMainLatest.format(inputScala, scalafmtConfig);
-    setInputScala(result);
+    const res = ScalametaAstMainLatest.format(inputScala, scalafmtConfig);
+    if (res.error === null) {
+      setInputScala(res.result);
+    }
   };
 
   let r = main.convert(
@@ -147,11 +149,18 @@ const App = () => {
 
   if (r.ast == null || format === false) {
   } else {
-    const formatted = ScalametaAstMainLatest.format(r.ast, scalafmtConfig);
-    r = {
-      ast: formatted,
-      astBuildMs: r.astBuildMs,
-    };
+    const res = ScalametaAstMainLatest.format(r.ast, scalafmtConfig);
+    if (res.error === null) {
+      r = {
+        ast: res.result,
+        astBuildMs: r.astBuildMs,
+      };
+    } else {
+      r = {
+        ast: null,
+        errorString: res.error,
+      };
+    }
   }
 
   let result = "";

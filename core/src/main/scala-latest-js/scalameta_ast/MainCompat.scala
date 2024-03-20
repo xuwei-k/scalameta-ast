@@ -18,13 +18,7 @@ trait MainCompat {
     )
 
   private def runFormat(source: String, conf: ScalafmtConfig): String = {
-    try {
-      org.scalafmt.Scalafmt.format(source, conf).get
-    } catch {
-      case NonFatal(e) =>
-        e.printStackTrace()
-        source
-    }
+    org.scalafmt.Scalafmt.format(source, conf).get
   }
 
   private def metaConfigToScalafmtConfig(conf: Conf): ScalafmtConfig = {
@@ -32,11 +26,24 @@ trait MainCompat {
   }
 
   @JSExport
-  def format(source: String, scalafmtConfJsonStr: String): String =
-    runFormat(
-      source = source,
-      scalafmtConfig = hoconToMetaConfig(scalafmtConfJsonStr)
-    )
+  def format(source: String, scalafmtConfJsonStr: String): js.Object =
+    try {
+      val res = runFormat(
+        source = source,
+        scalafmtConfig = hoconToMetaConfig(scalafmtConfJsonStr)
+      )
+      new js.Object {
+        val result = res
+        val error = null
+      }
+    } catch {
+      case NonFatal(e) =>
+        e.printStackTrace()
+        new js.Object {
+          val result = source
+          val error = e.toString()
+        }
+    }
 
   private[this] def hoconToMetaConfig(config: String): Conf =
     convertSConfigToMetaConfig(ConfigFactory.parseString(config))
