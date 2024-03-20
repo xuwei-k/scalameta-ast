@@ -7,7 +7,7 @@ import { ScalametaAstMainLatest } from "./latest/main.js";
 [ScalametaAstMainLatest, ScalametaAstMainScalafixCompat].forEach((main) => {
   try {
     // force initialize for avoid error
-    main.convert("", true, "", "", "", false, "", "", "", false, false);
+    main.convert("", "", "", false, "", "", "", false, false);
   } catch (e) {
     console.log(e);
   }
@@ -112,23 +112,45 @@ const App = () => {
       : ScalametaAstMainScalafixCompat;
 
   const formatInput = () => {
-    const result = main.format(inputScala, scalafmtConfig);
+    const result = ScalametaAstMainLatest.format(inputScala, scalafmtConfig);
     setInputScala(result);
   };
 
-  const r = main.convert(
-    inputScala,
-    format,
-    scalafmtConfig,
-    outputType,
-    packageName,
-    wildcardImport,
-    ruleName,
-    dialect,
-    patch,
-    removeNewFields,
-    initialExtractor,
-  );
+  let r;
+  if (scalameta === "latest") {
+    r = main.convert(
+      inputScala,
+      outputType,
+      packageName,
+      wildcardImport,
+      ruleName,
+      dialect,
+      patch,
+      removeNewFields,
+      initialExtractor,
+    );
+  } else {
+    r = main.convert(
+      inputScala,
+      outputType,
+      packageName,
+      wildcardImport,
+      ruleName,
+      dialect,
+      patch,
+      removeNewFields,
+      initialExtractor,
+    );
+  }
+
+  if (r.ast == null || format === false) {
+  } else {
+    const formatted = ScalametaAstMainLatest.format(r.ast, scalafmtConfig);
+    r = {
+      ast: formatted,
+      astBuildMs: r.astBuildMs,
+    };
+  }
 
   let result = "";
   let info = "";
@@ -141,7 +163,7 @@ const App = () => {
     result = hljs.highlight(r.ast, {
       language: "scala",
     }).value;
-    info = `ast: ${r.astBuildMs} ms\nfmt: ${r.formatMs} ms`;
+    info = `ast: ${r.astBuildMs} ms`;
     infoClass = "alert alert-success";
 
     [
@@ -448,6 +470,8 @@ const App = () => {
                 <option value="left">add left</option>
                 <option value="right">add right</option>
                 <option value="empty">empty</option>
+                <option value="remove">remove tokens</option>
+                <option value="around">add around</option>
               </select>
             </div>
           </div>
