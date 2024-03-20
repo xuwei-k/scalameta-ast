@@ -174,6 +174,27 @@ const App = () => {
     result = hljs.highlight(r.ast, {
       language: "scala",
     }).value;
+    const scalafixVersion = scalameta == "latest" ? "0.11.1" : "0.10.4";
+    const scalafixUrl = (s) =>
+      `https://github.com/scalacenter/scalafix/blob/v${scalafixVersion}/scalafix-core/src/main/scala/scalafix/${s}.scala`;
+
+    if (["syntactic", "semantic"].includes(outputType)) {
+      [
+        ["Patch", "patch/Patch"],
+        ["SyntacticDocument", "v1/SyntacticDocument"],
+        ["SemanticDocument", "v1/SyntacticDocument"],
+        ["SyntacticRule", "v1/Rule"],
+        ["SemanticRule", "v1/Rule"],
+        ["Diagnostic", "lint/Diagnostic"],
+        ["LintSeverity", "lint/LintSeverity"],
+      ].forEach(([x1, x2]) => {
+        result = result.replaceAll(
+          `<span class="hljs-type">${x1}</span>`,
+          `<a target="_blank" href='${scalafixUrl(x2)}'><span class="hljs-type">${x1}</span></a>`,
+        );
+      });
+    }
+
     info = `ast: ${r.astBuildMs} ms`;
     infoClass = "alert alert-success";
 
