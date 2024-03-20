@@ -13,8 +13,6 @@ class ScalametaASTSpec extends AnyFreeSpec {
     "convert" in {
       val result = main.convert(
         src = "val x = ((), null)",
-        format = true,
-        scalafmtConfig = metaconfig.Conf.Obj.empty,
         outputType = "syntactic",
         packageName = Option("package_name"),
         wildcardImport = false,
@@ -41,12 +39,7 @@ class ScalametaASTSpec extends AnyFreeSpec {
          |class Example extends SyntacticRule("Example") {
          |  override def fix(implicit doc: SyntacticDocument): Patch = {
          |    doc.tree.collect {
-         |      case t @ Defn.Val(
-         |            Nil,
-         |            List(Pat.Var(Term.Name("x"))),
-         |            None,
-         |            Term.Tuple(List(Lit.Unit(), Lit.Null()))
-         |          ) =>
+         |      case t @ Defn.Val(Nil, List(Pat.Var(Term.Name("x"))), None, Term.Tuple(List(Lit.Unit(), Lit.Null()))) =>
          |        Patch.lint(
          |          Diagnostic(
          |            id = "",
@@ -84,8 +77,6 @@ class ScalametaASTSpec extends AnyFreeSpec {
           "Template",
           "Type"
         ).toString,
-        format = true,
-        scalafmtConfig = metaconfig.Conf.Obj.empty,
         outputType = "syntactic",
         packageName = Option("package_name"),
         wildcardImport = false,
@@ -108,27 +99,7 @@ class ScalametaASTSpec extends AnyFreeSpec {
            |class Example extends SyntacticRule("Example") {
            |  override def fix(implicit doc: SyntacticDocument): Patch = {
            |    doc.tree.collect {
-           |      case t @ Term.Tuple(
-           |            List(
-           |              Term.Name("Case"),
-           |              Term.Name("Ctor"),
-           |              Term.Name("Decl"),
-           |              Term.Name("Defn"),
-           |              Term.Name("Defn"),
-           |              Term.Name("Export"),
-           |              Term.Name("Import"),
-           |              Term.Name("Importee"),
-           |              Term.Name("Init"),
-           |              Term.Name("Member"),
-           |              Term.Name("Mod"),
-           |              Term.Name("Pkg"),
-           |              Term.Name("Ref"),
-           |              Term.Name("Self"),
-           |              Term.Name("Stat"),
-           |              Term.Name("Template"),
-           |              Term.Name("Type")
-           |            )
-           |          ) =>
+           |      case t @ Term.Tuple(List(Term.Name("Case"), Term.Name("Ctor"), Term.Name("Decl"), Term.Name("Defn"), Term.Name("Defn"), Term.Name("Export"), Term.Name("Import"), Term.Name("Importee"), Term.Name("Init"), Term.Name("Member"), Term.Name("Mod"), Term.Name("Pkg"), Term.Name("Ref"), Term.Name("Self"), Term.Name("Stat"), Term.Name("Template"), Term.Name("Type"))) =>
            |        Patch.empty
            |    }.asPatch
            |  }
@@ -140,8 +111,6 @@ class ScalametaASTSpec extends AnyFreeSpec {
     "invalid tree" in {
       val result = main.convert(
         src = """(""",
-        format = true,
-        scalafmtConfig = metaconfig.Conf.Obj.empty,
         outputType = "tokens",
         packageName = None,
         wildcardImport = false,
@@ -151,17 +120,13 @@ class ScalametaASTSpec extends AnyFreeSpec {
         removeNewFields = true,
         initialExtractor = false,
       )
-      val expect =
-        """Seq(Token.BOF, Token.LeftParen, Token.EOF)
-          |""".stripMargin
+      val expect = """Seq(Token.BOF, Token.LeftParen, Token.EOF)"""
       assert(result.ast == expect)
     }
 
     "convert token" in {
       val result = main.convert(
         src = """def x(y: Z) = ('y, 'a', "b", 1.5, 4.4f, 2L, 3, s"x1${x2}", <g>{p}</g>) // c """,
-        format = true,
-        scalafmtConfig = metaconfig.Conf.Obj.empty,
         outputType = "tokens",
         packageName = Option("package_name"),
         wildcardImport = false,
@@ -171,69 +136,8 @@ class ScalametaASTSpec extends AnyFreeSpec {
         removeNewFields = true,
         initialExtractor = false,
       )
-      val expect = """Seq(
-        |  Token.BOF,
-        |  Token.KwDef,
-        |  Token.Space,
-        |  Token.Ident("x"),
-        |  Token.LeftParen,
-        |  Token.Ident("y"),
-        |  Token.Colon,
-        |  Token.Space,
-        |  Token.Ident("Z"),
-        |  Token.RightParen,
-        |  Token.Space,
-        |  Token.Equals,
-        |  Token.Space,
-        |  Token.LeftParen,
-        |  Token.Constant.Symbol(scala.Symbol("y")),
-        |  Token.Comma,
-        |  Token.Space,
-        |  Token.Constant.Char('a'),
-        |  Token.Comma,
-        |  Token.Space,
-        |  Token.Constant.String("b"),
-        |  Token.Comma,
-        |  Token.Space,
-        |  Token.Constant.Double(BigDecimal("1.5")),
-        |  Token.Comma,
-        |  Token.Space,
-        |  Token.Constant.Float(BigDecimal("4.4")),
-        |  Token.Comma,
-        |  Token.Space,
-        |  Token.Constant.Long(BigInt("2")),
-        |  Token.Comma,
-        |  Token.Space,
-        |  Token.Constant.Int(BigInt("3")),
-        |  Token.Comma,
-        |  Token.Space,
-        |  Token.Interpolation.Id("s"),
-        |  Token.Interpolation.Start,
-        |  Token.Interpolation.Part("x1"),
-        |  Token.Interpolation.SpliceStart,
-        |  Token.LeftBrace,
-        |  Token.Ident("x2"),
-        |  Token.RightBrace,
-        |  Token.Interpolation.SpliceEnd,
-        |  Token.Interpolation.Part(""),
-        |  Token.Interpolation.End,
-        |  Token.Comma,
-        |  Token.Space,
-        |  Token.Xml.Start,
-        |  Token.Xml.Part("<g>"),
-        |  Token.Xml.SpliceStart,
-        |  Token.LeftBrace,
-        |  Token.Ident("p"),
-        |  Token.RightBrace,
-        |  Token.Xml.SpliceEnd,
-        |  Token.Xml.Part("</g>"),
-        |  Token.Xml.End,
-        |  Token.RightParen,
-        |  Token.Space,
-        |  Token.Comment(" c "),
-        |  Token.EOF
-        |)
-        |""".stripMargin
+      val expect =
+        """Seq(Token.BOF, Token.KwDef, Token.Space, Token.Ident("x"), Token.LeftParen, Token.Ident("y"), Token.Colon, Token.Space, Token.Ident("Z"), Token.RightParen, Token.Space, Token.Equals, Token.Space, Token.LeftParen, Token.Constant.Symbol(scala.Symbol("y")), Token.Comma, Token.Space, Token.Constant.Char('a'), Token.Comma, Token.Space, Token.Constant.String("b"), Token.Comma, Token.Space, Token.Constant.Double(BigDecimal("1.5")), Token.Comma, Token.Space, Token.Constant.Float(BigDecimal("4.4")), Token.Comma, Token.Space, Token.Constant.Long(BigInt("2")), Token.Comma, Token.Space, Token.Constant.Int(BigInt("3")), Token.Comma, Token.Space, Token.Interpolation.Id("s"), Token.Interpolation.Start, Token.Interpolation.Part("x1"), Token.Interpolation.SpliceStart, Token.LeftBrace, Token.Ident("x2"), Token.RightBrace, Token.Interpolation.SpliceEnd, Token.Interpolation.Part(""), Token.Interpolation.End, Token.Comma, Token.Space, Token.Xml.Start, Token.Xml.Part("<g>"), Token.Xml.SpliceStart, Token.LeftBrace, Token.Ident("p"), Token.RightBrace, Token.Xml.SpliceEnd, Token.Xml.Part("</g>"), Token.Xml.End, Token.RightParen, Token.Space, Token.Comment(" c "), Token.EOF)"""
       assert(result.ast == expect)
     }
 

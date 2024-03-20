@@ -32,7 +32,6 @@ lazy val `scalameta-ast` = projectMatrix
     commonSettings,
     libraryDependencies ++= Seq(
       "org.scalatest" %%% "scalatest-freespec" % "3.2.18" % Test,
-      "org.ekrich" %%% "sconfig" % "1.5.1",
     ),
   )
   .jvmPlatform(
@@ -59,7 +58,7 @@ lazy val `scalameta-ast` = projectMatrix
     settings = Def.settings(
       jsProjectSettings,
       libraryDependencies += {
-        ("com.github.xuwei-k" %%% "scalafmt-core" % "3.6.1-fork-1").withSources() // scala-steward:off
+        ("org.scalameta" %%% "scalameta" % "4.6.0").withSources() // scala-steward:off
       }
     )
   )
@@ -68,6 +67,7 @@ lazy val `scalameta-ast` = projectMatrix
     axisValues = Seq(metaLatest),
     settings = Def.settings(
       jsProjectSettings,
+      libraryDependencies += "org.ekrich" %%% "sconfig" % "1.6.0",
       libraryDependencies += ("com.github.xuwei-k" %%% "scalafmt-core" % "3.7.14-fork-1").withSources(),
     )
   )
