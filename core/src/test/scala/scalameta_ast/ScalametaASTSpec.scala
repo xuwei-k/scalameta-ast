@@ -21,6 +21,7 @@ class ScalametaASTSpec extends AnyFreeSpec {
         patch = None,
         removeNewFields = true,
         initialExtractor = false,
+        explanation = true,
       )
       val expect = s"""package package_name
          |
@@ -85,6 +86,7 @@ class ScalametaASTSpec extends AnyFreeSpec {
         patch = Some("empty"),
         removeNewFields = true,
         initialExtractor = false,
+        explanation = true,
       )
       val expect =
         s"""package package_name
@@ -119,6 +121,7 @@ class ScalametaASTSpec extends AnyFreeSpec {
         patch = None,
         removeNewFields = true,
         initialExtractor = false,
+        explanation = true,
       )
       val expect = """Seq(Token.BOF, Token.LeftParen, Token.EOF)"""
       assert(result.ast == expect)
@@ -135,6 +138,7 @@ class ScalametaASTSpec extends AnyFreeSpec {
         patch = None,
         removeNewFields = true,
         initialExtractor = false,
+        explanation = true,
       )
       val expect =
         """Seq(Token.BOF, Token.KwDef, Token.Space, Token.Ident("x"), Token.LeftParen, Token.Ident("y"), Token.Colon, Token.Space, Token.Ident("Z"), Token.RightParen, Token.Space, Token.Equals, Token.Space, Token.LeftParen, Token.Constant.Symbol(scala.Symbol("y")), Token.Comma, Token.Space, Token.Constant.Char('a'), Token.Comma, Token.Space, Token.Constant.String("b"), Token.Comma, Token.Space, Token.Constant.Double(BigDecimal("1.5")), Token.Comma, Token.Space, Token.Constant.Float(BigDecimal("4.4")), Token.Comma, Token.Space, Token.Constant.Long(BigInt("2")), Token.Comma, Token.Space, Token.Constant.Int(BigInt("3")), Token.Comma, Token.Space, Token.Interpolation.Id("s"), Token.Interpolation.Start, Token.Interpolation.Part("x1"), Token.Interpolation.SpliceStart, Token.LeftBrace, Token.Ident("x2"), Token.RightBrace, Token.Interpolation.SpliceEnd, Token.Interpolation.Part(""), Token.Interpolation.End, Token.Comma, Token.Space, Token.Xml.Start, Token.Xml.Part("<g>"), Token.Xml.SpliceStart, Token.LeftBrace, Token.Ident("p"), Token.RightBrace, Token.Xml.SpliceEnd, Token.Xml.Part("</g>"), Token.Xml.End, Token.RightParen, Token.Space, Token.Comment(" c "), Token.EOF)"""

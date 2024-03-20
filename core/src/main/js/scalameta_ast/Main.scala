@@ -18,6 +18,7 @@ object Main extends MainCompat {
     patch: String,
     removeNewFields: Boolean,
     initialExtractor: Boolean,
+    explanation: Boolean,
   ): js.Object = {
     try {
       val output =
@@ -31,6 +32,7 @@ object Main extends MainCompat {
           patch = Option(patch).filter(_.trim.nonEmpty),
           removeNewFields = removeNewFields,
           initialExtractor = initialExtractor,
+          explanation = explanation,
         )
       new js.Object {
         var ast = output.ast
