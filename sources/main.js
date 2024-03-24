@@ -81,6 +81,7 @@ const initialOutputType = getFromStorageOr("output_type", "raw");
 const initialFormat = getBoolFromStorageOr("format", true);
 const initialWildcardImport = getBoolFromStorageOr("wildcard_import", false);
 const initialExplanation = getBoolFromStorageOr("explanation", true);
+const initialPathFilter = getBoolFromStorageOr("path_filter", false);
 const initialRemoveNewFields = getBoolFromStorageOr("remove_new_fields", false);
 const initialInitialExtractor = getBoolFromStorageOr(
   "initial_extractor",
@@ -107,6 +108,7 @@ const App = () => {
   const [format, setFormat] = useState(initialFormat);
   const [wildcardImport, setWildcardImport] = useState(initialWildcardImport);
   const [explanation, setExplanation] = useState(initialExplanation);
+  const [pathFilter, setPathFilter] = useState(initialPathFilter);
   const [removeNewFields, setRemoveNewFields] = useState(
     initialRemoveNewFields,
   );
@@ -148,6 +150,7 @@ const App = () => {
     removeNewFields,
     initialExtractor,
     explanation,
+    pathFilter,
   );
 
   if (r.ast == null || format === false) {
@@ -216,6 +219,7 @@ const App = () => {
       ["remove_new_fields", removeNewFields],
       ["initial_extractor", initialExtractor],
       ["explanation", explanation],
+      ["path_filter", pathFilter],
     ].forEach(([key, val]) => {
       if (val.toString().length <= 1024) {
         localStorage.setItem(key, val);
@@ -462,6 +466,17 @@ const App = () => {
               onChange=${(e) => setExplanation(e.target.checked)}
             />
             <label for="explanation">explanation</label>
+          </div>
+          <div>
+            <input
+              type="checkbox"
+              name="path_filter"
+              id="path_filter"
+              disabled=${disableScalafixRuleTemplateInput}
+              checked=${pathFilter}
+              onChange=${(e) => setPathFilter(e.target.checked)}
+            />
+            <label for="path_filter">path filter</label>
           </div>
           <div class="row">
             <div>

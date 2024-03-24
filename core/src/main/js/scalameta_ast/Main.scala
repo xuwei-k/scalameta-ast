@@ -18,7 +18,8 @@ object Main extends MainCompat {
       patch = "",
       removeNewFields = false,
       initialExtractor = false,
-      explanation = true
+      explanation = true,
+      pathFilter = false,
     )
   }
 
@@ -35,6 +36,7 @@ object Main extends MainCompat {
     removeNewFields: Boolean,
     initialExtractor: Boolean,
     explanation: Boolean,
+    pathFilter: Boolean,
   ): js.Object = {
     try {
       val output =
@@ -49,6 +51,7 @@ object Main extends MainCompat {
           removeNewFields = removeNewFields,
           initialExtractor = initialExtractor,
           explanation = explanation,
+          pathFilter = pathFilter,
         )
       new js.Object {
         var ast = output.ast

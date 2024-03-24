@@ -259,6 +259,7 @@ class ScalametaAST {
     removeNewFields: Boolean,
     initialExtractor: Boolean,
     explanation: Boolean,
+    pathFilter: Boolean,
   ): Output = {
     convert(
       outputType match {
@@ -278,6 +279,7 @@ class ScalametaAST {
             patch = patch,
             initialExtractor = initialExtractor,
             explanation = explanation,
+            pathFilter = pathFilter,
           )
         case "semantic" =>
           Args.Semantic(
@@ -290,6 +292,7 @@ class ScalametaAST {
             patch = patch,
             initialExtractor = initialExtractor,
             explanation = explanation,
+            pathFilter = pathFilter,
           )
         case "comment" =>
           Args.Comment(
@@ -410,6 +413,7 @@ class ScalametaAST {
             patch = a.patch,
             parsed = a0.value,
             explanation = a.explanation,
+            pathFilter = a.pathFilter,
             documentClass = a.documentClass,
             ruleClass = a.ruleClass,
           )
@@ -499,6 +503,7 @@ class ScalametaAST {
     patch: Option[String],
     parsed: () => Term,
     explanation: Boolean,
+    pathFilter: Boolean,
     documentClass: String,
     ruleClass: String,
   ): String = {
@@ -510,6 +515,15 @@ class ScalametaAST {
       } else {
         List("scala.meta.transversers._")
       },
+      if (pathFilter) {
+        if (wildcardImport) {
+          Nil
+        } else {
+          List("scala.meta.inputs.Input")
+        }
+      } else {
+        Nil
+      },
       List(
         "scalafix.Patch",
         s"scalafix.v1.${documentClass}",
@@ -517,15 +531,27 @@ class ScalametaAST {
         "scalafix.v1.XtensionSeqPatch",
       )
     ).flatten.map("import " + _).sorted
+    val body =
+      s"""|    doc.tree.collect {
+          |      case t @ ${x} =>
+          |${p.value(8)}
+          |    }.asPatch""".stripMargin
+    val withPathFilter = if (pathFilter) {
+      s"""|    doc.input match {
+          |      case f: Input.VirtualFile if f.path.contains("src/main/scala") =>
+          |        Patch.empty
+          |      case _ =>
+          |${body.linesIterator.map("    " + _).mkString("\n")}
+          |    }""".stripMargin
+    } else {
+      body
+    }
     s"""${header(x = x, packageName = packageName, wildcardImport = wildcardImport, parsed = parsed)}
        |${imports.mkString("\n")}
        |
        |class ${ruleName} extends ${ruleClass}("${ruleNameRaw}") {
        |  override def fix(implicit doc: ${documentClass}): Patch = {
-       |    doc.tree.collect {
-       |      case t @ ${x} =>
-       |${p.value(8)}
-       |    }.asPatch
+       |$withPathFilter
        |  }
        |}
        |""".stripMargin
