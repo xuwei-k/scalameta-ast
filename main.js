@@ -7,7 +7,7 @@ import { ScalametaAstMainLatest } from "./latest/main.js";
 [ScalametaAstMainLatest, ScalametaAstMainScalafixCompat].forEach((main) => {
   try {
     // force initialize for avoid error
-    main.convert("", "", "", false, "", "", "", false, false);
+    main.initialize();
   } catch (e) {
     console.log(e);
   }
@@ -80,6 +80,7 @@ const initialOutputType = getFromStorageOr("output_type", "raw");
 
 const initialFormat = getBoolFromStorageOr("format", true);
 const initialWildcardImport = getBoolFromStorageOr("wildcard_import", false);
+const initialExplanation = getBoolFromStorageOr("explanation", true);
 const initialRemoveNewFields = getBoolFromStorageOr("remove_new_fields", false);
 const initialInitialExtractor = getBoolFromStorageOr(
   "initial_extractor",
@@ -105,6 +106,7 @@ const App = () => {
 
   const [format, setFormat] = useState(initialFormat);
   const [wildcardImport, setWildcardImport] = useState(initialWildcardImport);
+  const [explanation, setExplanation] = useState(initialExplanation);
   const [removeNewFields, setRemoveNewFields] = useState(
     initialRemoveNewFields,
   );
@@ -145,6 +147,7 @@ const App = () => {
     patch,
     removeNewFields,
     initialExtractor,
+    explanation,
   );
 
   if (r.ast == null || format === false) {
@@ -174,6 +177,27 @@ const App = () => {
     result = hljs.highlight(r.ast, {
       language: "scala",
     }).value;
+    const scalafixVersion = scalameta == "latest" ? "0.11.1" : "0.10.4";
+    const scalafixUrl = (s) =>
+      `https://github.com/scalacenter/scalafix/blob/v${scalafixVersion}/scalafix-core/src/main/scala/scalafix/${s}.scala`;
+
+    if (["syntactic", "semantic"].includes(outputType)) {
+      [
+        ["Patch", "patch/Patch"],
+        ["SyntacticDocument", "v1/SyntacticDocument"],
+        ["SemanticDocument", "v1/SyntacticDocument"],
+        ["SyntacticRule", "v1/Rule"],
+        ["SemanticRule", "v1/Rule"],
+        ["Diagnostic", "lint/Diagnostic"],
+        ["LintSeverity", "lint/LintSeverity"],
+      ].forEach(([x1, x2]) => {
+        result = result.replaceAll(
+          `<span class="hljs-type">${x1}</span>`,
+          `<a target="_blank" href='${scalafixUrl(x2)}'><span class="hljs-type">${x1}</span></a>`,
+        );
+      });
+    }
+
     info = `ast: ${r.astBuildMs} ms`;
     infoClass = "alert alert-success";
 
@@ -191,9 +215,8 @@ const App = () => {
       ["wildcard_import", wildcardImport],
       ["remove_new_fields", removeNewFields],
       ["initial_extractor", initialExtractor],
-    ].forEach((xs) => {
-      const key = xs[0];
-      const val = xs[1];
+      ["explanation", explanation],
+    ].forEach(([key, val]) => {
       if (val.toString().length <= 1024) {
         localStorage.setItem(key, val);
       }
@@ -287,35 +310,6 @@ const App = () => {
             <p></p>
           </div>
           <div class="row">
-            <div class="col">
-              <button
-                class="btn btn-primary"
-                id="copy"
-                onclick=${() => {
-                  navigator.clipboard.writeText(r.ast);
-                  if (window.getSelection) {
-                    const selection = window.getSelection();
-                    const range = document.createRange();
-                    range.selectNodeContents(
-                      document.getElementById("output_scala"),
-                    );
-                    selection.removeAllRanges();
-                    selection.addRange(range);
-                  }
-                }}
-              >
-                copy
-              </button>
-            </div>
-            <div class="col">
-              <button
-                class="btn btn-primary"
-                onclick=${() => formatInput()}
-                id="format_input"
-              >
-                format input scala code
-              </button>
-            </div>
             <div class="col">
               <button
                 class="btn btn-primary"
@@ -458,6 +452,17 @@ const App = () => {
               />
             </div>
           </div>
+          <div>
+            <input
+              type="checkbox"
+              name="explanation"
+              id="explanation"
+              disabled=${disableScalafixRuleTemplateInput}
+              checked=${explanation}
+              onChange=${(e) => setExplanation(e.target.checked)}
+            />
+            <label for="explanation">explanation</label>
+          </div>
           <div class="row">
             <div>
               <label for="patch"
@@ -491,6 +496,14 @@ const App = () => {
     </details>
     <div class="row">
       <div class="col">
+        <button
+          class="btn btn-secondary"
+          style="border-bottom-left-radius: 0; border-bottom-right-radius: 0;"
+          onclick=${() => formatInput()}
+          id="format_input"
+        >
+          format input scala code
+        </button>
         <textarea
           style="width: 100%; height: 800px"
           id="input_scala"
@@ -500,6 +513,23 @@ const App = () => {
         ></textarea>
       </div>
       <div class="col">
+        <button
+          class="btn btn-secondary"
+          style="border-bottom-left-radius: 0; border-bottom-right-radius: 0;"
+          id="copy"
+          onclick=${() => {
+            navigator.clipboard.writeText(r.ast);
+            if (window.getSelection) {
+              const selection = window.getSelection();
+              const range = document.createRange();
+              range.selectNodeContents(document.getElementById("output_scala"));
+              selection.removeAllRanges();
+              selection.addRange(range);
+            }
+          }}
+        >
+          copy
+        </button>
         <pre>
         <code
           id="output_scala"
