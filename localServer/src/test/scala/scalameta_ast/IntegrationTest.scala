@@ -41,7 +41,13 @@ abstract class IntegrationTest(
     super.afterAll()
   }
 
-  private def withBrowser[A](f: Page => A): Unit = {
+  private def withBrowserAllowMessages[A](f: Page => A): Unit =
+    withBrowserImpl(allowMessage = true, f)
+
+  private def withBrowser[A](f: Page => A): Unit =
+    withBrowserImpl(allowMessage = false, f)
+
+  private def withBrowserImpl[A](allowMessage: Boolean, f: Page => A): Unit = {
     Using.resource(toBrowserType(playwright).launch()) { browser =>
       val context = browser.newContext()
       browserType match {
@@ -57,6 +63,10 @@ abstract class IntegrationTest(
       val page = context.newPage()
       page.navigate(s"http://127.0.0.1:${port()}/")
       page.setDefaultTimeout(5000)
+      var messages = List.empty[ConsoleMessageClass]
+      page.onConsoleMessage { message =>
+        messages ::= ConsoleMessageClass.from(message)
+      }
       var err: String = null
       page.onPageError { e =>
         err = e
@@ -68,6 +78,11 @@ abstract class IntegrationTest(
       }
       if (err != null) {
         throw new AssertionError(s"page error: $err")
+      }
+      if (allowMessage) {
+        // no assert
+      } else if (messages.nonEmpty) {
+        throw new AssertionError(s"console messages = ${messages}")
       }
     }
   }
@@ -426,7 +441,7 @@ abstract class IntegrationTest(
       )
     }
 
-    "invalid config" in withBrowser { page =>
+    "invalid config" in withBrowserAllowMessages { page =>
       def render(): Unit = inputElem(page).press("\n")
       setInput(page, "null")
       setScalafmtConfig(
