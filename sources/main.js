@@ -315,35 +315,6 @@ const App = () => {
             <div class="col">
               <button
                 class="btn btn-primary"
-                id="copy"
-                onclick=${() => {
-                  navigator.clipboard.writeText(r.ast);
-                  if (window.getSelection) {
-                    const selection = window.getSelection();
-                    const range = document.createRange();
-                    range.selectNodeContents(
-                      document.getElementById("output_scala"),
-                    );
-                    selection.removeAllRanges();
-                    selection.addRange(range);
-                  }
-                }}
-              >
-                copy
-              </button>
-            </div>
-            <div class="col">
-              <button
-                class="btn btn-primary"
-                onclick=${() => formatInput()}
-                id="format_input"
-              >
-                format input scala code
-              </button>
-            </div>
-            <div class="col">
-              <button
-                class="btn btn-primary"
                 id="clear_local_storage"
                 onclick=${() => localStorage.clear()}
               >
@@ -527,6 +498,14 @@ const App = () => {
     </details>
     <div class="row">
       <div class="col">
+        <button
+          class="btn btn-secondary"
+          style="border-bottom-left-radius: 0; border-bottom-right-radius: 0;"
+          onclick=${() => formatInput()}
+          id="format_input"
+        >
+          format input scala code
+        </button>
         <textarea
           style="width: 100%; height: 800px"
           id="input_scala"
@@ -536,6 +515,23 @@ const App = () => {
         ></textarea>
       </div>
       <div class="col">
+        <button
+          class="btn btn-secondary"
+          style="border-bottom-left-radius: 0; border-bottom-right-radius: 0;"
+          id="copy"
+          onclick=${() => {
+            navigator.clipboard.writeText(r.ast);
+            if (window.getSelection) {
+              const selection = window.getSelection();
+              const range = document.createRange();
+              range.selectNodeContents(document.getElementById("output_scala"));
+              selection.removeAllRanges();
+              selection.addRange(range);
+            }
+          }}
+        >
+          copy
+        </button>
         <pre>
         <code
           id="output_scala"
