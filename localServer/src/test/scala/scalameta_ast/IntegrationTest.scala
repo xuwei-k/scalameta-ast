@@ -116,6 +116,10 @@ abstract class IntegrationTest(
     input.press("\n")
   }
 
+  private def pathFilter(page: Page): Locator = {
+    getById(page, AriaRole.CHECKBOX, "path_filter")
+  }
+
   private def formatOutput(page: Page): Locator = {
     getById(page, AriaRole.CHECKBOX, "format")
   }
@@ -602,5 +606,15 @@ abstract class IntegrationTest(
       case _ =>
         pending
     }
+  }
+
+  "path filter" in withBrowser { page =>
+    changeOutputType(page, "semantic")
+    pathFilter(page).check()
+    assert(output(page).textContent() == fromResource("path-filter/semantic.txt"))
+    changeOutputType(page, "syntactic")
+    formatOutput(page).uncheck()
+    wildcardImport(page).check()
+    assert(output(page).textContent() == fromResource("path-filter/syntactic.txt"))
   }
 }

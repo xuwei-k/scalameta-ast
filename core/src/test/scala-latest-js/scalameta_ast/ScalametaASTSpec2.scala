@@ -20,6 +20,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
         removeNewFields = false,
         initialExtractor = false,
         explanation = true,
+        pathFilter = false,
       )
       assert(result.ast == expect)
     }
@@ -38,6 +39,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
         removeNewFields = false,
         initialExtractor = false,
         explanation = true,
+        pathFilter = false,
       )
       assert(result.ast == expect)
     }
@@ -54,6 +56,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
         removeNewFields = false,
         initialExtractor = false,
         explanation = true,
+        pathFilter = false,
       )
 
       val expect =
@@ -73,6 +76,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
         removeNewFields = false,
         initialExtractor = false,
         explanation = true,
+        pathFilter = false,
       )
 
       val expect =

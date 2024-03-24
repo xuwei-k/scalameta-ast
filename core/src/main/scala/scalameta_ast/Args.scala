@@ -16,6 +16,7 @@ sealed abstract class ScalafixRule extends NotToken {
   def ruleNameOption: Option[String]
   def patch: Option[String]
   def explanation: Boolean
+  def pathFilter: Boolean
   def documentClass: String
   def ruleClass: String
 }
@@ -47,6 +48,7 @@ object Args {
     patch: Option[String],
     initialExtractor: Boolean,
     explanation: Boolean,
+    pathFilter: Boolean,
   ) extends ScalafixRule {
     override def documentClass: String = "SyntacticDocument"
     override def ruleClass: String = "SyntacticRule"
@@ -62,6 +64,7 @@ object Args {
     patch: Option[String],
     initialExtractor: Boolean,
     explanation: Boolean,
+    pathFilter: Boolean,
   ) extends ScalafixRule {
     override def documentClass: String = "SemanticDocument"
     override def ruleClass: String = "SemanticRule"
