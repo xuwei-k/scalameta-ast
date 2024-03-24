@@ -12,11 +12,14 @@ import scala.scalajs.js.annotation._
 import scala.util.control.NonFatal
 
 trait MainCompat {
-  def runFormat(source: String, scalafmtConfig: Conf): String =
-    runFormat(
-      source = source,
-      conf = metaConfigToScalafmtConfig(scalafmtConfig)
-    )
+  def runFormat(source: String, scalafmtConfig: Conf): Output[String] = {
+    ScalametaAST.stopwatch {
+      runFormat(
+        source = source,
+        conf = metaConfigToScalafmtConfig(scalafmtConfig)
+      )
+    }
+  }
 
   private def runFormat(source: String, conf: ScalafmtConfig): String = {
     org.scalafmt.Scalafmt.format(source, conf).get
@@ -35,14 +38,15 @@ trait MainCompat {
         scalafmtConfig = hoconToMetaConfig(scalafmtConfJsonStr)
       )
       new js.Object {
-        val result = res
+        val result: String = res.result
+        val time: Double = res.time.toDouble
         val error = null
       }
     } catch {
       case NonFatal(e) =>
         e.printStackTrace()
         new js.Object {
-          val result = source
+          val result: String = source
           val error = e.toString()
         }
     }

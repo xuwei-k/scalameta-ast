@@ -154,12 +154,14 @@ const App = () => {
   );
 
   if (r.ast == null || format === false) {
+    r.formatMs = 0;
   } else {
     const res = ScalametaAstMainLatest.format(r.ast, scalafmtConfig);
     if (res.error === null) {
       r = {
         ast: res.result,
         astBuildMs: r.astBuildMs,
+        formatMs: res.time,
       };
     } else {
       r = {
@@ -201,7 +203,7 @@ const App = () => {
       });
     }
 
-    info = `ast: ${r.astBuildMs} ms`;
+    info = `ast: ${r.astBuildMs} ms\nfmt: ${r.formatMs} ms`;
     infoClass = "alert alert-success";
 
     [

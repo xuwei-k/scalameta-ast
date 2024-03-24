@@ -22,7 +22,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
         explanation = true,
         pathFilter = false,
       )
-      assert(result.ast == expect)
+      assert(result.result == expect)
     }
 
     "Term.Match" in {
@@ -41,7 +41,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
         explanation = true,
         pathFilter = false,
       )
-      assert(result.ast == expect)
+      assert(result.result == expect)
     }
 
     "Defn.Type" in {
@@ -61,7 +61,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
 
       val expect =
         """Defn.Type.After_4_6_0(Nil, Type.Name("A"), Type.ParamClause(Nil), Type.Name("B"), Type.Bounds(None, None))"""
-      assert(result.ast == expect)
+      assert(result.result == expect)
     }
 
     "Template" in {
@@ -81,7 +81,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
 
       val expect =
         """Defn.Class.After_4_6_0(Nil, Type.Name("A"), Type.ParamClause(Nil), Ctor.Primary.After_4_6_0(Nil, Name.Anonymous(), Nil), Template.After_4_4_0(Nil, Nil, Self(Name.Anonymous(), None), Nil, List(Type.Name("B"))))"""
-      assert(result.ast == expect)
+      assert(result.result == expect)
     }
   }
 }
