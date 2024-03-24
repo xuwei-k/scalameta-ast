@@ -23,7 +23,7 @@ object Main extends MainCompat {
   }
 
   @JSExport
-  @nowarn
+  @nowarn("msg=never used")
   def convert(
     source: String,
     outputType: String,
