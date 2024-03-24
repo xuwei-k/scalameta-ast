@@ -5,6 +5,7 @@ import org.ekrich.config.Config
 import org.ekrich.config.ConfigFactory
 import org.ekrich.config.ConfigRenderOptions
 import org.scalafmt.config.ScalafmtConfig
+import scala.annotation.nowarn
 import scala.scalajs.js
 import scala.scalajs.js.JSON
 import scala.scalajs.js.annotation._
@@ -26,6 +27,7 @@ trait MainCompat {
   }
 
   @JSExport
+  @nowarn("msg=never used")
   def format(source: String, scalafmtConfJsonStr: String): js.Object =
     try {
       val res = runFormat(
