@@ -34,7 +34,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
             explanation = true,
             pathFilter = false,
           )
-          assert(result.ast == expect, arg)
+          assert(result.result == expect, arg)
         }
       }
     }
@@ -66,7 +66,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
             explanation = true,
             pathFilter = false,
           )
-          assert(result.ast == expect, arg)
+          assert(result.result == expect, arg)
         }
       }
     }
@@ -98,7 +98,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
             explanation = true,
             pathFilter = false,
           )
-          assert(result.ast == expect, arg)
+          assert(result.result == expect, arg)
         }
       }
     }
@@ -130,7 +130,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
             explanation = true,
             pathFilter = false,
           )
-          assert(result.ast == expect, arg)
+          assert(result.result == expect, arg)
         }
       }
     }

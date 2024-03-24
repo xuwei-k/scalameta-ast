@@ -10,6 +10,16 @@ import scala.meta.parsers.Parse
 import scala.meta.parsers.Parsed
 import scala.meta.tokenizers.Tokenize
 
+object ScalametaAST {
+  def stopwatch[T](block: => T): Output[T] = {
+    val begin = new Date()
+    val result = block
+    val end = new Date()
+    val diffMs = end.getTime - begin.getTime
+    Output(result, diffMs)
+  }
+}
+
 class ScalametaAST {
   private val dialectsDefault = List(dialects.Scala213Source3, dialects.Scala3)
   private val stringToDialects: Map[String, List[Dialect]] = {
@@ -81,14 +91,6 @@ class ScalametaAST {
   }
 
   private val convert = implicitly[Convert[String, Input]]
-
-  private def stopwatch[T](block: => T): (T, Long) = {
-    val begin = new Date()
-    val result = block
-    val end = new Date()
-    val diffMs = end.getTime - begin.getTime
-    (result, diffMs)
-  }
 
   // TODO remove when scalafix depends on new scalameta version
   // https://github.com/scalameta/scalameta/pull/2921
@@ -260,7 +262,7 @@ class ScalametaAST {
     initialExtractor: Boolean,
     explanation: Boolean,
     pathFilter: Boolean,
-  ): Output = {
+  ): Output[String] = {
     convert(
       outputType match {
         case "tokens" =>
@@ -311,9 +313,9 @@ class ScalametaAST {
   }
   def convert(
     args: Args
-  ): Output = {
+  ): Output[String] = {
     lazy val input = convert.apply(args.src)
-    val ((ast, parsedOpt), astBuildMs) = stopwatch {
+    val result = ScalametaAST.stopwatch {
       val dialects = args.dialect.fold(dialectsDefault) { x =>
         stringToDialects.getOrElse(
           x, {
@@ -395,8 +397,9 @@ class ScalametaAST {
       }
     }
 
-    val (res, formatMs) = stopwatch {
-      parsedOpt match {
+    val ast = result.result._1
+    val res = {
+      result.result._2 match {
         case Some(a0) =>
           val ruleNameRaw = a0.args.ruleNameOption.getOrElse("Example").filterNot(char => char == '`' || char == '"')
           val ruleName = {
@@ -421,7 +424,7 @@ class ScalametaAST {
           ast
       }
     }
-    Output(res, astBuildMs, formatMs)
+    Output(res, result.time)
   }
 
   private def imports(src: String, parsed: Term): Seq[String] = {
@@ -558,4 +561,4 @@ class ScalametaAST {
   }
 }
 
-case class Output(ast: String, astBuildMs: Long, formatMs: Long)
+case class Output[A](result: A, time: Long)

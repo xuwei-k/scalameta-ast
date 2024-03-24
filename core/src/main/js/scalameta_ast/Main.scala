@@ -54,8 +54,8 @@ object Main extends MainCompat {
           pathFilter = pathFilter,
         )
       new js.Object {
-        var ast = output.ast
-        var astBuildMs = output.astBuildMs.toDouble
+        var ast = output.result
+        var astBuildMs = output.time.toDouble
       }
     } catch {
       case e: Throwable =>
