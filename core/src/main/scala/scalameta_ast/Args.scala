@@ -16,6 +16,8 @@ sealed abstract class ScalafixRule extends NotToken {
   def ruleNameOption: Option[String]
   def patch: Option[String]
   def explanation: Boolean
+  def documentClass: String
+  def ruleClass: String
 }
 object Args {
   case class Token(
@@ -45,7 +47,10 @@ object Args {
     patch: Option[String],
     initialExtractor: Boolean,
     explanation: Boolean,
-  ) extends ScalafixRule
+  ) extends ScalafixRule {
+    override def documentClass: String = "SyntacticDocument"
+    override def ruleClass: String = "SyntacticRule"
+  }
 
   case class Semantic(
     src: String,
@@ -57,5 +62,8 @@ object Args {
     patch: Option[String],
     initialExtractor: Boolean,
     explanation: Boolean,
-  ) extends ScalafixRule
+  ) extends ScalafixRule {
+    override def documentClass: String = "SemanticDocument"
+    override def ruleClass: String = "SemanticRule"
+  }
 }

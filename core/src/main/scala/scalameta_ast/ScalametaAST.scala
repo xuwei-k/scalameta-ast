@@ -400,30 +400,19 @@ class ScalametaAST {
             if (isValidTermName(ruleNameRaw)) ruleNameRaw else s"`${ruleNameRaw}`"
           }
 
-          a0.args match {
-            case a: Args.Semantic =>
-              semantic(
-                x = ast,
-                packageName = a.packageName,
-                wildcardImport = a.wildcardImport,
-                ruleName = ruleName,
-                ruleNameRaw = ruleNameRaw,
-                patch = a.patch,
-                parsed = a0.value,
-                explanation = a.explanation,
-              )
-            case a: Args.Syntactic =>
-              syntactic(
-                x = ast,
-                packageName = a.packageName,
-                wildcardImport = a.wildcardImport,
-                ruleName = ruleName,
-                ruleNameRaw = ruleNameRaw,
-                patch = a.patch,
-                parsed = a0.value,
-                explanation = a.explanation,
-              )
-          }
+          val a = a0.args
+          scalafixRule(
+            x = ast,
+            packageName = a.packageName,
+            wildcardImport = a.wildcardImport,
+            ruleName = ruleName,
+            ruleNameRaw = ruleNameRaw,
+            patch = a.patch,
+            parsed = a0.value,
+            explanation = a.explanation,
+            documentClass = a.documentClass,
+            ruleClass = a.ruleClass,
+          )
         case _ =>
           ast
       }
@@ -501,7 +490,7 @@ class ScalametaAST {
     }
   }
 
-  private def syntactic(
+  private def scalafixRule(
     x: String,
     packageName: Option[String],
     wildcardImport: Boolean,
@@ -510,6 +499,8 @@ class ScalametaAST {
     patch: Option[String],
     parsed: () => Term,
     explanation: Boolean,
+    documentClass: String,
+    ruleClass: String,
   ): String = {
     val p = patchCode(patch, explanation)
     val imports = List[List[String]](
@@ -521,55 +512,16 @@ class ScalametaAST {
       },
       List(
         "scalafix.Patch",
-        "scalafix.v1.SyntacticDocument",
-        "scalafix.v1.SyntacticRule",
+        s"scalafix.v1.${documentClass}",
+        s"scalafix.v1.${ruleClass}",
         "scalafix.v1.XtensionSeqPatch",
       )
     ).flatten.map("import " + _).sorted
     s"""${header(x = x, packageName = packageName, wildcardImport = wildcardImport, parsed = parsed)}
        |${imports.mkString("\n")}
        |
-       |class ${ruleName} extends SyntacticRule("${ruleNameRaw}") {
-       |  override def fix(implicit doc: SyntacticDocument): Patch = {
-       |    doc.tree.collect {
-       |      case t @ ${x} =>
-       |${p.value(8)}
-       |    }.asPatch
-       |  }
-       |}
-       |""".stripMargin
-  }
-
-  private def semantic(
-    x: String,
-    packageName: Option[String],
-    wildcardImport: Boolean,
-    ruleName: String,
-    ruleNameRaw: String,
-    patch: Option[String],
-    parsed: () => Term,
-    explanation: Boolean,
-  ): String = {
-    val p = patchCode(patch, explanation)
-    val imports = List[List[String]](
-      p.imports,
-      if (wildcardImport) {
-        Nil
-      } else {
-        List("scala.meta.transversers._")
-      },
-      List(
-        "scalafix.Patch",
-        "scalafix.v1.SemanticDocument",
-        "scalafix.v1.SemanticRule",
-        "scalafix.v1.XtensionSeqPatch",
-      )
-    ).flatten.map("import " + _).sorted
-    s"""${header(x = x, packageName = packageName, wildcardImport = wildcardImport, parsed = parsed)}
-       |${imports.mkString("\n")}
-       |
-       |class ${ruleName} extends SemanticRule("${ruleNameRaw}") {
-       |  override def fix(implicit doc: SemanticDocument): Patch = {
+       |class ${ruleName} extends ${ruleClass}("${ruleNameRaw}") {
+       |  override def fix(implicit doc: ${documentClass}): Patch = {
        |    doc.tree.collect {
        |      case t @ ${x} =>
        |${p.value(8)}
