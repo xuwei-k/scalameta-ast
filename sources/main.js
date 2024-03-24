@@ -7,7 +7,7 @@ import { ScalametaAstMainLatest } from "./latest/main.js";
 [ScalametaAstMainLatest, ScalametaAstMainScalafixCompat].forEach((main) => {
   try {
     // force initialize for avoid error
-    main.convert("", "", "", false, "", "", "", false, false);
+    main.initialize();
   } catch (e) {
     console.log(e);
   }

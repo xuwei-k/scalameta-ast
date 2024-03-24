@@ -7,6 +7,22 @@ import scala.scalajs.js.annotation._
 @JSExportTopLevel(ExportName.value)
 object Main extends MainCompat {
   @JSExport
+  def initialize(): js.Object = {
+    convert(
+      source = "",
+      outputType = "",
+      packageName = "",
+      wildcardImport = false,
+      ruleName = "",
+      dialect = "",
+      patch = "",
+      removeNewFields = false,
+      initialExtractor = false,
+      explanation = true
+    )
+  }
+
+  @JSExport
   @nowarn
   def convert(
     source: String,
