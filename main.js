@@ -17,6 +17,8 @@ import {
   html,
   render,
   useState,
+  useEffect,
+  useRef,
 } from "https://unpkg.com/htm@3.1.1/preact/standalone.module.js";
 
 import hljs from "https://unpkg.com/@highlightjs/cdn-assets@11.9.0/es/highlight.min.js";
@@ -78,9 +80,14 @@ const initialScalameta = getFromStorageOr("scalameta", "latest");
 const initialPatch = getFromStorageOr("patch", "warn");
 const initialOutputType = getFromStorageOr("output_type", "raw");
 
+const initialEnableRichEditor = getBoolFromStorageOr(
+  "enable_rich_editor",
+  true,
+);
 const initialFormat = getBoolFromStorageOr("format", true);
 const initialWildcardImport = getBoolFromStorageOr("wildcard_import", false);
 const initialExplanation = getBoolFromStorageOr("explanation", true);
+const initialPathFilter = getBoolFromStorageOr("path_filter", false);
 const initialRemoveNewFields = getBoolFromStorageOr("remove_new_fields", false);
 const initialInitialExtractor = getBoolFromStorageOr(
   "initial_extractor",
@@ -88,6 +95,8 @@ const initialInitialExtractor = getBoolFromStorageOr(
 );
 
 let initialized = false;
+
+const inTest = window.navigator.userAgent === "playwright test";
 
 const App = () => {
   const [scalametaV1, setScalametaV1] = useState("");
@@ -104,15 +113,32 @@ const App = () => {
   const [patch, setPatch] = useState(initialPatch);
   const [outputType, setOutputType] = useState(initialOutputType);
 
+  const [enableRichEditor, setEnableRichEditor] = useState(
+    initialEnableRichEditor,
+  );
   const [format, setFormat] = useState(initialFormat);
   const [wildcardImport, setWildcardImport] = useState(initialWildcardImport);
   const [explanation, setExplanation] = useState(initialExplanation);
+  const [pathFilter, setPathFilter] = useState(initialPathFilter);
   const [removeNewFields, setRemoveNewFields] = useState(
     initialRemoveNewFields,
   );
   const [initialExtractor, setInitialExtractor] = useState(
     initialInitialExtractor,
   );
+
+  let inputScalaDataStyle;
+  let inputScalaStyle;
+
+  if (enableRichEditor) {
+    if (!inTest) {
+      inputScalaDataStyle = "display:none;";
+    }
+    inputScalaStyle = "width: 100%; height: 800px;";
+  } else {
+    inputScalaDataStyle = "width: 100%; height: 800px;";
+    inputScalaStyle = "display:none;";
+  }
 
   const changeDetails = (e) => {
     switch (e.newState) {
@@ -134,6 +160,7 @@ const App = () => {
     const res = ScalametaAstMainLatest.format(inputScala, scalafmtConfig);
     if (res.error === null) {
       setInputScala(res.result);
+      cm.current.setValue(res.result);
     }
   };
 
@@ -148,15 +175,18 @@ const App = () => {
     removeNewFields,
     initialExtractor,
     explanation,
+    pathFilter,
   );
 
   if (r.ast == null || format === false) {
+    r.formatMs = 0;
   } else {
     const res = ScalametaAstMainLatest.format(r.ast, scalafmtConfig);
     if (res.error === null) {
       r = {
         ast: res.result,
         astBuildMs: r.astBuildMs,
+        formatMs: res.time,
       };
     } else {
       r = {
@@ -198,7 +228,7 @@ const App = () => {
       });
     }
 
-    info = `ast: ${r.astBuildMs} ms`;
+    info = `ast: ${r.astBuildMs} ms\nfmt: ${r.formatMs} ms`;
     infoClass = "alert alert-success";
 
     [
@@ -216,6 +246,8 @@ const App = () => {
       ["remove_new_fields", removeNewFields],
       ["initial_extractor", initialExtractor],
       ["explanation", explanation],
+      ["path_filter", pathFilter],
+      ["enable_rich_editor", enableRichEditor],
     ].forEach(([key, val]) => {
       if (val.toString().length <= 1024) {
         localStorage.setItem(key, val);
@@ -247,6 +279,21 @@ const App = () => {
 
   const disableCompat =
     scalameta != "scalafix" || ["tokens", "comment"].includes(outputType);
+
+  const cm = useRef(null);
+
+  useEffect(() => {
+    if (cm.current === null) {
+      cm.current = CodeMirror(document.getElementById("input_scala"), {
+        lineNumbers: true,
+        matchBrackets: true,
+        value: inputScala,
+        mode: "text/x-scala",
+      });
+      cm.current.setSize("100%", "100%");
+    }
+    return () => {};
+  }, [inputScala, formatInput]);
 
   return html` <div class="container mw-100">
     <details open ontoggle="${(e) => changeDetails(e)}">
@@ -463,6 +510,17 @@ const App = () => {
             />
             <label for="explanation">explanation</label>
           </div>
+          <div>
+            <input
+              type="checkbox"
+              name="path_filter"
+              id="path_filter"
+              disabled=${disableScalafixRuleTemplateInput}
+              checked=${pathFilter}
+              onChange=${(e) => setPathFilter(e.target.checked)}
+            />
+            <label for="path_filter">path filter</label>
+          </div>
           <div class="row">
             <div>
               <label for="patch"
@@ -504,9 +562,23 @@ const App = () => {
         >
           format input scala code
         </button>
-        <textarea
-          style="width: 100%; height: 800px"
+        <input
+          type="checkbox"
+          name="rich editor"
+          id="enable_rich_editor"
+          checked=${enableRichEditor}
+          onChange=${(e) => setEnableRichEditor(e.target.checked)}
+        />
+        <label for="enable_rich_editor">enable rich editor</label>
+        <div
           id="input_scala"
+          style=${inputScalaStyle}
+          onkeyup=${(e) => setInputScala(cm.current.getValue())}
+          onChange=${(e) => setInputScala(cm.current.getValue())}
+        ></div>
+        <textarea
+          style=${inputScalaDataStyle}
+          id="input_scala_data"
           onkeyup=${(e) => setInputScala(e.target.value)}
           onChange=${(e) => setInputScala(e.target.value)}
           value=${inputScala}
