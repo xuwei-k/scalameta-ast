@@ -1,5 +1,6 @@
 package scalameta_ast
 
+import com.microsoft.playwright.Browser.NewContextOptions
 import com.microsoft.playwright._
 import com.microsoft.playwright.options.AriaRole
 import org.scalatest.BeforeAndAfterAll
@@ -43,7 +44,7 @@ abstract class IntegrationTest(
 
   private def withBrowser[A](f: Page => A): Unit = {
     Using.resource(toBrowserType(playwright).launch()) { browser =>
-      val context = browser.newContext()
+      val context = browser.newContext(new NewContextOptions().setUserAgent("playwright test"))
       browserType match {
         case scalameta_ast.BrowserType.Chromium =>
           context.grantPermissions(
@@ -108,7 +109,11 @@ abstract class IntegrationTest(
   }
 
   private def inputElem(page: Page): Locator =
-    getTextboxById(page, "input_scala")
+    getTextboxById(page, "input_scala_data")
+
+  private def richEditor(page: Page): Locator = {
+    getById(page, AriaRole.CHECKBOX, "enable_rich_editor")
+  }
 
   private def setInput(page: Page, sourceCode: String): Unit = {
     val input = inputElem(page)
@@ -502,7 +507,8 @@ abstract class IntegrationTest(
         dialect: String,
         pkg: String,
         rule: String,
-        input: String
+        input: String,
+        enableRichEditor: Boolean,
       ) = {
         assert(scalafmtConfig(page).inputValue() == scalafmt)
         assert(formatOutput(page).isChecked == formatOut)
@@ -518,6 +524,7 @@ abstract class IntegrationTest(
         assert(packageName(page).inputValue() == pkg)
         assert(ruleName(page).inputValue() == rule)
         assert(inputElem(page).inputValue() == input)
+        assert(richEditor(page).isChecked == enableRichEditor)
       }
 
       changeOutputType(page, "syntactic")
@@ -540,6 +547,7 @@ abstract class IntegrationTest(
         pkg = "fix",
         rule = "",
         input = "def a = b",
+        enableRichEditor = true,
       )
 
       setScalafmtConfig(page, Seq("runner.dialect = Scala213"))
@@ -552,6 +560,7 @@ abstract class IntegrationTest(
       packageName(page).fill("ppppppppp")
       ruleName(page).fill("FFFFFFFFFF")
       setInput(page, "aaa")
+      richEditor(page).uncheck()
 
       page.reload()
 
@@ -566,6 +575,7 @@ abstract class IntegrationTest(
         pkg = "ppppppppp",
         rule = "FFFFFFFFFF",
         input = "aaa\n",
+        enableRichEditor = false,
       )
     }
 
