@@ -126,6 +126,7 @@ const App = () => {
   const [initialExtractor, setInitialExtractor] = useState(
     initialInitialExtractor,
   );
+  const [headerStyle, setHeaderStyle] = useState("");
 
   let inputScalaDataStyle;
   let inputScalaStyle;
@@ -143,9 +144,11 @@ const App = () => {
   const changeDetails = (e) => {
     switch (e.newState) {
       case "open":
+        setHeaderStyle("");
         setSummary("close header");
         break;
       case "closed":
+        setHeaderStyle("display:none;");
         setSummary("open header");
         break;
     }
@@ -554,22 +557,24 @@ const App = () => {
     </details>
     <div class="row">
       <div class="col">
-        <button
-          class="btn btn-secondary"
-          style="border-bottom-left-radius: 0; border-bottom-right-radius: 0;"
-          onclick=${() => formatInput()}
-          id="format_input"
-        >
-          format input scala code
-        </button>
-        <input
-          type="checkbox"
-          name="rich editor"
-          id="enable_rich_editor"
-          checked=${enableRichEditor}
-          onChange=${(e) => setEnableRichEditor(e.target.checked)}
-        />
-        <label for="enable_rich_editor">enable rich editor</label>
+        <div style=${headerStyle}>
+          <button
+            class="btn btn-secondary"
+            style="border-bottom-left-radius: 0; border-bottom-right-radius: 0;"
+            onclick=${() => formatInput()}
+            id="format_input"
+          >
+            format input scala code
+          </button>
+          <input
+            type="checkbox"
+            name="rich editor"
+            id="enable_rich_editor"
+            checked=${enableRichEditor}
+            onChange=${(e) => setEnableRichEditor(e.target.checked)}
+          />
+          <label for="enable_rich_editor">enable rich editor</label>
+        </div>
         <div
           id="input_scala"
           style=${inputScalaStyle}
@@ -585,23 +590,27 @@ const App = () => {
         ></textarea>
       </div>
       <div class="col">
-        <button
-          class="btn btn-secondary"
-          style="border-bottom-left-radius: 0; border-bottom-right-radius: 0;"
-          id="copy"
-          onclick=${() => {
-            navigator.clipboard.writeText(r.ast);
-            if (window.getSelection) {
-              const selection = window.getSelection();
-              const range = document.createRange();
-              range.selectNodeContents(document.getElementById("output_scala"));
-              selection.removeAllRanges();
-              selection.addRange(range);
-            }
-          }}
-        >
-          copy
-        </button>
+        <div style=${headerStyle}>
+          <button
+            class="btn btn-secondary"
+            style="border-bottom-left-radius: 0; border-bottom-right-radius: 0;"
+            id="copy"
+            onclick=${() => {
+              navigator.clipboard.writeText(r.ast);
+              if (window.getSelection) {
+                const selection = window.getSelection();
+                const range = document.createRange();
+                range.selectNodeContents(
+                  document.getElementById("output_scala"),
+                );
+                selection.removeAllRanges();
+                selection.addRange(range);
+              }
+            }}
+          >
+            copy
+          </button>
+        </div>
         <pre>
         <code
           id="output_scala"
