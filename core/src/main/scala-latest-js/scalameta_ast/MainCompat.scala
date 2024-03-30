@@ -56,18 +56,51 @@ trait MainCompat {
       } else if (line >= src.linesIterator.size) {
         Position.Range(input, src.length, src.length)
       } else {
-        Position.Range(input, line - 1, column, line, column)
+        Position.Range(input, line, column, line, column)
+      }
+    }.start
+    if (false) {
+      println(Seq("line" -> line, "column" -> column, "pos" -> cursorPos))
+    }
+
+    object PrimitiveTree {
+      def unapply(t: Tree): Boolean = {
+        t.collect { _ => () }.sizeIs <= 1
       }
     }
-    println(Seq("line" -> line, "column" -> column, "pos" -> cursorPos))
-    tree.collect {
-      case x if cursorPos.start <= x.pos.start =>
+
+    val t1 = tree.collect {
+      case x if (x.pos.start <= cursorPos && cursorPos <= x.pos.end) && ((x.pos.end - x.pos.start) >= 1) =>
         x
-    }.groupBy(_.pos.start).minByOption(_._1).map(_._2.minBy(_.pos.end).structure).map { current =>
-      println("current = " + current)
-      val currentSize = current.length
-      val count = tree.structure.sliding(currentSize).count(_ == current)
-      println(Seq("count" -> count, "size" -> currentSize))
+    }
+
+    val t2 = if (t1.size > 1) {
+      val ss = t1.collect { case t @ PrimitiveTree() => t }
+      if (ss.isEmpty) {
+        t1
+      } else {
+        ss
+      }
+    } else {
+      t1
+    }
+
+    val t3 = t2.groupBy(_.pos.start).minByOption(_._1).map(_._2.groupBy(_.pos.end))
+
+    t3.toList.map(_.minBy(_._1)._2).flatMap { cursorTrees =>
+      cursorTrees.flatMap { cursorTree =>
+        val current = cursorTree.structure
+        if (false) {
+          println("current = " + current)
+        }
+        val currentSize = current.length
+        tree.structure.sliding(currentSize).zipWithIndex.find(_._1 == current).map(_._2).map { pos =>
+          if (false) {
+            println(Seq("pos" -> pos, "size" -> currentSize))
+          }
+          (current, pos)
+        }
+      }
     }
   }
 
