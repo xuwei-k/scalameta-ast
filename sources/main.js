@@ -167,6 +167,7 @@ const App = () => {
     }
   };
 
+
   let r = main.convert(
     inputScala,
     outputType,
@@ -578,7 +579,17 @@ const App = () => {
         <div
           id="input_scala"
           style=${inputScalaStyle}
-          onkeyup=${(e) => setInputScala(cm.current.getValue())}
+          onkeyup=${(e) => {
+            setInputScala(cm.current.getValue());
+            const c = cm.current.getCursor();
+            main.rawWithPos(
+              inputScala,
+              dialect,
+              scalafmtConfig,
+              c.line,
+              c.ch,
+            );
+          }}
           onChange=${(e) => setInputScala(cm.current.getValue())}
         ></div>
         <textarea
