@@ -92,13 +92,6 @@ class ScalametaAST {
 
   private val convert = implicitly[Convert[String, Input]]
 
-  // TODO remove when scalafix depends on new scalameta version
-  // https://github.com/scalameta/scalameta/pull/2921
-  private[this] val scalametaBugWorkaround: Seq[(String, String)] = Seq(
-    "Lit.Unit(())" -> "Lit.Unit()",
-    "Lit.Null(null)" -> "Lit.Null()"
-  )
-
   private def isValidTermName(str: String): Boolean = {
     implicitly[Parse[Term]].apply(Input.String(str), dialects.Scala3).toOption.exists(_.is[Term.Name])
   }
@@ -368,9 +361,7 @@ class ScalametaAST {
               x2 <- dialects
             } yield (x1, x2)
           )
-          val str = scalametaBugWorkaround.foldLeft(tree.structure) { case (s, (x1, x2)) =>
-            s.replace(x1, x2)
-          }
+          val str = ScalametaBug2921.convert(tree)
           lazy val parsed = implicitly[Parse[Term]].apply(Input.String(str), scala.meta.dialects.Scala3).get
           val parsedOpt = PartialFunction.condOpt(args) { case x: ScalafixRule =>
             ParsedValue(() => parsed, x)
