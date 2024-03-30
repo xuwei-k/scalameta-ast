@@ -54,14 +54,14 @@ object Main extends MainCompat {
           pathFilter = pathFilter,
         )
       new js.Object {
-        var ast = output.result
-        var astBuildMs = output.time.toDouble
+        val ast = output.result
+        val astBuildMs = output.time.toDouble
       }
     } catch {
       case e: Throwable =>
         new js.Object {
-          var error = e
-          var errorString: String = e.toString
+          val error = e
+          val errorString: String = e.toString
         }
     }
   }
