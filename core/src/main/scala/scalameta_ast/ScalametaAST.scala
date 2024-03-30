@@ -20,8 +20,8 @@ object ScalametaAST {
 }
 
 class ScalametaAST {
-  private val dialectsDefault = List(dialects.Scala213Source3, dialects.Scala3)
-  private val stringToDialects: Map[String, List[Dialect]] = {
+  val dialectsDefault = List(dialects.Scala213Source3, dialects.Scala3)
+  val stringToDialects: Map[String, List[Dialect]] = {
     import dialects._
     Map(
       "Auto" -> dialectsDefault,
@@ -38,7 +38,7 @@ class ScalametaAST {
       )
       .toMap
   }
-  private val parsers: List[Parse[Tree]] = List(
+  val parsers: List[Parse[Tree]] = List(
     implicitly[Parse[Stat]],
     implicitly[Parse[Source]],
   ).map(_.asInstanceOf[Parse[Tree]])
@@ -75,7 +75,7 @@ class ScalametaAST {
   ).distinct.sortBy(_.getName)
 
   @tailrec
-  private def loopParse(input: Input, xs: List[(Parse[Tree], Dialect)]): Tree = {
+  final def loopParse(input: Input, xs: List[(Parse[Tree], Dialect)]): Tree = {
     (xs: @unchecked) match {
       case (parse, dialect) :: t1 :: t2 =>
         parse.apply(input, dialect) match {

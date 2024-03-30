@@ -127,6 +127,7 @@ const App = () => {
     initialInitialExtractor,
   );
   const [headerStyle, setHeaderStyle] = useState("");
+  const [cursor, setCursor] = useState({ line: 0, ch: 0 });
 
   let inputScalaDataStyle;
   let inputScalaStyle;
@@ -167,35 +168,52 @@ const App = () => {
     }
   };
 
-  let r = main.convert(
-    inputScala,
-    outputType,
-    packageName,
-    wildcardImport,
-    ruleName,
-    dialect,
-    patch,
-    removeNewFields,
-    initialExtractor,
-    explanation,
-    pathFilter,
-  );
+  let r;
 
-  if (r.ast == null || format === false) {
-    r.formatMs = 0;
+  const enableCursor =
+    outputType === "cursor" &&
+    enableRichEditor === true &&
+    scalameta === "latest";
+
+  if (enableCursor) {
+    r = main.rawWithPos(
+      inputScala,
+      dialect,
+      scalafmtConfig,
+      cursor.line,
+      cursor.ch,
+    );
   } else {
-    const res = ScalametaAstMainLatest.format(r.ast, scalafmtConfig);
-    if (res.error === null) {
-      r = {
-        ast: res.result,
-        astBuildMs: r.astBuildMs,
-        formatMs: res.time,
-      };
+    r = main.convert(
+      inputScala,
+      outputType,
+      packageName,
+      wildcardImport,
+      ruleName,
+      dialect,
+      patch,
+      removeNewFields,
+      initialExtractor,
+      explanation,
+      pathFilter,
+    );
+
+    if (r.ast == null || format === false) {
+      r.formatMs = 0;
     } else {
-      r = {
-        ast: null,
-        errorString: res.error,
-      };
+      const res = ScalametaAstMainLatest.format(r.ast, scalafmtConfig);
+      if (res.error === null) {
+        r = {
+          ast: res.result,
+          astBuildMs: r.astBuildMs,
+          formatMs: res.time,
+        };
+      } else {
+        r = {
+          ast: null,
+          errorString: res.error,
+        };
+      }
     }
   }
 
@@ -207,9 +225,14 @@ const App = () => {
     info = r.errorString;
     infoClass = "alert alert-danger";
   } else {
-    result = hljs.highlight(r.ast, {
-      language: "scala",
-    }).value;
+    if (enableCursor) {
+      result = r.ast;
+    } else {
+      result = hljs.highlight(r.ast, {
+        language: "scala",
+      }).value;
+    }
+
     const scalafixVersion = scalameta == "latest" ? "0.11.1" : "0.10.4";
     const scalafixUrl = (s) =>
       `https://github.com/scalacenter/scalafix/blob/v${scalafixVersion}/scalafix-core/src/main/scala/scalafix/${s}.scala`;
@@ -385,6 +408,18 @@ const App = () => {
                     onChange=${() => setOutputType("raw")}
                   />
                   <span>Raw Scalameta</span>
+                </label>
+              </div>
+              <div>
+                <label>
+                  <input
+                    type="radio"
+                    name="output_type"
+                    value="cursor"
+                    checked=${outputType === "cursor"}
+                    onChange=${() => setOutputType("cursor")}
+                  />
+                  <span>Highlight cursor tree</span>
                 </label>
               </div>
               <div>
@@ -578,8 +613,18 @@ const App = () => {
         <div
           id="input_scala"
           style=${inputScalaStyle}
-          onkeyup=${(e) => setInputScala(cm.current.getValue())}
-          onChange=${(e) => setInputScala(cm.current.getValue())}
+          onclick=${(e) => {
+            setInputScala(cm.current.getValue());
+            setCursor(cm.current.getCursor());
+          }}
+          onkeyup=${(e) => {
+            setInputScala(cm.current.getValue());
+            setCursor(cm.current.getCursor());
+          }}
+          onChange=${(e) => {
+            setInputScala(cm.current.getValue());
+            setCursor(cm.current.getCursor());
+          }}
         ></div>
         <textarea
           style=${inputScalaDataStyle}
