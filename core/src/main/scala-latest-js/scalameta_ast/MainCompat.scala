@@ -62,12 +62,6 @@ trait MainCompat {
       println(Seq("line" -> line, "column" -> column, "pos" -> cursorPos))
     }
 
-    object PrimitiveTree {
-      def unapply(t: Tree): Boolean = {
-        t.collect { _ => () }.sizeIs <= 1
-      }
-    }
-
     val t1: List[Tree] = tree.collect {
       case x if (x.pos.start <= cursorPos && cursorPos <= x.pos.end) && ((x.pos.end - x.pos.start) >= 1) =>
         x
