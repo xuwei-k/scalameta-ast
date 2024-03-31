@@ -154,7 +154,7 @@ class ScalametaAST {
     }.map("Token." + _).mkString("Seq(", ", ", ")")
   }
 
-  private def addExtractor(parsed: Term, str: String, extractor: String => String): String = {
+  def addExtractor(parsed: Term, str: String, extractor: String => String): String = {
     val values = parsed.collect {
       case t @ Term.Select(Term.Name(x1), Term.Name(x2)) =>
         AfterExtractor.values.collect { case AfterExtractor.E2(`x1`, `x2`, e) =>
