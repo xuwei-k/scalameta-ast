@@ -128,6 +128,8 @@ const App = () => {
   );
   const [headerStyle, setHeaderStyle] = useState("");
 
+  const [outputScala, setOutputScala] = useState("");
+
   let inputScalaDataStyle;
   let inputScalaStyle;
 
@@ -581,9 +583,13 @@ const App = () => {
           onkeyup=${(e) => {
             setInputScala(cm.current.getValue());
             const c = cm.current.getCursor();
-            main.rawWithPos(inputScala, dialect, scalafmtConfig, c.line, c.ch);
+            setOutputScala(main.rawWithPos(inputScala, dialect, scalafmtConfig, c.line, c.ch));
           }}
-          onChange=${(e) => setInputScala(cm.current.getValue())}
+          onChange=${(e) => {
+            setInputScala(cm.current.getValue())
+            const c = cm.current.getCursor();
+            setOutputScala(main.rawWithPos(inputScala, dialect, scalafmtConfig, c.line, c.ch));
+          }}
         ></div>
         <textarea
           style=${inputScalaDataStyle}
@@ -619,7 +625,7 @@ const App = () => {
         <code
           id="output_scala"
           class="language-scala hljs"
-          dangerouslySetInnerHTML=${{ __html: result }}
+          dangerouslySetInnerHTML=${{ __html: outputScala }}
           style="width: 100%; height: 800px; background-color:rgb(233, 233, 233);"
         ></code>
         </pre>
