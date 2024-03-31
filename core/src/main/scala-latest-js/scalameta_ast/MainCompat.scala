@@ -23,7 +23,8 @@ trait MainCompat {
     scalafmtConfig: String,
     line: Int,
     column: Int,
-  ): List[(String, Int)] = {
+  ): String = {
+    // ): List[(String, Int)] = {
     import scala.meta._
     val convert = implicitly[Convert[String, Input]]
     val main = new ScalametaAST
@@ -91,18 +92,27 @@ trait MainCompat {
       t1
     }
 
-    t2.flatMap { cursorTree =>
+    val result = t2.flatMap { cursorTree =>
       val current = cursorTree.structure
       if (false) {
         println("current = " + current)
       }
       val currentSize = current.length
-      tree.structure.sliding(currentSize).zipWithIndex.find(_._1 == current).map(_._2).map { pos =>
+      res.sliding(currentSize).zipWithIndex.filter(_._1 == current).map(_._2).map { pos =>
         if (false) {
           println(Seq("pos" -> pos, "size" -> currentSize))
         }
         (current, pos)
       }
+    }
+    result match {
+      case List((src, pos)) =>
+        val formatted = s"${res.take(pos)}<span style='color: red;'>${src}</span>${res.drop(pos + src.length)}"
+        println(formatted)
+        formatted
+      case other =>
+        println(s"not single $other")
+        res
     }
   }
 
