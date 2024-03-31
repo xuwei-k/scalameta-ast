@@ -23,7 +23,7 @@ trait MainCompat {
     scalafmtConfig: String,
     line: Int,
     column: Int,
-  ) = {
+  ): List[(String, Int)] = {
     import scala.meta._
     val convert = implicitly[Convert[String, Input]]
     val main = new ScalametaAST
@@ -49,7 +49,6 @@ trait MainCompat {
       scalafmtConfig = hoconToMetaConfig(scalafmtConfig)
     ).result
     val parsed: Term = implicitly[Parse[Term]].apply(Input.String(res), scala.meta.dialects.Scala3).get
-    val tokens = parsed.tokens
     val cursorPos = {
       if (src.isEmpty) {
         Position.Range(input, 0, 0)
@@ -69,37 +68,46 @@ trait MainCompat {
       }
     }
 
-    val t1 = tree.collect {
+    val t1: List[Tree] = tree.collect {
       case x if (x.pos.start <= cursorPos && cursorPos <= x.pos.end) && ((x.pos.end - x.pos.start) >= 1) =>
         x
     }
 
+    implicit class ListOps[A](xs: List[A]) {
+      def minValues[B: Ordering](f: A => B): List[A] = {
+        xs.groupBy(f).minBy(_._1)._2
+      }
+    }
+
     val t2 = if (t1.size > 1) {
-      val ss = t1.collect { case t @ PrimitiveTree() => t }
+      val ss: List[Tree] = t1.minValues(t => t.pos.end - t.pos.start)
       if (ss.isEmpty) {
         t1
       } else {
-        ss
+        if (ss.size > 1) {
+          ss.minValues(_.structure.length) match {
+            case Nil => ss
+            case aa => aa
+          }
+        } else {
+          ss
+        }
       }
     } else {
       t1
     }
 
-    val t3 = t2.groupBy(_.pos.start).minByOption(_._1).map(_._2.groupBy(_.pos.end))
-
-    t3.toList.map(_.minBy(_._1)._2).flatMap { cursorTrees =>
-      cursorTrees.flatMap { cursorTree =>
-        val current = cursorTree.structure
+    t2.flatMap { cursorTree =>
+      val current = cursorTree.structure
+      if (false) {
+        println("current = " + current)
+      }
+      val currentSize = current.length
+      tree.structure.sliding(currentSize).zipWithIndex.find(_._1 == current).map(_._2).map { pos =>
         if (false) {
-          println("current = " + current)
+          println(Seq("pos" -> pos, "size" -> currentSize))
         }
-        val currentSize = current.length
-        tree.structure.sliding(currentSize).zipWithIndex.find(_._1 == current).map(_._2).map { pos =>
-          if (false) {
-            println(Seq("pos" -> pos, "size" -> currentSize))
-          }
-          (current, pos)
-        }
+        (current, pos)
       }
     }
   }

@@ -61,6 +61,26 @@ class MainSpec extends AnyFreeSpec {
         check(pos) match {
           case List((t, _)) =>
             assert(t.startsWith("Defn.Class(Nil"), pos)
+          case other =>
+            assert(false, other)
+        }
+      }
+
+      def checkTemplate(pos: Int)(implicit p: Position) = {
+        check(pos) match {
+          case List((t, _)) =>
+            assert(t.startsWith("Template(Nil, Nil, "), pos)
+          case other =>
+            assert(false, other)
+        }
+      }
+
+      def checkDef(pos: Int)(implicit p: Position) = {
+        check(pos) match {
+          case List((t, _)) =>
+            assert(t.startsWith("""Defn.Def(Nil, Term.Name("a"),"""), pos)
+          case other =>
+            assert(false, other)
         }
       }
 
@@ -70,8 +90,11 @@ class MainSpec extends AnyFreeSpec {
       (6 to 7).foreach { pos =>
         assert(check(pos) == List(("""Type.Name("A")""", 16)), pos)
       }
-      (8 to 14).foreach { pos =>
-        checkClass(pos)
+      (8 to 10).foreach { pos =>
+        checkTemplate(pos)
+      }
+      (11 to 14).foreach { pos =>
+        checkDef(pos)
       }
       (15 to 16).foreach { pos =>
         assert(check(pos) == List(("""Term.Name("a")""", 165)), pos)
@@ -79,24 +102,30 @@ class MainSpec extends AnyFreeSpec {
       (17 to 18).foreach { pos =>
         assert(check(pos) == List(("""Term.Name("x")""", 276)), pos)
       }
-      checkClass(19) // TODO detect `Def` not `Class`
+      assert(check(19) == List(("""Term.Param(Nil, Term.Name("x"), Some(Type.Name("Y")), None)""", 260)))
       (20 to 21).foreach { pos =>
         assert(check(pos) == List(("""Type.Name("Y")""", 297)), pos)
       }
-      (22 to 23).foreach { pos =>
-        checkClass(pos) // TODO detect `Def` not `Class`
-      }
+      assert(
+        check(22) == List(
+          (
+            """Term.ParamClause(List(Term.Param(Nil, Term.Name("x"), Some(Type.Name("Y")), None)), None)""",
+            238
+          )
+        )
+      )
+      checkDef(23)
       (24 to 25).foreach { pos =>
         assert(check(pos) == List(("""Type.Name("Z")""", 337)), pos)
       }
       (26 to 30).foreach { pos =>
-        checkClass(pos) // TODO detect `Def` not `Class`
+        checkDef(pos)
       }
       (31 to 32).foreach { pos =>
         assert(check(pos) == List(("""Term.Name("b")""", 354)), pos)
       }
       (33 to 35).foreach { pos =>
-        checkClass(pos)
+        checkTemplate(pos)
       }
     }
   }
