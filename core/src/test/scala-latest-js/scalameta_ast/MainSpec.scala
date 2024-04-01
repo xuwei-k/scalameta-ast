@@ -19,7 +19,6 @@ class MainSpec extends AnyFreeSpec {
     }
 
     "test 1" in {
-      pending
       def check(pos: Int): List[(String, Int)] = {
         val lines = Seq(
           """class A {""",
