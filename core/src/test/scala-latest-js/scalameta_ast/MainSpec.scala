@@ -6,14 +6,14 @@ import org.scalatest.freespec.AnyFreeSpec
 class MainSpec extends AnyFreeSpec {
   "rawWithPos" - {
     "empty" in {
-      val actual = Main.rawWithPos(
+      val actual = Main.rawWithPos0(
         src = "",
         dialect = "Scala3",
         scalafmtConfig = "",
         line = 0,
         column = 0,
       )
-      assert(actual == Nil)
+      assert(actual == WithPosResult("Source(Nil)\n", Nil))
     }
 
     "test" in {
@@ -27,7 +27,7 @@ class MainSpec extends AnyFreeSpec {
         val src = lines.mkString("\n")
         assert(0 <= pos && pos < src.length)
         if (pos == 0) {
-          Main.rawWithPos(
+          Main.rawWithPos0(
             src = src,
             dialect = "Scala3",
             scalafmtConfig = "",
@@ -47,7 +47,7 @@ class MainSpec extends AnyFreeSpec {
               ("column", column),
             )
           )
-          Main.rawWithPos(
+          Main.rawWithPos0(
             src = src,
             dialect = "Scala3",
             scalafmtConfig = "",
@@ -55,7 +55,7 @@ class MainSpec extends AnyFreeSpec {
             column = column,
           )
         }
-      }
+      }.cursorValues
 
       def checkClass(pos: Int)(implicit p: Position) = {
         check(pos) match {
