@@ -66,41 +66,24 @@ trait MainCompat {
 
     result.cursorValues match {
       case List((s, pos)) =>
-        val newStartPos = {
-          @tailrec
-          def loop(n: Int, list: List[(Token, Boolean)], acc: Int): Int = {
-            list match {
-              case x :: xs =>
-                val tokenSize = x._1.end - x._1.start
-                if (n <= 0) {
-                  acc
-                } else {
-                  loop(if (x._2) n else n - tokenSize, xs, acc + tokenSize)
-                }
-              case _ =>
-                sys.error(s"error ${n} ${acc}")
-            }
+        @tailrec
+        def loop(n: Int, list: List[(Token, Boolean)], acc: Int): Int = {
+          list match {
+            case x :: xs =>
+              val tokenSize = x._1.end - x._1.start
+              if (n <= 0) {
+                acc
+              } else {
+                loop(if (x._2) n else n - tokenSize, xs, acc + tokenSize)
+              }
+            case _ =>
+              sys.error(s"error ${n} ${acc}")
           }
-          loop(pos, result.tokenMap, 0)
         }
 
-        val currentSizeWithSpace = {
-          @tailrec
-          def loop(n: Int, list: List[(Token, Boolean)], acc: Int): Int = {
-            list match {
-              case x :: xs =>
-                val tokenSize = x._1.end - x._1.start
-                if (n <= 0) {
-                  acc
-                } else {
-                  loop(if (x._2) n else n - tokenSize, xs, acc + tokenSize)
-                }
-              case _ =>
-                sys.error(s"error ${n} ${acc}")
-            }
-          }
-          loop(s.length, result.tokenMap.dropWhile(_._1.pos.end < newStartPos), 0)
-        }
+        val newStartPos = loop(pos, result.tokenMap, 0)
+        val currentSizeWithSpace = loop(s.length, result.tokenMap.dropWhile(_._1.pos.end < newStartPos), 0)
+
         Right(
           Highlighted(
             result.src.take(newStartPos),

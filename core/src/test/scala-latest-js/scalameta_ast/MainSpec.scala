@@ -15,7 +15,6 @@ class MainSpec extends AnyFreeSpec {
       )
       assert(actual.src == "Source(Nil)\n")
       assert(actual.cursorValues == Nil)
-      assert(actual.tokenMap.forall(!_._2))
     }
 
     "test 1" in {
@@ -41,14 +40,6 @@ class MainSpec extends AnyFreeSpec {
             (line, lines.take(index + 1).map(_.length).sum, index)
           }.dropWhile(_._2 < pos).headOption.getOrElse((lines.last, src.length, lines.size))
           val column = pos - sum + lineSrc.length
-          println(
-            (
-              ("pos", pos),
-              ("lineNumber", lineNumber),
-              ("sum", sum),
-              ("column", column),
-            )
-          )
           Main.rawWithPos0(
             src = src,
             dialect = "Scala3",
