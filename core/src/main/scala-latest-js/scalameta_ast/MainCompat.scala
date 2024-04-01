@@ -64,21 +64,6 @@ trait MainCompat {
       column = column
     )
 
-    if (false) {
-      val aaaa = result.tokenMap.map { case (t, isSpace) =>
-        if (isSpace) {
-          t
-        } else {
-          List.fill(t.end - t.start)("x").mkString
-        }
-      }.mkString
-
-      println(result.tokenMap.map(_._1).mkString)
-      println(aaaa)
-      println(aaaa.split(" ").filter(_.trim.nonEmpty).map(_.length).toList)
-      println(result.tokenMap.map(_._1).mkString.linesIterator.map(_.trim.length + 1).toList)
-    }
-
     result.cursorValues match {
       case List((s, pos)) =>
         val newStartPos = {
@@ -98,17 +83,7 @@ trait MainCompat {
           }
           loop(pos, result.tokenMap, 0)
         }
-        println(
-          Seq(
-            ("current tree", s),
-            ("pos", pos),
-            ("new-pos", newStartPos),
-            ("diff", newStartPos - pos),
-            ("space until pos", result.tokenMap.takeWhile(_._1.start < pos).count(_._2)),
-            ("spaces", result.tokenMap.count(_._2)),
-            ("all space", result.tokenMap.count(_._1.is[Token.Whitespace]))
-          ),
-        )
+
         val currentSizeWithSpace = {
           @tailrec
           def loop(n: Int, list: List[(Token, Boolean)], acc: Int): Int = {
@@ -137,7 +112,7 @@ trait MainCompat {
         if (values.isEmpty) {
           println(s"not found")
         } else {
-          println(s"not multi values ${values}")
+          println(s"multi values ${values}")
         }
         Left(result.src)
     }
@@ -175,12 +150,7 @@ trait MainCompat {
           true
         }
         assert(t1.end == t2.start)
-        if (isSpace(t1) && isSpace(t2)) {
-          if (false) {
-            println((t1.pos.startLine, t1.pos.startColumn, t1.productPrefix, t2.productPrefix))
-          }
-          t2 -> true
-        } else if (!t1.is[scala.meta.tokens.Token.Comma] && isSpace(t2)) {
+        if (!t1.is[scala.meta.tokens.Token.Comma] && isSpace(t2)) {
           t2 -> true
         } else {
           t2 -> false
@@ -197,9 +167,6 @@ trait MainCompat {
         Position.Range(input, line, column, line, column)
       }
     }.start
-    if (false) {
-      println(Seq("line" -> line, "column" -> column, "pos" -> cursorPos))
-    }
 
     val t1: List[Tree] = tree.collect {
       case x if (x.pos.start <= cursorPos && cursorPos <= x.pos.end) && ((x.pos.end - x.pos.start) >= 1) =>
@@ -230,17 +197,10 @@ trait MainCompat {
       t1
     }
 
-    if (t2.sizeIs > 1) {
-      Console.err.println(s"found multi tree ${t2.map(_.productPrefix).mkString(", ")}")
-    }
-
     val result: List[(String, Int)] = t2.flatMap { cursorTree =>
       val current = cursorTree.structure
       val currentSize = current.length
       tree.structure.sliding(currentSize).zipWithIndex.filter(_._1 == current).map(_._2).map { pos =>
-        if (false) {
-          println(Seq("pos" -> pos, "size" -> currentSize))
-        }
         (current, pos)
       }
     }

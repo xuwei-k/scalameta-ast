@@ -19,14 +19,6 @@ class MainSpec2 extends AnyFreeSpec {
           (line, lines.take(index + 1).map(_.length).sum, index)
         }.dropWhile(_._2 < pos).headOption.getOrElse((lines.last, src.length, lines.size))
         val column = pos - sum + lineSrc.length
-        println(
-          (
-            ("pos", pos),
-            ("lineNumber", lineNumber),
-            ("sum", sum),
-            ("column", column),
-          )
-        )
         Main
           .rawWithPos1(
             src = src,
