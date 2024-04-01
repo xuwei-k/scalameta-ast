@@ -71,7 +71,7 @@ const defaultScalafmtConfig = `
   .filter((c) => c.length > 0)
   .join("\n");
 
-const initialSource = getFromStorageOr("source", "def a = b");
+const initialSource = getFromStorageOr("source", "def a(b: C): D = e");
 const initialScalafmt = getFromStorageOr("scalafmt", defaultScalafmtConfig);
 const initialPackage = getFromStorageOr("package", "fix");
 const initialRuleName = getFromStorageOr("rule_name", "");

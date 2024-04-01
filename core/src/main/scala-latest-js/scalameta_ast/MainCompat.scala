@@ -6,15 +6,18 @@ import org.ekrich.config.ConfigFactory
 import org.ekrich.config.ConfigRenderOptions
 import org.scalafmt.config.ScalafmtConfig
 import scala.annotation.nowarn
+import scala.annotation.tailrec
 import scala.meta.common.Convert
-import scala.meta.contrib.XtensionTreeOps
 import scala.meta.parsers.Parse
+import scala.meta.tokens.Token
 import scala.scalajs.js
 import scala.scalajs.js.JSON
 import scala.scalajs.js.annotation._
 import scala.util.control.NonFatal
 
-case class WithPosResult(src: String, cursorValues: List[(String, Int)])
+case class WithPosResult(src: String, cursorValues: List[(String, Int)], tokenMap: List[(Token, Boolean)])
+
+case class Highlighted(prefix: String, current: String, suffix: String)
 
 trait MainCompat {
 
@@ -27,32 +30,106 @@ trait MainCompat {
     column: Int,
   ): String = {
     try {
-      val result = rawWithPos0(
+      rawWithPos1(
         src = src,
         dialect = dialect,
         scalafmtConfig = scalafmtConfig,
         line = line,
         column = column
-      )
-
-      result.cursorValues match {
-        case List((src, pos)) =>
-          val formatted =
-            s"${result.src.take(pos)}<span style='color: red;'>${src}</span>${result.src.drop(pos + src.length)}"
-          println(formatted)
-          formatted
-        case values =>
-          if (values.isEmpty) {
-            println(s"not found")
-          } else {
-            println(s"not multi values ${values}")
-          }
-          result.src
+      ) match {
+        case Right(x) =>
+          List(x.prefix, "<span style='color: blue;'>", x.current, "</span>", x.suffix).mkString("")
+        case Left(x) =>
+          x
       }
     } catch {
-      case e =>
+      case e: Throwable =>
         println(e)
         ""
+    }
+  }
+
+  def rawWithPos1(
+    src: String,
+    dialect: String,
+    scalafmtConfig: String,
+    line: Int,
+    column: Int,
+  ): Either[String, Highlighted] = {
+    val result = rawWithPos0(
+      src = src,
+      dialect = dialect,
+      scalafmtConfig = scalafmtConfig,
+      line = line,
+      column = column
+    )
+
+    val aaaa = result.tokenMap.map { case (t, isSpace) =>
+      if (isSpace) {
+        t
+      } else {
+        List.fill(t.end - t.start)("x").mkString
+      }
+    }.mkString
+
+    if (false) {
+      println(result.tokenMap.map(_._1).mkString)
+      println(aaaa)
+      println(aaaa.split(" ").filter(_.trim.nonEmpty).map(_.length).toList)
+      println(result.tokenMap.map(_._1).mkString.linesIterator.map(_.trim.length + 1).toList)
+    }
+
+    result.cursorValues match {
+      case List((s, pos)) =>
+        val newStartPos = {
+          @tailrec
+          def loop(n: Int, list: List[(Token, Boolean)], acc: Int): Int = {
+            list match {
+              case x :: xs =>
+                val tokenSize = x._1.end - x._1.start
+                if (n <= 0) {
+                  acc + tokenSize
+                } else {
+                  loop(if (x._2) n else n - tokenSize, xs, acc + tokenSize)
+                }
+              case _ =>
+                sys.error(s"error ${n} ${acc}")
+            }
+          }
+          loop(pos, result.tokenMap, 0)
+        }
+        println(("pos", pos, "new-pos", newStartPos))
+        val currentSizeWithSpace = {
+          @tailrec
+          def loop(n: Int, list: List[(Token, Boolean)], acc: Int): Int = {
+            list match {
+              case x :: xs =>
+                val tokenSize = x._1.end - x._1.start
+                if (n <= 0) {
+                  acc
+                } else {
+                  loop(if (x._2) n else n - tokenSize, xs, acc + tokenSize)
+                }
+              case _ =>
+                sys.error(s"error ${n} ${acc}")
+            }
+          }
+          loop(s.length, result.tokenMap.dropWhile(_._1.pos.end <= newStartPos), 0)
+        }
+        Right(
+          Highlighted(
+            result.src.take(newStartPos),
+            result.src.drop(newStartPos).take(currentSizeWithSpace),
+            result.src.drop(newStartPos + currentSizeWithSpace),
+          )
+        )
+      case values =>
+        if (values.isEmpty) {
+          println(s"not found")
+        } else {
+          println(s"not multi values ${values}")
+        }
+        Left(result.src)
     }
   }
 
@@ -87,7 +164,25 @@ trait MainCompat {
       source = tree.structure,
       scalafmtConfig = hoconToMetaConfig(scalafmtConfig)
     ).result
-    val parsed: Term = implicitly[Parse[Term]].apply(Input.String(res), scala.meta.dialects.Scala3).get
+    val tokens =
+      implicitly[Parse[Term]].apply(Input.String(res), scala.meta.dialects.Scala3).get.tokens.drop(1) // remove BOF
+    val tokenMap: List[(Token, Boolean)] = {
+      (tokens.head -> false) +: tokens.lazyZip(tokens.drop(1)).map { (t1, t2) =>
+        def isSpace(x: Token): Boolean = PartialFunction.cond(x) { case _: scala.meta.tokens.Token.Whitespace =>
+          true
+        }
+        assert(t1.end == t2.start)
+        if (isSpace(t1) && isSpace(t2)) {
+          if (false) {
+            println((t1.pos.startLine, t1.pos.startColumn, t1.productPrefix, t2.productPrefix))
+          }
+          t1 -> true
+        } else {
+          t1 -> false
+        }
+      }
+    }.toList
+    assert(tokenMap.size == tokens.size)
     val cursorPos = {
       if (src.isEmpty) {
         Position.Range(input, 0, 0)
@@ -134,20 +229,17 @@ trait MainCompat {
       Console.err.println(s"found multi tree ${t2.map(_.productPrefix).mkString(", ")}")
     }
 
-    val result = t2.flatMap { cursorTree =>
+    val result: List[(String, Int)] = t2.flatMap { cursorTree =>
       val current = cursorTree.structure
-      if (false) {
-        println("current = " + current)
-      }
       val currentSize = current.length
-      res.sliding(currentSize).zipWithIndex.filter(_._1 == current).map(_._2).map { pos =>
+      tree.structure.sliding(currentSize).zipWithIndex.filter(_._1 == current).map(_._2).map { pos =>
         if (false) {
           println(Seq("pos" -> pos, "size" -> currentSize))
         }
         (current, pos)
       }
     }
-    WithPosResult(res, result)
+    WithPosResult(res, result, tokenMap)
   }
 
   def runFormat(source: String, scalafmtConfig: Conf): Output[String] = {
