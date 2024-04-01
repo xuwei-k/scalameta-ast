@@ -123,7 +123,7 @@ trait MainCompat {
                 sys.error(s"error ${n} ${acc}")
             }
           }
-          loop(s.length, result.tokenMap.dropWhile(_._1.pos.end <= newStartPos), 0)
+          loop(s.length, result.tokenMap.dropWhile(_._1.pos.end < newStartPos), 0)
         }
         Right(
           Highlighted(
@@ -185,9 +185,9 @@ trait MainCompat {
           if (false) {
             println((t1.pos.startLine, t1.pos.startColumn, t1.productPrefix, t2.productPrefix))
           }
-          t1 -> true
+          t2 -> true
         } else {
-          t1 -> false
+          t2 -> false
         }
       }
     }.toList

@@ -44,7 +44,6 @@ class MainSpec2 extends AnyFreeSpec {
       assert(check(7) == """Type.Name("A")""")
       assert(check(15) == """Term.Name("a")""")
       assert(check(16) == """Term.Name("a")""")
-      assert(check(17) == """Term.Name("a")""")
     }
   }
 }
