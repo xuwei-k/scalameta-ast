@@ -98,7 +98,16 @@ trait MainCompat {
           }
           loop(pos, result.tokenMap, 0)
         }
-        println(("pos", pos, "new-pos", newStartPos))
+        println(
+          Seq(
+            ("pos", pos),
+            ("new-pos", newStartPos),
+            ("diff", newStartPos - pos),
+            ("space until pos", result.tokenMap.takeWhile(_._1.start < pos).count(_._2)),
+            ("spaces", result.tokenMap.count(_._2)),
+            ("all space", result.tokenMap.count(_._1.is[Token.Whitespace]))
+          ),
+        )
         val currentSizeWithSpace = {
           @tailrec
           def loop(n: Int, list: List[(Token, Boolean)], acc: Int): Int = {
