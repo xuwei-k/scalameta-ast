@@ -64,15 +64,15 @@ trait MainCompat {
       column = column
     )
 
-    val aaaa = result.tokenMap.map { case (t, isSpace) =>
-      if (isSpace) {
-        t
-      } else {
-        List.fill(t.end - t.start)("x").mkString
-      }
-    }.mkString
-
     if (false) {
+      val aaaa = result.tokenMap.map { case (t, isSpace) =>
+        if (isSpace) {
+          t
+        } else {
+          List.fill(t.end - t.start)("x").mkString
+        }
+      }.mkString
+
       println(result.tokenMap.map(_._1).mkString)
       println(aaaa)
       println(aaaa.split(" ").filter(_.trim.nonEmpty).map(_.length).toList)
@@ -88,7 +88,7 @@ trait MainCompat {
               case x :: xs =>
                 val tokenSize = x._1.end - x._1.start
                 if (n <= 0) {
-                  acc + tokenSize
+                  acc
                 } else {
                   loop(if (x._2) n else n - tokenSize, xs, acc + tokenSize)
                 }
@@ -100,6 +100,7 @@ trait MainCompat {
         }
         println(
           Seq(
+            ("current tree", s),
             ("pos", pos),
             ("new-pos", newStartPos),
             ("diff", newStartPos - pos),
@@ -152,14 +153,7 @@ trait MainCompat {
     import scala.meta._
     val convert = implicitly[Convert[String, Input]]
     val main = new ScalametaAST
-    val dialects = {
-      main.stringToDialects.getOrElse(
-        dialect, {
-          Console.err.println(s"invalid dialct ${dialect}")
-          main.dialectsDefault
-        }
-      )
-    }
+    val dialects = List(scala.meta.dialects.Scala3)
 
     val input = convert.apply(src)
     val tree: Tree = main.loopParse(
@@ -174,7 +168,7 @@ trait MainCompat {
       scalafmtConfig = hoconToMetaConfig(scalafmtConfig)
     ).result
     val tokens =
-      implicitly[Parse[Term]].apply(Input.String(res), scala.meta.dialects.Scala3).get.tokens.drop(1) // remove BOF
+      implicitly[Parse[Term]].apply(Input.String(res), scala.meta.dialects.Scala3).get.tokens
     val tokenMap: List[(Token, Boolean)] = {
       (tokens.head -> false) +: tokens.lazyZip(tokens.drop(1)).map { (t1, t2) =>
         def isSpace(x: Token): Boolean = PartialFunction.cond(x) { case _: scala.meta.tokens.Token.Whitespace =>
@@ -185,6 +179,8 @@ trait MainCompat {
           if (false) {
             println((t1.pos.startLine, t1.pos.startColumn, t1.productPrefix, t2.productPrefix))
           }
+          t2 -> true
+        } else if (t1.is[scala.meta.Token.LeftParen] && isSpace(t2)) {
           t2 -> true
         } else {
           t2 -> false
