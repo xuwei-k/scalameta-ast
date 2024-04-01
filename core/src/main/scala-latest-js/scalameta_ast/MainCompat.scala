@@ -180,7 +180,7 @@ trait MainCompat {
             println((t1.pos.startLine, t1.pos.startColumn, t1.productPrefix, t2.productPrefix))
           }
           t2 -> true
-        } else if (t1.is[scala.meta.Token.LeftParen] && isSpace(t2)) {
+        } else if (!t1.is[scala.meta.tokens.Token.Comma] && isSpace(t2)) {
           t2 -> true
         } else {
           t2 -> false

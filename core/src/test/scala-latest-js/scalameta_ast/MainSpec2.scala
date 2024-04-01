@@ -45,6 +45,15 @@ class MainSpec2 extends AnyFreeSpec {
       assert(check(15) == """Term.Name("a")""")
       assert(check(16) == """Term.Name("a")""")
       assert(check(17) == """Term.Name("x")""")
+      (20 to 21).foreach { pos =>
+        assert(check(pos) == """Type.Name("Y")""")
+      }
+      (24 to 25).foreach { pos =>
+        assert(check(pos) == """Type.Name("Z")""")
+      }
+      (31 to 32).foreach { pos =>
+        assert(check(pos) == """Term.Name("b")""")
+      }
     }
   }
 }
