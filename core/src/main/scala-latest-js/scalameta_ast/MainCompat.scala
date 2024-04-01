@@ -15,9 +15,13 @@ import scala.scalajs.js.JSON
 import scala.scalajs.js.annotation._
 import scala.util.control.NonFatal
 
-case class WithPosResult(src: String, cursorValues: List[(String, Int)], tokenMap: List[(Token, Boolean)])
+case class WithPosResult(src: String, cursorValues: List[(String, Int)], tokenMap: List[WrappedToken])
 
 case class Highlighted(prefix: String, current: String, suffix: String)
+
+case class WrappedToken(token: Token, addedSpaceByScalafmt: Boolean) {
+  lazy val tokenSize: Int = token.end - token.start
+}
 
 trait MainCompat {
 
@@ -67,14 +71,13 @@ trait MainCompat {
     result.cursorValues match {
       case List((s, pos)) =>
         @tailrec
-        def loop(n: Int, list: List[(Token, Boolean)], acc: Int): Int = {
+        def loop(n: Int, list: List[WrappedToken], acc: Int): Int = {
           list match {
             case x :: xs =>
-              val tokenSize = x._1.end - x._1.start
               if (n <= 0) {
                 acc
               } else {
-                loop(if (x._2) n else n - tokenSize, xs, acc + tokenSize)
+                loop(if (x.addedSpaceByScalafmt) n else n - x.tokenSize, xs, acc + x.tokenSize)
               }
             case _ =>
               sys.error(s"error ${n} ${acc}")
@@ -82,7 +85,7 @@ trait MainCompat {
         }
 
         val newStartPos = loop(pos, result.tokenMap, 0)
-        val currentSizeWithSpace = loop(s.length, result.tokenMap.dropWhile(_._1.pos.end < newStartPos), 0)
+        val currentSizeWithSpace = loop(s.length, result.tokenMap.dropWhile(_.token.end < newStartPos), 0)
 
         Right(
           Highlighted(
@@ -127,17 +130,19 @@ trait MainCompat {
     ).result
     val tokens =
       implicitly[Parse[Term]].apply(Input.String(res), scala.meta.dialects.Scala3).get.tokens
-    val tokenMap: List[(Token, Boolean)] = {
-      (tokens.head -> false) +: tokens.lazyZip(tokens.drop(1)).map { (t1, t2) =>
-        def isSpace(x: Token): Boolean = PartialFunction.cond(x) { case _: scala.meta.tokens.Token.Whitespace =>
-          true
-        }
-        assert(t1.end == t2.start)
-        if (!t1.is[scala.meta.tokens.Token.Comma] && isSpace(t2)) {
-          t2 -> true
-        } else {
-          t2 -> false
-        }
+    val tokenMap: List[WrappedToken] = {
+      val head = WrappedToken(
+        token = tokens.head,
+        addedSpaceByScalafmt = false,
+      )
+
+      head +: tokens.lazyZip(tokens.drop(1)).map { (t1, t2) =>
+        WrappedToken(
+          token = t2,
+          addedSpaceByScalafmt = {
+            !t1.is[scala.meta.tokens.Token.Comma] && t2.is[scala.meta.tokens.Token.Whitespace]
+          }
+        )
       }
     }.toList
     assert(tokenMap.size == tokens.size)
