@@ -14,6 +14,8 @@ import scala.scalajs.js.JSON
 import scala.scalajs.js.annotation._
 import scala.util.control.NonFatal
 
+case class WithPosResult(src: String, cursorValues: List[(String, Int)])
+
 trait MainCompat {
 
   @JSExport
@@ -24,7 +26,43 @@ trait MainCompat {
     line: Int,
     column: Int,
   ): String = {
-    // ): List[(String, Int)] = {
+    try {
+      val result = rawWithPos0(
+        src = src,
+        dialect = dialect,
+        scalafmtConfig = scalafmtConfig,
+        line = line,
+        column = column
+      )
+
+      result.cursorValues match {
+        case List((src, pos)) =>
+          val formatted =
+            s"${result.src.take(pos)}<span style='color: red;'>${src}</span>${result.src.drop(pos + src.length)}"
+          println(formatted)
+          formatted
+        case values =>
+          if (values.isEmpty) {
+            println(s"not found")
+          } else {
+            println(s"not multi values ${values}")
+          }
+          result.src
+      }
+    } catch {
+      case e =>
+        println(e)
+        ""
+    }
+  }
+
+  def rawWithPos0(
+    src: String,
+    dialect: String,
+    scalafmtConfig: String,
+    line: Int,
+    column: Int,
+  ): WithPosResult = {
     import scala.meta._
     val convert = implicitly[Convert[String, Input]]
     val main = new ScalametaAST
@@ -92,6 +130,10 @@ trait MainCompat {
       t1
     }
 
+    if (t2.sizeIs > 1) {
+      Console.err.println(s"found multi tree ${t2.map(_.productPrefix).mkString(", ")}")
+    }
+
     val result = t2.flatMap { cursorTree =>
       val current = cursorTree.structure
       if (false) {
@@ -105,15 +147,7 @@ trait MainCompat {
         (current, pos)
       }
     }
-    result match {
-      case List((src, pos)) =>
-        val formatted = s"${res.take(pos)}<span style='color: red;'>${src}</span>${res.drop(pos + src.length)}"
-        println(formatted)
-        formatted
-      case other =>
-        println(s"not single $other")
-        res
-    }
+    WithPosResult(res, result)
   }
 
   def runFormat(source: String, scalafmtConfig: Conf): Output[String] = {
