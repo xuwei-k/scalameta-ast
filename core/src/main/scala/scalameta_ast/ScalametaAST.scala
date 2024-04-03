@@ -4,7 +4,6 @@ import java.util.Date
 import scala.annotation.tailrec
 import scala.meta._
 import scala.meta.common.Convert
-import scala.meta.contrib.XtensionTreeOps
 import scala.meta.tokens.Token
 import scala.meta.parsers.Parse
 import scala.meta.parsers.Parsed
@@ -193,63 +192,6 @@ class ScalametaAST {
     loop(Nil, str, 0, values).mkString
   }
 
-  private def removeModsFields(tree: Tree, parsed: Term, str: String): String = {
-    if (
-      tree.collectFirst {
-        case _: Term.If => ()
-        case _: Term.Match => ()
-        case _: Defn.Type => ()
-        case _: Template => ()
-      }.nonEmpty
-    ) {
-      val positions = parsed.collect {
-        case x @ Term.Apply(
-              Term.Select(
-                Term.Name("Term"),
-                Term.Name("If")
-              ),
-              _ :: _ :: _ :: last :: Nil
-            ) =>
-          (x.tokens, last)
-        case x @ Term.Apply(
-              Term.Select(
-                Term.Name("Term"),
-                Term.Name("Match")
-              ),
-              _ :: _ :: last :: Nil
-            ) =>
-          (x.tokens, last)
-        case x @ Term.Apply(
-              Term.Select(
-                Term.Name("Defn"),
-                Term.Name("Type")
-              ),
-              _ :: _ :: _ :: _ :: last :: Nil
-            ) =>
-          (x.tokens, last)
-        case x @ Term.Apply(
-              Term.Name("Template"),
-              _ :: _ :: _ :: _ :: last :: Nil
-            ) =>
-          (x.tokens, last)
-      }.flatMap { case (tokens, toRemove) =>
-        val startOpt =
-          tokens.reverseIterator.filter(_.is[Token.Comma]).find(_.pos.start < toRemove.pos.start).map(_.start)
-        val endOpt =
-          tokens.reverseIterator.find(_.is[Token.RightParen]).map(_.pos.end - 1)
-        startOpt.zip(endOpt)
-      }
-
-      str.zipWithIndex.flatMap { case (char, pos) =>
-        Option.unless(positions.exists { case (start, end) => start <= pos && pos < end }) {
-          char
-        }
-      }.mkString
-    } else {
-      str
-    }
-  }
-
   def convert(
     src: String,
     outputType: String,
@@ -380,7 +322,7 @@ class ScalametaAST {
             addExtractor(parsed = parsed, str = str, identity) -> parsedOpt
           } else {
             if (a.removeNewFields) {
-              val str2 = removeModsFields(tree = tree, parsed = parsed, str = str)
+              val str2 = RemoveNewFields.remove(tree = tree, parsed = parsed, str = str)
               if (a.initialExtractor) {
                 val parsed2 = implicitly[Parse[Term]].apply(Input.String(str2), scala.meta.dialects.Scala3).get
                 val parsedOpt2 = PartialFunction.condOpt(args) { case x: ScalafixRule =>
