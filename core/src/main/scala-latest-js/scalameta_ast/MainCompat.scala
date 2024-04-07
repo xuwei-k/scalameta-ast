@@ -25,6 +25,15 @@ case class WrappedToken(token: Token, addedSpaceByScalafmt: Boolean) {
 
 trait MainCompat {
 
+  private def escape(html: String): String = {
+    html
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll("\"", "&quot;")
+      .replaceAll("'", "&#039;")
+  }
+
   @JSExport
   def rawWithPos(
     src: String,
@@ -32,24 +41,39 @@ trait MainCompat {
     scalafmtConfig: String,
     line: Int,
     column: Int,
-  ): String = {
+  ): js.Object = {
     try {
-      rawWithPos1(
-        src = src,
-        dialect = dialect,
-        scalafmtConfig = scalafmtConfig,
-        line = line,
-        column = column
-      ) match {
-        case Right(x) =>
-          List(x.prefix, "<span style='color: blue;'>", x.current, "</span>", x.suffix).mkString("")
-        case Left(x) =>
-          x
+      val output =
+        rawWithPos1(
+          src = src,
+          dialect = dialect,
+          scalafmtConfig = scalafmtConfig,
+          line = line,
+          column = column
+        ) match {
+          case Right(x) =>
+            List(
+              "<span>",
+              escape(x.prefix),
+              "</span><span style='color: blue;'>",
+              escape(x.current),
+              "</span><span>",
+              escape(x.suffix),
+              "</span>"
+            ).mkString("")
+          case Left(x) =>
+            x
+        }
+      new js.Object {
+        val ast: String = output
+        val astBuildMs: Double = 0.0 // TODO
       }
     } catch {
       case e: Throwable =>
-        println(e)
-        ""
+        new js.Object {
+          val error = e
+          val errorString: String = e.toString
+        }
     }
   }
 
