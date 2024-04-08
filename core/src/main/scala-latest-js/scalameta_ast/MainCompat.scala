@@ -35,6 +35,7 @@ trait MainCompat {
   }
 
   @JSExport
+  @nowarn("msg=never used")
   def rawWithPos(
     src: String,
     dialect: String,
