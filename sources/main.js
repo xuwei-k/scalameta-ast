@@ -599,6 +599,10 @@ const App = () => {
         <div
           id="input_scala"
           style=${inputScalaStyle}
+          onclick=${(e) => {
+            setInputScala(cm.current.getValue());
+            setCursor(cm.current.getCursor());
+          }}
           onkeyup=${(e) => {
             setInputScala(cm.current.getValue());
             setCursor(cm.current.getCursor());
