@@ -139,7 +139,13 @@ trait MainCompat {
     import scala.meta._
     val convert = implicitly[Convert[String, Input]]
     val main = new ScalametaAST
-    val dialects = List(scala.meta.dialects.Scala3)
+    val dialects =
+      main.stringToDialects.getOrElse(
+        dialect, {
+          Console.err.println(s"invalid dialct ${dialect}")
+          main.dialectsDefault
+        }
+      )
 
     val input = convert.apply(src)
     val tree: Tree = main.loopParse(
