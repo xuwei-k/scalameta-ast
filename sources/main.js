@@ -71,7 +71,7 @@ const defaultScalafmtConfig = `
   .filter((c) => c.length > 0)
   .join("\n");
 
-const initialSource = getFromStorageOr("source", "def a(b: C): D = e");
+const initialSource = getFromStorageOr("source", "def a = b");
 const initialScalafmt = getFromStorageOr("scalafmt", defaultScalafmtConfig);
 const initialPackage = getFromStorageOr("package", "fix");
 const initialRuleName = getFromStorageOr("rule_name", "");
@@ -171,7 +171,9 @@ const App = () => {
   let r;
 
   const enableCursor =
-    outputType === "raw" && enableRichEditor === true && scalameta === "latest";
+    outputType === "cursor" &&
+    enableRichEditor === true &&
+    scalameta === "latest";
 
   if (enableCursor) {
     r = main.rawWithPos(
@@ -406,6 +408,18 @@ const App = () => {
                     onChange=${() => setOutputType("raw")}
                   />
                   <span>Raw Scalameta</span>
+                </label>
+              </div>
+              <div>
+                <label>
+                  <input
+                    type="radio"
+                    name="output_type"
+                    value="cursor"
+                    checked=${outputType === "cursor"}
+                    onChange=${() => setOutputType("cursor")}
+                  />
+                  <span>Highlight cursor tree</span>
                 </label>
               </div>
               <div>
