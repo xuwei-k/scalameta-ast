@@ -5,7 +5,7 @@ val unusedWarnings = Seq(
   "-Ywarn-unused",
 )
 
-def Scala213 = "2.13.13"
+def Scala213 = "2.13.14"
 
 val metaScalafixCompat = MetaCross("-scalafix-compat", "-scalafix_compat")
 val metaLatest = MetaCross("-latest", "-latest")
