@@ -27,6 +27,7 @@ jobs:
         java-version: 17
         distribution: temurin
     - uses: coursier/cache-action@v6
+    - run: scutil --set HostName "$(scutil --get LocalHostName).local"
     - run: wget https://raw.githubusercontent.com/dwijnand/sbt-extras/cd57b2815147dafa2b0c661a54607c245de4de58/sbt
     - run: chmod +x ./sbt
     - run: ./sbt -v
