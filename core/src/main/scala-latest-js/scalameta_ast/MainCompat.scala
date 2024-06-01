@@ -29,9 +29,8 @@ trait MainCompat {
     ScalafmtConfig.decoder.read(None, conf).get
   }
 
-  @JSExport
   @nowarn("msg=never used")
-  def format(source: String, scalafmtConfJsonStr: String): js.Object =
+  def formatImpl(source: String, scalafmtConfJsonStr: String): js.Object =
     try {
       val res = runFormat(
         source = source,
