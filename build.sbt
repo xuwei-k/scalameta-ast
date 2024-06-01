@@ -1,11 +1,12 @@
 import org.scalajs.linker.interface.Report
 import org.scalajs.linker.interface.OutputPatterns
+import org.scalajs.linker.interface.CheckedBehavior.Unchecked
 
 val unusedWarnings = Seq(
   "-Ywarn-unused",
 )
 
-def Scala213 = "2.13.14"
+def Scala213 = "2.13.13"
 
 val metaScalafixCompat = MetaCross("-scalafix-compat", "-scalafix_compat")
 val metaLatest = MetaCross("-latest", "-latest")
@@ -93,10 +94,22 @@ lazy val testBuildInfo = {
 }
 
 lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
+  scalaJSUseMainModuleInitializer := true,
   scalaJSLinkerConfig ~= {
-    _.withESFeatures(_.withESVersion(org.scalajs.linker.interface.ESVersion.ES2018))
+    _.withExperimentalUseWebAssembly(true)
+      .withOptimizer(false)
+      .withModuleKind(ModuleKind.ESModule)
+      .withSemantics { sems =>
+        sems
+          .withAsInstanceOfs(Unchecked)
+          .withArrayIndexOutOfBounds(Unchecked)
+          .withArrayStores(Unchecked)
+          .withNegativeArraySizes(Unchecked)
+          .withNullPointers(Unchecked)
+          .withStringIndexOutOfBounds(Unchecked)
+          .withModuleInit(Unchecked)
+      }
   },
-  scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) },
   genBuildInfo := {
     val hash = sys.process.Process("git rev-parse HEAD").lineStream_!.head
     s"""{
