@@ -221,12 +221,12 @@ def cp(
 val copyFilesFull = taskKey[Unit]("")
 
 TaskKey[Unit]("copyFilesFast") := {
-  //cp(metaScalafixCompat, scalafixCompatOutJSDir, fastLinkJS, fastLinkJSOutput).value
+  // cp(metaScalafixCompat, scalafixCompatOutJSDir, fastLinkJS, fastLinkJSOutput).value
   cp(metaLatest, latestOutJSDir, fastLinkJS, fastLinkJSOutput).value
 }
 
 copyFilesFull := {
-  //cp(metaScalafixCompat, scalafixCompatOutJSDir, fullLinkJS, fullLinkJSOutput).value
+  // cp(metaScalafixCompat, scalafixCompatOutJSDir, fullLinkJS, fullLinkJSOutput).value
   cp(metaLatest, latestOutJSDir, fullLinkJS, fullLinkJSOutput).value
 }
 
