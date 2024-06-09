@@ -205,23 +205,28 @@ def cp(
     val v = (p / Compile / k).value
     val Seq(m) = v.data.publicModules.toSeq
     val src = (p / Compile / originalOutputDir).value
-    val f = src / m.jsFileName
-    val srcMap = src / m.sourceMapName.getOrElse(sys.error("source map not found"))
     IO.write(d.value / "build_info.json", (p / genBuildInfo).value)
-    IO.copyFile(f, d.value / m.jsFileName)
-    IO.copyFile(srcMap, d.value / srcMap.getName)
+    val dir = d.value
+    Seq(
+      "__loader.js",
+      "main.js",
+      "main.wasm",
+      "main.wasm.map"
+    ).foreach { f =>
+      IO.copyFile(src / f, dir / f)
+    }
   }
 }
 
 val copyFilesFull = taskKey[Unit]("")
 
 TaskKey[Unit]("copyFilesFast") := {
-  cp(metaScalafixCompat, scalafixCompatOutJSDir, fastLinkJS, fastLinkJSOutput).value
+  //cp(metaScalafixCompat, scalafixCompatOutJSDir, fastLinkJS, fastLinkJSOutput).value
   cp(metaLatest, latestOutJSDir, fastLinkJS, fastLinkJSOutput).value
 }
 
 copyFilesFull := {
-  cp(metaScalafixCompat, scalafixCompatOutJSDir, fullLinkJS, fullLinkJSOutput).value
+  //cp(metaScalafixCompat, scalafixCompatOutJSDir, fullLinkJS, fullLinkJSOutput).value
   cp(metaLatest, latestOutJSDir, fullLinkJS, fullLinkJSOutput).value
 }
 

@@ -1,17 +1,8 @@
 "use strict";
 
-import { ScalametaAstMainScalafixCompat } from "./scalafix-compat/main.js";
+//import { ScalametaAstMainScalafixCompat } from "./scalafix-compat/main.js";
 
 import { ScalametaAstMainLatest } from "./latest/main.js";
-
-[ScalametaAstMainLatest, ScalametaAstMainScalafixCompat].forEach((main) => {
-  try {
-    // force initialize for avoid error
-    main.initialize();
-  } catch (e) {
-    console.log(e);
-  }
-});
 
 import {
   html,
@@ -155,9 +146,7 @@ const App = () => {
   };
 
   const main =
-    scalameta == "latest"
-      ? ScalametaAstMainLatest
-      : ScalametaAstMainScalafixCompat;
+    scalameta == ScalametaAstMainLatest;
 
   const formatInput = () => {
     const res = ScalametaAstMainLatest.format(inputScala, scalafmtConfig);
