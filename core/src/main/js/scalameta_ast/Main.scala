@@ -5,8 +5,6 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation._
 
 object Main extends MainCompat {
-  def main(args: Array[String]): Unit = println("hello " + args.mkString(" "))
-
   @JSExportTopLevel("format")
   def format(source: String, scalafmtConfJsonStr: String): js.Object =
     formatImpl(source = source, scalafmtConfJsonStr = scalafmtConfJsonStr)

@@ -94,7 +94,6 @@ lazy val testBuildInfo = {
 }
 
 lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
-  scalaJSUseMainModuleInitializer := true,
   scalaJSLinkerConfig ~= {
     _.withExperimentalUseWebAssembly(true)
       .withOptimizer(false)
@@ -110,6 +109,7 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
           .withModuleInit(Unchecked)
       }
   },
+  scalaJSLinkerConfig ~= (_.withESFeatures(_.withESVersion(org.scalajs.linker.interface.ESVersion.ES2018))),
   genBuildInfo := {
     val hash = sys.process.Process("git rev-parse HEAD").lineStream_!.head
     s"""{
