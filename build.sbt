@@ -31,7 +31,7 @@ lazy val `scalameta-ast` = projectMatrix
     name := "scalameta-ast",
     commonSettings,
     libraryDependencies ++= Seq(
-      "org.scalatest" %%% "scalatest-freespec" % "3.2.18" % Test,
+      "org.scalatest" %%% "scalatest-freespec" % "3.2.19" % Test,
     ),
   )
   .jvmPlatform(
@@ -169,7 +169,7 @@ lazy val localServer = project.settings(
     "org.slf4j" % "slf4j-simple" % "2.0.13" % Runtime,
     "ws.unfiltered" %% "unfiltered-filter" % "0.12.0",
     "ws.unfiltered" %% "unfiltered-jetty" % "0.12.0",
-    "org.scalatest" %%% "scalatest-freespec" % "3.2.18" % Test,
+    "org.scalatest" %%% "scalatest-freespec" % "3.2.19" % Test,
     "com.microsoft.playwright" % "playwright" % "1.44.0" % Test,
   )
 )
