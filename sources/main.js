@@ -25,15 +25,44 @@ import hljs from "https://unpkg.com/@highlightjs/cdn-assets@11.9.0/es/highlight.
 import scala from "https://unpkg.com/@highlightjs/cdn-assets@11.9.0/es/languages/scala.min.js";
 hljs.registerLanguage("scala", scala);
 
+function fromBase64(base64) {
+  const binString = atob(base64);
+  const bytes = Uint8Array.from(binString, (m) => m.codePointAt(0));
+  return new TextDecoder().decode(bytes);
+}
+
+function toBase64(text) {
+  const bytes = new TextEncoder().encode(text);
+  const binString = Array.from(bytes, (byte) =>
+    String.fromCodePoint(byte),
+  ).join("");
+  return btoa(binString);
+}
+
 const getFromStorageOr = (key, defaultValue, fun) => {
-  const saved = localStorage.getItem(key);
-  if (saved === null) {
-    return defaultValue;
-  } else {
-    if (fun == null) {
-      return saved;
+  const p = new URLSearchParams(location.search);
+  const fromQuery = p.get(key);
+  if (fromQuery == null) {
+    const saved = localStorage.getItem(key);
+    if (saved === null) {
+      return defaultValue;
     } else {
-      return fun(saved);
+      if (fun == null) {
+        return saved;
+      } else {
+        return fun(saved);
+      }
+    }
+  } else {
+    try {
+      if (fun == null) {
+        return fromBase64(fromQuery);
+      } else {
+        return fun(fromBase64(fromQuery));
+      }
+    } catch (e) {
+      console.log(e);
+      return defaultValue;
     }
   }
 };
@@ -367,6 +396,23 @@ const App = () => {
                 onclick=${() => localStorage.clear()}
               >
                 clear local storage
+              </button>
+            </div>
+            <div class="col">
+              <button
+                class="btn btn-primary"
+                id="share"
+                onclick=${() =>
+                  navigator.clipboard.writeText(
+                    window.location.origin +
+                      window.location.pathname +
+                      "?" +
+                      [["source", inputScala]]
+                        .map(([k, v]) => k + "=" + toBase64(v))
+                        .join("&"),
+                  )}
+              >
+                share
               </button>
             </div>
           </div>
