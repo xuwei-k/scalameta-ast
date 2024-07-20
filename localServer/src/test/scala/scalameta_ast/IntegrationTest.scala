@@ -6,6 +6,8 @@ import com.microsoft.playwright.options.AriaRole
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.freespec.AnyFreeSpec
 import unfiltered.jetty.Server
+import java.nio.charset.StandardCharsets
+import java.util.Base64
 import scala.io.Source
 import scala.jdk.CollectionConverters._
 import scala.util.Using
@@ -626,5 +628,22 @@ abstract class IntegrationTest(
     formatOutput(page).uncheck()
     wildcardImport(page).check()
     assert(output(page).textContent() == fromResource("path-filter/syntactic.txt"))
+  }
+
+  "query" in withBrowser { page =>
+    val src = "val x: Y"
+    val base64 = Base64.getEncoder.encodeToString(src.getBytes(StandardCharsets.UTF_8))
+    page.navigate(s"http://127.0.0.1:${port()}?source=${base64}")
+    assert(inputElem(page).inputValue() == src)
+    assert(
+      output(page).textContent() == List(
+        """Decl.Val(""",
+        """  Nil,""",
+        """  List(Pat.Var(Term.Name("x"))),""",
+        """  Type.Name("Y")""",
+        """)""",
+        ""
+      ).mkString("\n")
+    )
   }
 }
