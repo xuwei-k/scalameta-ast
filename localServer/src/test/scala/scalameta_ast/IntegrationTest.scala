@@ -433,6 +433,7 @@ abstract class IntegrationTest(
       assert(
         diff == List(
           ("import scala.meta._", "import scala.meta.*"),
+          ("import scalafix.v1._", "import scalafix.v1.*"),
         )
       )
     }

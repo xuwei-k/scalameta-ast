@@ -387,12 +387,20 @@ class ScalametaAST {
     s"${pkg}${i}"
   }
 
-  private def patchCode(patch: Option[String], explanation: Boolean): PatchValue = {
+  private def patchCode(patch: Option[String], explanation: Boolean, wildcardImport: Boolean): PatchValue = {
     def lint(serverity: String): PatchValue = PatchValue(
-      imports = List(
-        "scalafix.lint.Diagnostic",
-        "scalafix.lint.LintSeverity",
-      ),
+      imports = {
+        if (wildcardImport) {
+          List(
+            "scalafix.lint.LintSeverity",
+          )
+        } else {
+          List(
+            "scalafix.lint.Diagnostic",
+            "scalafix.lint.LintSeverity",
+          )
+        }
+      },
       value = indent => {
         List(
           """Patch.lint(""",
@@ -443,7 +451,7 @@ class ScalametaAST {
     documentClass: String,
     ruleClass: String,
   ): String = {
-    val p = patchCode(patch, explanation)
+    val p = patchCode(patch = patch, explanation = explanation, wildcardImport = wildcardImport)
     val imports = List[List[String]](
       p.imports,
       if (wildcardImport) {
@@ -460,12 +468,18 @@ class ScalametaAST {
       } else {
         Nil
       },
-      List(
-        "scalafix.Patch",
-        s"scalafix.v1.${documentClass}",
-        s"scalafix.v1.${ruleClass}",
-        "scalafix.v1.XtensionSeqPatch",
-      )
+      if (wildcardImport) {
+        List(
+          "scalafix.v1._",
+        )
+      } else {
+        List(
+          "scalafix.Patch",
+          s"scalafix.v1.${documentClass}",
+          s"scalafix.v1.${ruleClass}",
+          "scalafix.v1.XtensionSeqPatch",
+        )
+      }
     ).flatten.map("import " + _).sorted
     val body =
       s"""|    doc.tree.collect {
