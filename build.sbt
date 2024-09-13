@@ -170,7 +170,7 @@ lazy val localServer = project.settings(
     "ws.unfiltered" %% "unfiltered-filter" % "0.12.0",
     "ws.unfiltered" %% "unfiltered-jetty" % "0.12.0",
     "org.scalatest" %%% "scalatest-freespec" % "3.2.19" % Test,
-    "com.microsoft.playwright" % "playwright" % "1.46.0" % Test,
+    "com.microsoft.playwright" % "playwright" % "1.47.0" % Test,
   )
 )
 
