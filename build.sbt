@@ -25,6 +25,12 @@ lazy val commonSettings = Def.settings(
 
 commonSettings
 
+lazy val commonLatest = Def.settings(
+  Compile / sources ++= {
+    (((Compile / sourceDirectory).value / "scala-latest") ** "*.scala").get
+  }
+)
+
 lazy val `scalameta-ast` = projectMatrix
   .in(file("core"))
   .settings(
@@ -39,6 +45,7 @@ lazy val `scalameta-ast` = projectMatrix
     settings = Def.settings(
       metaVersion := (LocalProject("scalameta-ast-latestJS") / metaVersion).value,
       testBuildInfo,
+      commonLatest,
       libraryDependencies += "org.scalameta" %%% "scalameta" % "4.10.1",
       libraryDependencies += "org.scalameta" %%% "scalafmt-core" % "3.8.3",
       libraryDependencies += "com.google.inject" % "guice" % "7.0.0" % Test,
@@ -68,6 +75,7 @@ lazy val `scalameta-ast` = projectMatrix
     axisValues = Seq(metaLatest),
     settings = Def.settings(
       jsProjectSettings,
+      commonLatest,
       libraryDependencies += "org.ekrich" %%% "sconfig" % "1.7.0",
       libraryDependencies += ("com.github.xuwei-k" %%% "scalafmt-core" % "3.8.3-fork-1").withSources(),
     )
