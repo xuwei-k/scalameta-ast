@@ -194,7 +194,7 @@ abstract class IntegrationTest(
       v match {
         case ScalametaV.V_0_10 =>
           "scalafix"
-        case ScalametaV.V_0_11 =>
+        case ScalametaV.V_0_13 =>
           "latest"
       }
     )
@@ -212,11 +212,10 @@ abstract class IntegrationTest(
       """  Type.ParamClause(Nil),""",
       """  Ctor.Primary""",
       """    .After_4_6_0(Nil, Name.Anonymous(), Nil),""",
-      """  Template.After_4_4_0(""",
+      """  Template.After_4_9_9(""",
+      """    None,""",
       """    Nil,""",
-      """    Nil,""",
-      """    Self(Name.Anonymous(), None),""",
-      """    Nil,""",
+      """    Template.Body(None, Nil),""",
       """    Nil""",
       """  )""",
       """)""",
@@ -378,7 +377,7 @@ abstract class IntegrationTest(
   "scalameta version" in withBrowser { page =>
     changeOutputType(page, "raw")
 
-    changeScalametaVersion(page, ScalametaV.V_0_11)
+    changeScalametaVersion(page, ScalametaV.V_0_13)
     assert(output(page).textContent().contains("Defn.Def.After_4_7_3("))
 
     changeScalametaVersion(page, ScalametaV.V_0_10)
@@ -493,7 +492,7 @@ abstract class IntegrationTest(
     initialExtractor(page).check()
     assert(outSingleLine() == """Term.If.Initial(Term.Name("a"), Lit.Int(2), Lit.Int(3))""")
 
-    changeScalametaVersion(page, ScalametaV.V_0_11)
+    changeScalametaVersion(page, ScalametaV.V_0_13)
     assert(!removeNewFields(page).isEnabled())
     assert(!initialExtractor(page).isEnabled())
   }
@@ -596,7 +595,7 @@ abstract class IntegrationTest(
   "invalid input" in withBrowser { page =>
     setInput(page, "def")
     assert(infoElem(page).getAttribute("class") == "alert alert-danger")
-    assert(infoElem(page).textContent() contains "error: identifier expected but end of file found")
+    assert(infoElem(page).textContent() contains "error: `identifier` expected but `end of file` found")
   }
 
   "copy button" in withBrowser { page =>
