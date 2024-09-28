@@ -27,7 +27,7 @@ object LocalServer {
         val f = new File("sources", if (p == "/") "index.html" else s".$p")
         if (f.isFile) {
           val path = f.toPath
-          val res = ResponseString(Files.readString(path, StandardCharsets.UTF_8))
+          lazy val res = ResponseString(Files.readString(path, StandardCharsets.UTF_8))
           p.split('.')
             .lastOption
             .collect {
@@ -39,6 +39,15 @@ object LocalServer {
                 JsonContent
             }
             .map(_ ~> res)
+            .orElse {
+              p.split('.').lastOption.collect { case "wasm" =>
+                unfiltered.response.ContentType("application/wasm") ~> new unfiltered.response.Responder[Any] {
+                  def respond(res: unfiltered.response.HttpResponse[Any]): Unit = {
+                    res.outputStream.write(Files.readAllBytes(path))
+                  }
+                }
+              }
+            }
             .getOrElse(res)
         } else if (p == "/favicon.ico") {
           Ok

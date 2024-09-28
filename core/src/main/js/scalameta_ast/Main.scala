@@ -4,8 +4,11 @@ import scala.annotation.nowarn
 import scala.scalajs.js
 import scala.scalajs.js.annotation._
 
-@JSExportTopLevel(ExportName.value)
 object Main extends MainCompat {
+  @JSExportTopLevel("format")
+  def format(source: String, scalafmtConfJsonStr: String): js.Object =
+    formatImpl(source = source, scalafmtConfJsonStr = scalafmtConfJsonStr)
+
   @JSExport
   def initialize(): js.Object = {
     convert(
@@ -24,7 +27,7 @@ object Main extends MainCompat {
     )
   }
 
-  @JSExport
+  @JSExportTopLevel("convert")
   @nowarn("msg=never used")
   def convert(
     source: String,
