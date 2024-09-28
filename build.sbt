@@ -1,5 +1,6 @@
 import org.scalajs.linker.interface.Report
 import org.scalajs.linker.interface.OutputPatterns
+import org.scalajs.jsenv.nodejs.NodeJSEnv
 
 val unusedWarnings = Seq(
   "-Ywarn-unused",
@@ -105,6 +106,16 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
   scalaJSLinkerConfig ~= {
     _.withESFeatures(_.withESVersion(org.scalajs.linker.interface.ESVersion.ES2018))
   },
+  scalaJSLinkerConfig ~= (_.withExperimentalUseWebAssembly(true)),
+  jsEnv := {
+    val config = NodeJSEnv.Config()
+      .withArgs(List(
+        "--experimental-wasm-exnref",
+        "--experimental-wasm-imported-strings",
+        "--turboshaft-wasm",
+      ))
+    new NodeJSEnv(config)
+  },
   scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) },
   genBuildInfo := {
     val hash = sys.process.Process("git rev-parse HEAD").lineStream_!.head
@@ -201,23 +212,26 @@ def cp(
     val v = (p / Compile / k).value
     val Seq(m) = v.data.publicModules.toSeq
     val src = (p / Compile / originalOutputDir).value
-    val f = src / m.jsFileName
-    val srcMap = src / m.sourceMapName.getOrElse(sys.error("source map not found"))
     IO.write(d.value / "build_info.json", (p / genBuildInfo).value)
-    IO.copyFile(f, d.value / m.jsFileName)
-    IO.copyFile(srcMap, d.value / srcMap.getName)
+    val dir = d.value
+    Seq(
+      "__loader.js",
+      "main.js",
+      "main.wasm",
+      "main.wasm.map"
+    ).foreach { f =>
+      IO.copyFile(src / f, dir / f)
+    }
   }
 }
 
 val copyFilesFull = taskKey[Unit]("")
 
 TaskKey[Unit]("copyFilesFast") := {
-  cp(metaScalafixCompat, scalafixCompatOutJSDir, fastLinkJS, fastLinkJSOutput).value
   cp(metaLatest, latestOutJSDir, fastLinkJS, fastLinkJSOutput).value
 }
 
 copyFilesFull := {
-  cp(metaScalafixCompat, scalafixCompatOutJSDir, fullLinkJS, fullLinkJSOutput).value
   cp(metaLatest, latestOutJSDir, fullLinkJS, fullLinkJSOutput).value
 }
 

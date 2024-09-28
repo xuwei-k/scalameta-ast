@@ -1,17 +1,6 @@
 "use strict";
 
-import { ScalametaAstMainScalafixCompat } from "./scalafix-compat/main.js";
-
-import { ScalametaAstMainLatest } from "./latest/main.js";
-
-[ScalametaAstMainLatest, ScalametaAstMainScalafixCompat].forEach((main) => {
-  try {
-    // force initialize for avoid error
-    main.initialize();
-  } catch (e) {
-    console.log(e);
-  }
-});
+import { format as formatFunction , convert } from "./latest/main.js";
 
 import {
   html,
@@ -183,20 +172,15 @@ const App = () => {
     }
   };
 
-  const main =
-    scalameta == "latest"
-      ? ScalametaAstMainLatest
-      : ScalametaAstMainScalafixCompat;
-
   const formatInput = () => {
-    const res = ScalametaAstMainLatest.format(inputScala, scalafmtConfig);
+    const res = formatFunction(inputScala, scalafmtConfig);
     if (res.error === null) {
       setInputScala(res.result);
       cm.current.setValue(res.result);
     }
   };
 
-  let r = main.convert(
+  let r = convert(
     inputScala,
     outputType,
     packageName,
@@ -213,7 +197,7 @@ const App = () => {
   if (r.ast == null || format === false) {
     r.formatMs = 0;
   } else {
-    const res = ScalametaAstMainLatest.format(r.ast, scalafmtConfig);
+    const res = formatFunction(r.ast, scalafmtConfig);
     if (res.error === null) {
       r = {
         ast: res.result,
@@ -288,10 +272,6 @@ const App = () => {
   }
 
   if (initialized === false) {
-    fetch("./scalafix-compat/build_info.json")
-      .then((res) => res.json())
-      .then((json) => setScalametaV1(json.scalametaVersion));
-
     fetch("./latest/build_info.json")
       .then((res) => res.json())
       .then((json) => {
