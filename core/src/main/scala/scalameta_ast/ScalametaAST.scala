@@ -161,8 +161,12 @@ class ScalametaAST {
           t.pos -> e
         }
       case t @ Term.Name(x1) =>
-        AfterExtractor.values.collect { case AfterExtractor.E1(`x1`, e) =>
-          t.pos -> e
+        if (Set("Template", "Pkg").apply(x1) && str.splitAt(t.pos.end)._2.startsWith(".Body")) {
+          Nil
+        } else {
+          AfterExtractor.values.collect { case AfterExtractor.E1(`x1`, e) =>
+            t.pos -> e
+          }
         }
     }.flatten.sortBy(_._1.start)
 

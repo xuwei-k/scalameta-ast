@@ -1,6 +1,11 @@
 package scalameta_ast
 
 import org.scalatest.freespec.AnyFreeSpec
+import scala.meta.inputs.Input
+import scala.meta.Defn
+import scala.meta.Pkg
+import scala.meta.Tree
+import scala.meta.dialects
 
 class ScalametaASTSpec2 extends AnyFreeSpec {
   private case class TestArg(initial: Boolean, remove: Boolean)
@@ -135,5 +140,29 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
       }
     }
 
+    "top level scalameta classes" in {
+      val src = TestCompat.scalametaTreeFile(1)
+      val parsed =
+        implicitly[scala.meta.parsers.Parse[scala.meta.Source]].apply(Input.String(src), dialects.Scala213Source3).get
+
+      def topLevel(t: Tree): Boolean =
+        t.parent.exists {
+          case _: Pkg =>
+            true
+          case _ =>
+            false
+        }
+
+      val values = parsed.collect {
+        case c: Defn.Class if topLevel(c) =>
+          c.name.value
+        case c: Defn.Trait if topLevel(c) =>
+          c.name.value
+        case c: Defn.Object if topLevel(c) =>
+          c.name.value
+      }.toSet -- Set("All", "Quasi")
+      val expect = main.topLevelScalametaDefinitions.map(_.getSimpleName).toSet
+      assert(values == expect)
+    }
   }
 }

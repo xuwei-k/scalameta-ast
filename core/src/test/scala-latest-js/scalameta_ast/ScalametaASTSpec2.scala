@@ -1,6 +1,11 @@
 package scalameta_ast
 
 import org.scalatest.freespec.AnyFreeSpec
+import scala.meta.inputs.Input
+import scala.meta.Defn
+import scala.meta.Pkg
+import scala.meta.Tree
+import scala.meta.dialects
 
 class ScalametaASTSpec2 extends AnyFreeSpec {
   "ScalametaAST" - {
@@ -27,7 +32,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
 
     "Term.Match" in {
       val expect =
-        """Term.Match.After_4_4_5(Term.Name("a"), List(Case(Pat.Var(Term.Name("b")), None, Term.Block(Nil))), List(Mod.Inline()))"""
+        """Term.Match.After_4_9_9(Term.Name("a"), Term.CasesBlock(List(Case(Pat.Var(Term.Name("b")), None, Term.Block(Nil)))), List(Mod.Inline()))"""
       val result = main.convert(
         src = """inline a match { case b => }""",
         outputType = "",
@@ -80,8 +85,34 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
       )
 
       val expect =
-        """Defn.Class.After_4_6_0(Nil, Type.Name("A"), Type.ParamClause(Nil), Ctor.Primary.After_4_6_0(Nil, Name.Anonymous(), Nil), Template.After_4_4_0(Nil, Nil, Self(Name.Anonymous(), None), Nil, List(Type.Name("B"))))"""
+        """Defn.Class.After_4_6_0(Nil, Type.Name("A"), Type.ParamClause(Nil), Ctor.Primary.After_4_6_0(Nil, Name.Anonymous(), Nil), Template.After_4_9_9(None, Nil, Template.Body(None, Nil), List(Type.Name("B"))))"""
+
       assert(result.result == expect)
+    }
+
+    "top level scalameta classes" in {
+      val src = TestCompat.scalametaTreeFile(0)
+      val parsed =
+        implicitly[scala.meta.parsers.Parse[scala.meta.Source]].apply(Input.String(src), dialects.Scala213Source3).get
+
+      def topLevel(t: Tree): Boolean =
+        t.parent.exists {
+          case _: Pkg.Body =>
+            true
+          case _ =>
+            false
+        }
+
+      val values = parsed.collect {
+        case c: Defn.Class if topLevel(c) =>
+          c.name.value
+        case c: Defn.Trait if topLevel(c) =>
+          c.name.value
+        case c: Defn.Object if topLevel(c) =>
+          c.name.value
+      }.toSet -- Set("All", "Quasi")
+      val expect = main.topLevelScalametaDefinitions.map(_.getSimpleName).toSet
+      assert(values == expect)
     }
   }
 }

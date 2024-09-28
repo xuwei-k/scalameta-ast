@@ -24,7 +24,9 @@ class AfterExtractorsSpec extends AnyFreeSpec {
       assert(v.size == 1, k)
     }
     val values = findAllClasses { info =>
-      info.getName.contains("After_") && info.getPackageName.contains("scala.meta")
+      info.getName.contains("After_") && info.getPackageName.contains("scala.meta") && !info.getName.contains(
+        "LowPriority"
+      )
     }
     val expect = values
       .map(c =>
