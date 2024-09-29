@@ -4,6 +4,9 @@ import scala.annotation.tailrec
 import scala.meta.Position
 import scala.meta.Term
 
+/**
+ * [[https://github.com/scalameta/scalameta/commit/f27fd027df1de8285b1cc83027adf0b255cdb7f6]]
+ */
 object AddDefaultParam {
 
   def addDefaultParam(parsed: Term, str: String): String = {
