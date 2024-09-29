@@ -11,6 +11,25 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
   "ScalametaAST" - {
     val main = new ScalametaAST
 
+    "Term.ParamClause and ArgClause" in {
+      val expect =
+        """Defn.Def.After_4_7_3(Nil, Term.Name("a"), List(Member.ParamClauseGroup(Type.ParamClause(Nil), List(Term.ParamClause(List(Term.Param(Nil, Term.Name("b"), Some(Type.Name("C")), None)), None)))), None, Term.Apply.After_4_6_0(Term.Name("d"), Term.ArgClause(List(Term.Name("e")), None)))"""
+      val result = main.convert(
+        src = "def a(b: C) = d(e)",
+        outputType = "",
+        packageName = None,
+        wildcardImport = false,
+        ruleNameOption = None,
+        dialect = None,
+        patch = None,
+        removeNewFields = false,
+        initialExtractor = false,
+        explanation = true,
+        pathFilter = false,
+      )
+      assert(result.result == expect)
+    }
+
     "Term.If" in {
       val expect =
         """Term.If.After_4_4_0(Term.Name("a"), Term.Name("b"), Term.If.After_4_4_0(Term.Name("x"), Term.Name("y"), Term.Select(Term.Name("z"), Term.Name("f")), Nil), Nil)"""

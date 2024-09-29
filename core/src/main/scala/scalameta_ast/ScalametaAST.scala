@@ -254,7 +254,12 @@ class ScalametaAST {
           }
 
           if (AfterExtractor.enable) {
-            addExtractor(parsed = parsed, str = str, identity) -> parsedOpt
+            val str2 = addExtractor(parsed = parsed, str = str, identity)
+            val parsed2 = implicitly[Parse[Term]].apply(Input.String(str2), scala.meta.dialects.Scala3).get
+            val parsedOpt2 = PartialFunction.condOpt(args) { case x: ScalafixRule =>
+              ParsedValue(() => parsed2, x)
+            }
+            AddDefaultParam.addDefaultParam(parsed = parsed2, str = str2) -> parsedOpt2
           } else {
             if (a.removeNewFields) {
               val str2 = RemoveNewFields.remove(tree = tree, parsed = parsed, str = str)
