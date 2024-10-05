@@ -16,7 +16,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
-        node-version: "18.15.0"
+        node-version: "22.9.0"
     - run: |
        npm install
        ./node_modules/.bin/prettier --write "./sources/main.js" "./sources/index.html"
