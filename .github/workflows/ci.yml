@@ -25,6 +25,7 @@ jobs:
       with:
         java-version: 17
         distribution: temurin
+    - uses: sbt/setup-sbt@v1
     - uses: coursier/cache-action@v6
     - run: sbt -v
            scalafmtSbtCheck
