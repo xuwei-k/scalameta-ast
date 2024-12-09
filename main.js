@@ -25,6 +25,9 @@ import hljs from "https://unpkg.com/@highlightjs/cdn-assets@11.9.0/es/highlight.
 import scala from "https://unpkg.com/@highlightjs/cdn-assets@11.9.0/es/languages/scala.min.js";
 hljs.registerLanguage("scala", scala);
 
+import scalafixCompatBuildInfo from "./scalafix-compat/build_info.js";
+import latestBuildInfo from "./latest/build_info.js";
+
 function fromBase64(base64) {
   const binString = atob(base64);
   const bytes = Uint8Array.from(binString, (m) => m.codePointAt(0));
@@ -123,15 +126,9 @@ const initialInitialExtractor = getBoolFromStorageOr(
   false,
 );
 
-let initialized = false;
-
 const inTest = window.navigator.userAgent === "playwright test";
 
 const App = () => {
-  const [scalametaV1, setScalametaV1] = useState("");
-  const [scalametaV2, setScalametaV2] = useState("");
-  const [githubUrl, setGithubUrl] = useState("");
-
   const [summary, setSummary] = useState("close header");
   const [inputScala, setInputScala] = useState(initialSource);
   const [scalafmtConfig, setScalafmtConfig] = useState(initialScalafmt);
@@ -287,21 +284,7 @@ const App = () => {
     });
   }
 
-  if (initialized === false) {
-    fetch("./scalafix-compat/build_info.json")
-      .then((res) => res.json())
-      .then((json) => setScalametaV1(json.scalametaVersion));
-
-    fetch("./latest/build_info.json")
-      .then((res) => res.json())
-      .then((json) => {
-        initialized = true;
-        setScalametaV2(json.scalametaVersion);
-        setGithubUrl(
-          `https://github.com/xuwei-k/scalameta-ast/tree/${json.gitHash}`,
-        );
-      });
-  }
+  const githubUrl = `https://github.com/xuwei-k/scalameta-ast/tree/${latestBuildInfo.gitHash}`;
 
   const disableScalafixRuleTemplateInput = [
     "raw",
@@ -515,10 +498,12 @@ const App = () => {
                 onChange=${(e) => setScalameta(e.target.value)}
               >
                 <option value="scalafix">
-                  scalafix 0.10.x compatible ${scalametaV1}
+                  ${"scalafix 0.10.x compatible " +
+                  scalafixCompatBuildInfo.scalametaVersion}
                 </option>
                 <option value="latest">
-                  scalafix 0.13.x compatible ${scalametaV2}
+                  ${"scalafix 0.13.x compatible " +
+                  latestBuildInfo.scalametaVersion}
                 </option>
               </select>
             </div>
