@@ -13,6 +13,109 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
   "ScalametaAST" - {
     val main = new ScalametaAST
 
+    "convert" in {
+      val result = main.convert(
+        src = "val x = ((), null)",
+        outputType = "syntactic",
+        packageName = Option("package_name"),
+        wildcardImport = false,
+        ruleNameOption = None,
+        dialect = None,
+        patch = None,
+        removeNewFields = true,
+        initialExtractor = false,
+        explanation = true,
+        pathFilter = false,
+      )
+      val expect =
+        s"""package package_name
+           |
+           |import scala.meta.Defn
+           |import scala.meta.Lit
+           |import scala.meta.Pat
+           |import scala.meta.Term
+           |import scala.meta.transversers._
+           |import scalafix.Patch
+           |import scalafix.lint.Diagnostic
+           |import scalafix.lint.LintSeverity
+           |import scalafix.v1.SyntacticDocument
+           |import scalafix.v1.SyntacticRule
+           |import scalafix.v1.XtensionSeqPatch
+           |
+           |class Example extends SyntacticRule("Example") {
+           |  override def fix(implicit doc: SyntacticDocument): Patch = {
+           |    doc.tree.collect {
+           |      case t @ Defn.Val(Nil, List(Pat.Var(Term.Name("x"))), None, Term.Tuple(List(Lit.Unit(), Lit.Null()))) =>
+           |        Patch.lint(
+           |          Diagnostic(
+           |            id = "",
+           |            message = "",
+           |            position = t.pos,
+           |            explanation = "",
+           |            severity = LintSeverity.Warning
+           |          )
+           |        )
+           |    }.asPatch
+           |  }
+           |}
+           |""".stripMargin
+      assert(result.result == expect)
+    }
+
+    "import" in {
+      val result = main.convert(
+        src = (
+          "Case",
+          "Ctor",
+          "Decl",
+          "Defn",
+          "Defn",
+          "Export",
+          "Import",
+          "Importee",
+          "Init",
+          "Member",
+          "Mod",
+          "Pkg",
+          "Ref",
+          "Self",
+          "Stat",
+          "Template",
+          "Type"
+        ).toString,
+        outputType = "syntactic",
+        packageName = Option("package_name"),
+        wildcardImport = false,
+        ruleNameOption = None,
+        dialect = None,
+        patch = Some("empty"),
+        removeNewFields = true,
+        initialExtractor = false,
+        explanation = true,
+        pathFilter = false,
+      )
+      val expect =
+        s"""package package_name
+           |
+           |import scala.meta.Term
+           |import scala.meta.transversers._
+           |import scalafix.Patch
+           |import scalafix.v1.SyntacticDocument
+           |import scalafix.v1.SyntacticRule
+           |import scalafix.v1.XtensionSeqPatch
+           |
+           |class Example extends SyntacticRule("Example") {
+           |  override def fix(implicit doc: SyntacticDocument): Patch = {
+           |    doc.tree.collect {
+           |      case t @ Term.Tuple(List(Term.Name("Case"), Term.Name("Ctor"), Term.Name("Decl"), Term.Name("Defn"), Term.Name("Defn"), Term.Name("Export"), Term.Name("Import"), Term.Name("Importee"), Term.Name("Init"), Term.Name("Member"), Term.Name("Mod"), Term.Name("Pkg"), Term.Name("Ref"), Term.Name("Self"), Term.Name("Stat"), Term.Name("Template"), Term.Name("Type"))) =>
+           |        Patch.empty
+           |    }.asPatch
+           |  }
+           |}
+           |""".stripMargin
+      assert(result.result == expect)
+    }
+
     "Term.If" in {
       Seq[(String, List[TestArg])](
         """Term.If.Initial(Term.Name("a"), Term.Name("b"), Term.If.Initial(Term.Name("x"), Term.Name("y"), Term.Select(Term.Name("z"), Term.Name("f"))))"""
