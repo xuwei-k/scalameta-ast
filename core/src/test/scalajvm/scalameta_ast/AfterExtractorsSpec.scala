@@ -35,12 +35,19 @@ class AfterExtractorsSpec extends AnyFreeSpec {
       )
       .groupBy(_._1)
       .values
-      .map(
-        _.sortBy(_._1).last
-      )
+      .map { x =>
+        x.maxBy {
+          case (_, s"After_${AsInt(v1)}_${AsInt(v2)}_${AsInt(v3)}") =>
+            (v1, v2, v3)
+          case (_, z) =>
+            fail(s"unexpected value ${z}")
+        }
+      }
       .toList
       .sorted
     val actual = AfterExtractor.values.map(x => (x.tree.toString, x.extractor))
     assert(actual == expect)
   }
+
+  private val AsInt: PartialFunction[String, Int] = Function.unlift((_: String).toIntOption)
 }
