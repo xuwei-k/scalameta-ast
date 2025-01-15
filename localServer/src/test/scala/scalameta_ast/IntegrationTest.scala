@@ -210,16 +210,22 @@ abstract class IntegrationTest(
       """  Nil,""",
       """  Type.Name("A"),""",
       """  Type.ParamClause(Nil),""",
-      """  Ctor.Primary""",
-      """    .After_4_6_0(Nil, Name.Anonymous(), Nil),""",
+      """  Ctor.Primary.After_4_6_0(""",
+      """    Nil,""",
+      """    Name.Anonymous(),""",
+      """    Nil""",
+      """  ),""",
       """  Template.After_4_9_9(""",
       """    None,""",
       """    Nil,""",
-      """    Template.Body(None, Nil),""",
+      """    Template.Body(""",
+      """      None,""",
+      """      Nil""",
+      """    ),""",
       """    Nil""",
       """  )""",
       """)""",
-      "",
+      """""",
     ).mkString("\n")
     assert(output(page).textContent() == expect)
   }
@@ -341,7 +347,13 @@ abstract class IntegrationTest(
   "dialect" in withBrowser { page =>
     setInput(page, "enum A")
     changeOutputType(page, "raw")
-    assert(output(page).textContent() contains """Term.Select(Term.Name("enum"), Term.Name("A"))""")
+    assert(
+      output(page).textContent() contains
+        """Term.SelectPostfix(
+          |  Term.Name("enum"),
+          |  Term.Name("A")
+          |)""".stripMargin
+    )
     page.selectOption("select#dialect", "Scala3")
     assert(selectedDialect(page) == "Scala3")
     assert(output(page).textContent() contains "Defn.Enum")
@@ -635,11 +647,14 @@ abstract class IntegrationTest(
     val base64 = Base64.getEncoder.encodeToString(src.getBytes(StandardCharsets.UTF_8))
     page.navigate(s"http://127.0.0.1:${port()}?source=${base64}")
     assert(inputElem(page).inputValue() == src)
+    println(output(page).textContent())
     assert(
       output(page).textContent() == List(
         """Decl.Val(""",
         """  Nil,""",
-        """  List(Pat.Var(Term.Name("x"))),""",
+        """  List(""",
+        """    Pat.Var(Term.Name("x"))""",
+        """  ),""",
         """  Type.Name("Y")""",
         """)""",
         ""

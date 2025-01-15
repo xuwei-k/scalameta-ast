@@ -51,6 +51,7 @@ object AfterExtractor extends AfterExtractorEnable {
     E2("Term", "PolyFunction", "After_4_6_0"),
     E2("Term", "Try", "After_4_9_9"),
     E2("Type", "Apply", "After_4_6_0"),
+    E2("Type", "Bounds", "After_4_12_3"),
     E2("Type", "ContextFunction", "After_4_6_0"),
     E2("Type", "Existential", "After_4_9_9"),
     E2("Type", "Function", "After_4_6_0"),

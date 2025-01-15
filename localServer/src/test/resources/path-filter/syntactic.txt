@@ -11,7 +11,13 @@ class Example extends SyntacticRule("Example") {
         Patch.empty
       case _ =>
         doc.tree.collect {
-          case t @ Defn.Def.After_4_7_3(Nil, Term.Name("a"), Nil, None, Term.Name("b")) =>
+          case t @ Defn.Def.After_4_7_3(
+      Nil,
+      Term.Name("a"),
+      Nil,
+      None,
+      Term.Name("b")
+    ) =>
             Patch.lint(
               Diagnostic(
                 id = "",

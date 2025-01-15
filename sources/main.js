@@ -236,7 +236,7 @@ const App = () => {
     result = hljs.highlight(r.ast, {
       language: "scala",
     }).value;
-    const scalafixVersion = scalameta == "latest" ? "0.13.0" : "0.10.4";
+    const scalafixVersion = scalameta == "latest" ? "0.14.0" : "0.10.4";
     const scalafixUrl = (s) =>
       `https://github.com/scalacenter/scalafix/blob/v${scalafixVersion}/scalafix-core/src/main/scala/scalafix/${s}.scala`;
 
@@ -502,7 +502,7 @@ const App = () => {
                   scalafixCompatBuildInfo.scalametaVersion}
                 </option>
                 <option value="latest">
-                  ${"scalafix 0.13.x compatible " +
+                  ${"scalafix 0.14.x compatible " +
                   latestBuildInfo.scalametaVersion}
                 </option>
               </select>
