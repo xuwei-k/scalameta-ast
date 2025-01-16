@@ -47,7 +47,7 @@ lazy val `scalameta-ast` = projectMatrix
       testBuildInfo,
       commonLatest,
       libraryDependencies += "org.scalameta" %%% "scalameta" % "4.12.4.1",
-      libraryDependencies += "org.scalameta" %%% "scalafmt-core" % "3.8.4",
+      libraryDependencies += "org.scalameta" %%% "scalafmt-core" % "3.8.5",
       libraryDependencies += "com.google.inject" % "guice" % "7.0.0" % Test,
       Test / resourceGenerators += Def.task {
         val v1 = (LocalProject("scalameta-ast-latestJS") / metaTreesSource).value
