@@ -19,7 +19,7 @@ object AddDefaultParam {
             )
           ) =>
         a.pos
-    }
+    }.sortBy(_.end)
 
     @tailrec
     def loop(acc: List[String], code: String, consumed: Int, src: List[Position]): List[String] = {
