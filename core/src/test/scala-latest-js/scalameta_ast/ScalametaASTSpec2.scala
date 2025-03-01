@@ -188,6 +188,40 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
       assert(result.result == expect)
     }
 
+    "Term.ParamClause and ArgClause 2" in {
+      val expect =
+        """Term.Apply.After_4_6_0(
+          |  Term.Name("a"),
+          |  Term.ArgClause(List(
+          |    Term.Function.After_4_6_0(
+          |      Term.ParamClause(List(
+          |        Term.Param(
+          |          Nil,
+          |          Term.Name("b"),
+          |          None,
+          |          None
+          |        )
+          |      ), None),
+          |      Term.Name("c")
+          |    )
+          |  ), None)
+          |)""".stripMargin
+      val result = main.convert(
+        src = "a(b => c)",
+        outputType = "",
+        packageName = None,
+        wildcardImport = false,
+        ruleNameOption = None,
+        dialect = None,
+        patch = None,
+        removeNewFields = false,
+        initialExtractor = false,
+        explanation = true,
+        pathFilter = false,
+      )
+      assert(result.result == expect)
+    }
+
     "Term.If" in {
       val expect =
         """Term.If.After_4_4_0(
