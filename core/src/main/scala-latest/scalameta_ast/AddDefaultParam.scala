@@ -1,7 +1,6 @@
 package scalameta_ast
 
 import scala.annotation.tailrec
-import scala.meta.Position
 import scala.meta.Term
 
 /**
@@ -10,7 +9,7 @@ import scala.meta.Term
 object AddDefaultParam {
 
   def addDefaultParam(parsed: Term, str: String): String = {
-    val values = parsed.collect {
+    val positions = parsed.collect {
       case Term.Apply.After_4_6_0(
             Term.Select(Term.Name("Term"), Term.Name("ParamClause" | "ArgClause")),
             Term.ArgClause(
@@ -18,14 +17,14 @@ object AddDefaultParam {
               _
             )
           ) =>
-        a.pos
-    }.sortBy(_.end)
+        a.pos.end
+    }.sorted
 
     @tailrec
-    def loop(acc: List[String], code: String, consumed: Int, src: List[Position]): List[String] = {
-      src match {
+    def loop(acc: List[String], code: String, consumed: Int, positions: List[Int]): List[String] = {
+      positions match {
         case head :: tail =>
-          val (x1, x2) = code.splitAt(head.end - consumed)
+          val (x1, x2) = code.splitAt(head - consumed)
           loop(
             s", None" :: x1 :: acc,
             x2,
@@ -36,7 +35,7 @@ object AddDefaultParam {
           (code :: acc).reverse
       }
     }
-    loop(Nil, str, 0, values).mkString
+    loop(Nil, str, 0, positions).mkString
   }
 
 }
