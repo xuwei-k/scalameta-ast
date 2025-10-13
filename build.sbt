@@ -119,7 +119,7 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
       (x / scalaSource).value / ".." / "js"
     }
   },
-  libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.4.0",
+  libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.5.0",
   metaTreesSource := {
     val v = metaVersion.value
     val s = scalaBinaryVersion.value
