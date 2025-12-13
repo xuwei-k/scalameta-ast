@@ -337,39 +337,60 @@ class ScalametaAST {
   }
 
   private def patchCode(patch: Option[String], explanation: Boolean, wildcardImport: Boolean): PatchValue = {
-    def lint(serverity: String): PatchValue = PatchValue(
+    def lint(serverity: Option[String]): PatchValue = PatchValue(
       imports = {
-        if (wildcardImport) {
-          List(
-            "scalafix.lint.LintSeverity",
-          )
+        if (serverity.isDefined) {
+          if (wildcardImport) {
+            List(
+              "scalafix.lint.LintSeverity",
+            )
+          } else {
+            List(
+              "scalafix.lint.Diagnostic",
+              "scalafix.lint.LintSeverity",
+            )
+          }
         } else {
-          List(
-            "scalafix.lint.Diagnostic",
-            "scalafix.lint.LintSeverity",
-          )
+          Nil
         }
       },
       value = indent => {
-        List(
-          """Patch.lint(""",
-          """  Diagnostic(""",
-          """    id = "",""",
-          """    message = "",""",
-          """    position = t.pos,""",
-          if (explanation) """    explanation = "",""" else "",
-          s"""    severity = LintSeverity.${serverity}""",
-          """  )""",
-          """)"""
-        ).filter(_.nonEmpty).map(x => s"${" " * indent}$x").mkString("\n")
+        val src = serverity match {
+          case Some(s) =>
+            List(
+              """Patch.lint(""",
+              """  Diagnostic(""",
+              """    id = "",""",
+              """    message = "",""",
+              """    position = t.pos,""",
+              if (explanation) """    explanation = "",""" else "",
+              s"""    severity = LintSeverity.${s}""",
+              """  )""",
+              """)"""
+            )
+          case None =>
+            List(
+              """Patch.lint(""",
+              """  Diagnostic(""",
+              """    id = "",""",
+              """    message = "",""",
+              """    position = t.pos,""",
+              if (explanation) """    explanation = "",""" else "",
+              """  )""",
+              """)"""
+            )
+        }
+        src.filter(_.nonEmpty).map(x => s"${" " * indent}$x").mkString("\n")
       }
     )
 
     patch.collect {
+      case "lint" =>
+        lint(None)
       case "error" =>
-        lint("Error")
+        lint(Some("Error"))
       case "info" =>
-        lint("Info")
+        lint(Some("Info"))
       case "left" =>
         PatchValue(imports = Nil, indent => s"""${" " * indent}Patch.addLeft(t, "")""")
       case "right" =>
@@ -383,7 +404,7 @@ class ScalametaAST {
       case "around" =>
         PatchValue(imports = Nil, indent => s"""${" " * indent}Patch.addAround(t, "", "")""")
     }.getOrElse {
-      lint("Warning")
+      lint(Some("Warning"))
     }
   }
 
