@@ -571,6 +571,7 @@ const App = () => {
                 disabled=${disableScalafixRuleTemplateInput}
                 onChange=${(e) => setPatch(e.target.value)}
               >
+                <option value="lint">lint default</option>
                 <option value="warn">lint warn</option>
                 <option value="error">lint error</option>
                 <option value="info">lint info</option>
