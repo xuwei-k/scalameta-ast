@@ -1,4 +1,4 @@
 export default {
-  "gitHash" : "fec08a6a035fa2b3452777bbca7d3bfdc4152fcc",
+  "gitHash" : "162bd5fc8c2b6114916730644a8b322b5d8f22c6",
   "scalametaVersion" : "4.13.10"
 }
