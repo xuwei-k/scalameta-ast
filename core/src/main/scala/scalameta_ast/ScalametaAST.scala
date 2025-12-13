@@ -351,7 +351,13 @@ class ScalametaAST {
             )
           }
         } else {
-          Nil
+          if (wildcardImport) {
+            Nil
+          } else {
+            List(
+              "scalafix.lint.Diagnostic",
+            )
+          }
         }
       },
       value = indent => {
