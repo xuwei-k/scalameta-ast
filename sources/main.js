@@ -236,7 +236,7 @@ const App = () => {
     result = hljs.highlight(r.ast, {
       language: "scala",
     }).value;
-    const scalafixVersion = scalameta == "latest" ? "0.14.4" : "0.10.4";
+    const scalafixVersion = scalameta == "latest" ? "0.14.5" : "0.10.4";
     const scalafixUrl = (s) =>
       `https://github.com/scalacenter/scalafix/blob/v${scalafixVersion}/scalafix-core/src/main/scala/scalafix/${s}.scala`;
 
