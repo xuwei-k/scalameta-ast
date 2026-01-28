@@ -23,11 +23,11 @@ lazy val commonSettings = Def.settings(
   Seq(Compile, Test).flatMap(c => c / console / scalacOptions --= unusedWarnings),
 )
 
-commonSettings
+//commonSettings
 
 lazy val commonLatest = Def.settings(
   Compile / sources ++= {
-    (((Compile / sourceDirectory).value / "scala-latest") ** "*.scala").get
+    (((Compile / sourceDirectory).value / "scala-latest") ** "*.scala").get()
   }
 )
 
@@ -37,7 +37,7 @@ lazy val `scalameta-ast` = projectMatrix
     name := "scalameta-ast",
     commonSettings,
     libraryDependencies ++= Seq(
-      "org.scalatest" %%% "scalatest-freespec" % "3.2.19" % Test,
+      "org.scalatest" %% "scalatest-freespec" % "3.2.19" % Test,
     ),
   )
   .jvmPlatform(
@@ -46,8 +46,8 @@ lazy val `scalameta-ast` = projectMatrix
       metaVersion := (LocalProject("scalameta-ast-latestJS") / metaVersion).value,
       testBuildInfo,
       commonLatest,
-      libraryDependencies += "org.scalameta" %%% "scalameta" % "4.14.2",
-      libraryDependencies += "org.scalameta" %%% "scalafmt-core" % "3.9.6",
+      libraryDependencies += "org.scalameta" %% "scalameta" % "4.14.2",
+      libraryDependencies += "org.scalameta" %% "scalafmt-core" % "3.9.6",
       libraryDependencies += "com.google.inject" % "guice" % "7.0.0" % Test,
       Test / resourceGenerators += Def.task {
         val v1 = (LocalProject("scalameta-ast-latestJS") / metaTreesSource).value
@@ -66,7 +66,7 @@ lazy val `scalameta-ast` = projectMatrix
     settings = Def.settings(
       jsProjectSettings,
       libraryDependencies += {
-        ("org.scalameta" %%% "scalameta" % "4.6.0").withSources() // scala-steward:off
+        ("org.scalameta" %% "scalameta" % "4.6.0").withSources() // scala-steward:off
       }
     )
   )
@@ -76,12 +76,14 @@ lazy val `scalameta-ast` = projectMatrix
     settings = Def.settings(
       jsProjectSettings,
       commonLatest,
-      libraryDependencies += "org.ekrich" %%% "sconfig" % "1.12.4",
-      libraryDependencies += ("com.github.xuwei-k" %%% "scalafmt-core" % "3.10.2-fork-1").withSources(),
+      libraryDependencies += "org.ekrich" %% "sconfig" % "1.12.4",
+      libraryDependencies += ("com.github.xuwei-k" %% "scalafmt-core" % "3.10.2-fork-1").withSources(),
     )
   )
 
+@transient
 lazy val metaVersion = taskKey[String]("")
+@transient
 lazy val metaTreesSource = taskKey[String]("")
 
 lazy val testBuildInfo = {
@@ -97,7 +99,7 @@ lazy val testBuildInfo = {
           |}
           |""".stripMargin
     )
-    f :: Nil
+    Seq(f)
   }
 }
 
@@ -119,7 +121,7 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
       (x / scalaSource).value / ".." / "js"
     }
   },
-  libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.5.0",
+  libraryDependencies += "org.ekrich" %% "sjavatime" % "1.5.0",
   metaTreesSource := {
     val v = metaVersion.value
     val s = scalaBinaryVersion.value
@@ -136,7 +138,7 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
     val x1 = s"https/repo1.maven.org/maven2/org/scalameta/parsers_sjs1_${s}/"
     val x2 = s"/parsers_sjs1_${s}-"
     val Seq(jarPath) = (Compile / externalDependencyClasspath).value
-      .map(_.data.getAbsolutePath)
+      .map(x => fileConverter.value.toPath(x.data).toFile.getAbsolutePath)
       .filter(path => path.contains(x1) && path.contains(x2))
     jarPath.split(x1).last.split(x2).head
   },
@@ -153,6 +155,7 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
   },
 )
 
+@transient
 val genBuildInfo = taskKey[String]("")
 
 lazy val localServer = project.settings(
@@ -160,7 +163,7 @@ lazy val localServer = project.settings(
   run / fork := true,
   run / baseDirectory := (LocalRootProject / baseDirectory).value,
   Test / testOptions += Tests.Argument("-oDF"),
-  Test / test := (Test / test).dependsOn(LocalRootProject / copyFilesFull).value,
+  Test / testFull := Def.uncached((Test / testFull).dependsOn(LocalRootProject / copyFilesFull).value),
   Test / testOptions ++= {
     if (scala.util.Properties.isMac) {
       Nil
@@ -178,7 +181,7 @@ lazy val localServer = project.settings(
     "org.slf4j" % "slf4j-simple" % "2.0.17" % Runtime,
     "ws.unfiltered" %% "unfiltered-filter" % "0.12.1",
     "ws.unfiltered" %% "unfiltered-jetty" % "0.12.1",
-    "org.scalatest" %%% "scalatest-freespec" % "3.2.19" % Test,
+    "org.scalatest" %% "scalatest-freespec" % "3.2.19" % Test,
     "com.microsoft.playwright" % "playwright" % "1.57.0" % Test,
   )
 )
@@ -209,6 +212,7 @@ def cp(
   }
 }
 
+@transient
 val copyFilesFull = taskKey[Unit]("")
 
 TaskKey[Unit]("copyFilesFast") := {
