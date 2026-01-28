@@ -27,7 +27,7 @@ commonSettings
 
 lazy val commonLatest = Def.settings(
   Compile / sources ++= {
-    (((Compile / sourceDirectory).value / "scala-latest") ** "*.scala").get
+    (((Compile / sourceDirectory).value / "scala-latest") ** "*.scala").get()
   }
 )
 
