@@ -23,8 +23,6 @@ lazy val commonSettings = Def.settings(
   Seq(Compile, Test).flatMap(c => c / console / scalacOptions --= unusedWarnings),
 )
 
-commonSettings
-
 lazy val commonLatest = Def.settings(
   Compile / sources ++= {
     (((Compile / sourceDirectory).value / "scala-latest") ** "*.scala").get()
@@ -187,9 +185,6 @@ val srcDir = (LocalRootProject / baseDirectory).apply(_ / "sources")
 val scalafixCompatOutJSDir = srcDir(_ / "scalafix-compat")
 val latestOutJSDir = srcDir(_ / "latest")
 
-cleanFiles += scalafixCompatOutJSDir.value
-cleanFiles += latestOutJSDir.value
-
 def cp(
   c: MetaCross,
   d: Def.Initialize[File],
@@ -211,15 +206,26 @@ def cp(
 
 val copyFilesFull = taskKey[Unit]("")
 
-TaskKey[Unit]("copyFilesFast") := {
-  cp(metaScalafixCompat, scalafixCompatOutJSDir, fastLinkJS, fastLinkJSOutput).value
-  cp(metaLatest, latestOutJSDir, fastLinkJS, fastLinkJSOutput).value
-}
-
-copyFilesFull := {
-  cp(metaScalafixCompat, scalafixCompatOutJSDir, fullLinkJS, fullLinkJSOutput).value
-  cp(metaLatest, latestOutJSDir, fullLinkJS, fullLinkJSOutput).value
-}
-
-publish := {}
-publishLocal := {}
+lazy val root = project
+  .in(file("."))
+  .settings(
+    commonSettings,
+    cleanFiles += scalafixCompatOutJSDir.value,
+    cleanFiles += latestOutJSDir.value,
+    TaskKey[Unit]("copyFilesFast") := {
+      cp(metaScalafixCompat, scalafixCompatOutJSDir, fastLinkJS, fastLinkJSOutput).value
+      cp(metaLatest, latestOutJSDir, fastLinkJS, fastLinkJSOutput).value
+    },
+    copyFilesFull := {
+      cp(metaScalafixCompat, scalafixCompatOutJSDir, fullLinkJS, fullLinkJSOutput).value
+      cp(metaLatest, latestOutJSDir, fullLinkJS, fullLinkJSOutput).value
+    },
+    publish := {},
+    publishLocal := {}
+  )
+  .aggregate(
+    localServer,
+  )
+  .aggregate(
+    `scalameta-ast`.projectRefs *
+  )
