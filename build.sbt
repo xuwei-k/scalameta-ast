@@ -35,21 +35,21 @@ lazy val `scalameta-ast` = projectMatrix
     name := "scalameta-ast",
     commonSettings,
     libraryDependencies ++= Seq(
-      "org.scalatest" %%% "scalatest-freespec" % "3.2.19" % Test,
+      "org.scalatest" %% "scalatest-freespec" % "3.2.19" % Test,
     ),
   )
   .jvmPlatform(
     scalaVersions = Scala213 :: Nil,
     settings = Def.settings(
-      metaVersion := (LocalProject("scalameta-ast-latestJS") / metaVersion).value,
+      metaVersion := (LocalProject("scalameta-ast-latestJS2_13") / metaVersion).value,
       testBuildInfo,
       commonLatest,
-      libraryDependencies += "org.scalameta" %%% "scalameta" % "4.14.2",
-      libraryDependencies += "org.scalameta" %%% "scalafmt-core" % "3.9.6",
+      libraryDependencies += "org.scalameta" %% "scalameta" % "4.14.2",
+      libraryDependencies += "org.scalameta" %% "scalafmt-core" % "3.9.6",
       libraryDependencies += "com.google.inject" % "guice" % "7.0.0" % Test,
       Test / resourceGenerators += Def.task {
-        val v1 = (LocalProject("scalameta-ast-latestJS") / metaTreesSource).value
-        val v2 = (LocalProject("scalameta-ast-scalafix-compatJS") / metaTreesSource).value
+        val v1 = (LocalProject("scalameta-ast-latestJS2_13") / metaTreesSource).value
+        val v2 = (LocalProject("scalameta-ast-scalafix-compatJS2_13") / metaTreesSource).value
         Seq(v1, v2).zipWithIndex.map { case (src, index) =>
           val f = (Test / resourceManaged).value / s"trees${index}.scala"
           IO.write(f, src)
@@ -64,7 +64,7 @@ lazy val `scalameta-ast` = projectMatrix
     settings = Def.settings(
       jsProjectSettings,
       libraryDependencies += {
-        ("org.scalameta" %%% "scalameta" % "4.6.0").withSources() // scala-steward:off
+        ("org.scalameta" %% "scalameta" % "4.6.0").withSources() // scala-steward:off
       }
     )
   )
@@ -74,8 +74,8 @@ lazy val `scalameta-ast` = projectMatrix
     settings = Def.settings(
       jsProjectSettings,
       commonLatest,
-      libraryDependencies += "org.ekrich" %%% "sconfig" % "1.12.4",
-      libraryDependencies += ("com.github.xuwei-k" %%% "scalafmt-core" % "3.10.2-fork-1").withSources(),
+      libraryDependencies += "org.ekrich" %% "sconfig" % "1.12.4",
+      libraryDependencies += ("com.github.xuwei-k" %% "scalafmt-core" % "3.10.2-fork-1").withSources(),
     )
   )
 
@@ -92,10 +92,11 @@ lazy val testBuildInfo = {
           |
           |object ${x} {
           |  def scalametaVersion: String = "${metaVersion.value}"
+          |  def scalaVersion: String = "${scalaVersion.value}"
           |}
           |""".stripMargin
     )
-    f :: Nil
+    Seq(f)
   }
 }
 
@@ -117,24 +118,25 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
       (x / scalaSource).value / ".." / "js"
     }
   },
-  libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.5.0",
+  libraryDependencies += "org.ekrich" %% "sjavatime" % "1.5.0",
   metaTreesSource := {
     val v = metaVersion.value
     val s = scalaBinaryVersion.value
     val p = s"https/repo1.maven.org/maven2/org/scalameta/trees_sjs1_${s}/${v}/trees_sjs1_${s}-${v}-sources.jar"
     val sourceJar = csrCacheDirectory.value / p
     IO.withTemporaryDirectory { dir =>
-      val file :: Nil = IO.unzip(sourceJar, dir, _ == "scala/meta/Trees.scala").toList
+      val file :: Nil = IO.unzip(sourceJar, dir, _ == "scala/meta/Trees.scala").toList: @unchecked
       IO.read(file)
     }
   },
   testBuildInfo,
   metaVersion := {
+    val conv = fileConverter.value
     val s = scalaBinaryVersion.value
     val x1 = s"https/repo1.maven.org/maven2/org/scalameta/parsers_sjs1_${s}/"
     val x2 = s"/parsers_sjs1_${s}-"
     val Seq(jarPath) = (Compile / externalDependencyClasspath).value
-      .map(_.data.getAbsolutePath)
+      .map(a => conv.toPath(a.data).toFile.getAbsolutePath)
       .filter(path => path.contains(x1) && path.contains(x2))
     jarPath.split(x1).last.split(x2).head
   },
@@ -158,7 +160,7 @@ lazy val localServer = project.settings(
   run / fork := true,
   run / baseDirectory := (LocalRootProject / baseDirectory).value,
   Test / testOptions += Tests.Argument("-oDF"),
-  Test / test := (Test / test).dependsOn(LocalRootProject / copyFilesFull).value,
+  Test / test := (Test / test).toTask("").dependsOn(LocalRootProject / copyFilesFull).value,
   Test / testOptions ++= {
     if (scala.util.Properties.isMac) {
       Nil
@@ -176,7 +178,7 @@ lazy val localServer = project.settings(
     "org.slf4j" % "slf4j-simple" % "2.0.17" % Runtime,
     "ws.unfiltered" %% "unfiltered-filter" % "0.12.1",
     "ws.unfiltered" %% "unfiltered-jetty" % "0.12.1",
-    "org.scalatest" %%% "scalatest-freespec" % "3.2.19" % Test,
+    "org.scalatest" %% "scalatest-freespec" % "3.2.19" % Test,
     "com.microsoft.playwright" % "playwright" % "1.58.0" % Test,
   )
 )
@@ -194,7 +196,7 @@ def cp(
   val Seq(p) = `scalameta-ast`.finder(c, VirtualAxis.js).get
   Def.task {
     val v = (p / Compile / k).value
-    val Seq(m) = v.data.publicModules.toSeq
+    val Seq(m) = v.data.publicModules.toSeq: @unchecked
     val src = (p / Compile / originalOutputDir).value
     val f = src / m.jsFileName
     val srcMap = src / m.sourceMapName.getOrElse(sys.error("source map not found"))
