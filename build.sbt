@@ -44,8 +44,8 @@ lazy val `scalameta-ast` = projectMatrix
       metaVersion := (LocalProject("scalameta-ast-latestJS") / metaVersion).value,
       testBuildInfo,
       commonLatest,
-      libraryDependencies += "org.scalameta" %%% "scalameta" % "4.14.2",
-      libraryDependencies += "org.scalameta" %%% "scalafmt-core" % "3.9.6",
+      libraryDependencies += "org.scalameta" %%% "scalameta" % "4.15.2",
+      libraryDependencies += "org.scalameta" %%% "scalafmt-core" % "3.10.7",
       libraryDependencies += "com.google.inject" % "guice" % "7.0.0" % Test,
       Test / resourceGenerators += Def.task {
         val v1 = (LocalProject("scalameta-ast-latestJS") / metaTreesSource).value
@@ -75,7 +75,7 @@ lazy val `scalameta-ast` = projectMatrix
       jsProjectSettings,
       commonLatest,
       libraryDependencies += "org.ekrich" %%% "sconfig" % "1.12.4",
-      libraryDependencies += ("com.github.xuwei-k" %%% "scalafmt-core" % "3.10.2-fork-1").withSources(),
+      libraryDependencies += ("com.github.xuwei-k" %%% "scalafmt-core" % "3.10.7-fork-1").withSources(),
     )
   )
 

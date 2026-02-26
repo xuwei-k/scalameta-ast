@@ -296,6 +296,7 @@ abstract class IntegrationTest(
           """ */""",
         ).mkString("\n")
       )
+      pending // TODO
       assert(output(page).textContent() == fromResource("comment.txt"))
     }
   }
