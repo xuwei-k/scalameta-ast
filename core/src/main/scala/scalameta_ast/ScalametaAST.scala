@@ -223,20 +223,12 @@ class ScalametaAST {
           TokensToString.tokensToString(loop(input, dialects)) -> None
 
         case _: Args.Comment =>
-          scala.meta.contrib.CommentOps
-            .docTokens(
-              new scala.meta.tokens.Token.Comment(
-                input = Input.String(args.src),
-                dialect = dialects.head,
-                start = 0,
-                end = args.src.length,
-                value = args.src
-              )
+          scala.meta.internal.parsers.ScaladocParser
+            .parse(
+              args.src
             )
-            .map(_.map { x =>
-              val q: String => String = s => scala.meta.Lit.String(s).toString
-              s"""DocToken(kind = ${x.kind}, name = ${x.name.map(q)}, body = ${x.body.map(q)})"""
-            })
+            .toSeq
+            .flatMap(_.para.flatMap(_.terms))
             .toString -> None
 
         case a: NotToken =>
