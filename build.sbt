@@ -29,6 +29,18 @@ lazy val commonLatest = Def.settings(
   }
 )
 
+lazy val dialectGenTask = {
+  Compile / sourceGenerators += Def.task {
+    val loader = (dialectOverrideCodeGen / Test / testLoader).value
+    val clazz = loader.loadClass("scalameta_ast.CodeGen")
+    val method = clazz.getMethod("run")
+    val value = method.invoke(clazz.getConstructor().newInstance()).asInstanceOf[String]
+    val f = (Compile / sourceManaged).value / "scalameta_ast" / "DialectOverride.scala"
+    IO.write(f, value)
+    Seq(f)
+  }.taskValue
+}
+
 lazy val `scalameta-ast` = projectMatrix
   .in(file("core"))
   .settings(
@@ -44,6 +56,7 @@ lazy val `scalameta-ast` = projectMatrix
       metaVersion := (LocalProject("scalameta-ast-latestJS") / metaVersion).value,
       testBuildInfo,
       commonLatest,
+      dialectGenTask,
       libraryDependencies += "org.scalameta" %%% "scalameta" % "4.15.2",
       libraryDependencies += "org.scalameta" %%% "scalafmt-core" % "3.10.7",
       libraryDependencies += "com.google.inject" % "guice" % "7.0.0" % Test,
@@ -73,6 +86,7 @@ lazy val `scalameta-ast` = projectMatrix
     axisValues = Seq(metaLatest),
     settings = Def.settings(
       jsProjectSettings,
+      dialectGenTask,
       commonLatest,
       libraryDependencies += "org.ekrich" %%% "sconfig" % "1.12.4",
       libraryDependencies += ("com.github.xuwei-k" %%% "scalafmt-core" % "3.10.7-fork-1").withSources(),
@@ -153,6 +167,14 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
 
 val genBuildInfo = taskKey[String]("")
 
+lazy val dialectOverrideCodeGen = project
+  .in(file("code-gen"))
+  .settings(
+    commonSettings,
+    run / fork := true,
+    libraryDependencies += "org.scalameta" %%% "scalameta" % "4.15.0",
+  )
+
 lazy val localServer = project.settings(
   commonSettings,
   run / fork := true,
@@ -225,6 +247,7 @@ lazy val root = project
   )
   .aggregate(
     localServer,
+    dialectOverrideCodeGen,
   )
   .aggregate(
     `scalameta-ast`.projectRefs *

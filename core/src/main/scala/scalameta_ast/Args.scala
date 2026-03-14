@@ -3,6 +3,7 @@ package scalameta_ast
 sealed abstract class Args extends Product with Serializable {
   def src: String
   def dialect: Option[String]
+  def scalafmtConfig: String
 }
 
 sealed abstract class NotToken extends Args {
@@ -24,11 +25,13 @@ object Args {
   case class Token(
     src: String,
     dialect: Option[String],
+    scalafmtConfig: String,
   ) extends Args
 
   case class Comment(
     src: String,
     dialect: Option[String],
+    scalafmtConfig: String,
   ) extends Args
 
   case class Raw(
@@ -36,6 +39,7 @@ object Args {
     dialect: Option[String],
     removeNewFields: Boolean,
     initialExtractor: Boolean,
+    scalafmtConfig: String,
   ) extends NotToken
 
   case class Syntactic(
@@ -49,6 +53,7 @@ object Args {
     initialExtractor: Boolean,
     explanation: Boolean,
     pathFilter: Boolean,
+    scalafmtConfig: String,
   ) extends ScalafixRule {
     override def documentClass: String = "SyntacticDocument"
     override def ruleClass: String = "SyntacticRule"
@@ -65,6 +70,7 @@ object Args {
     initialExtractor: Boolean,
     explanation: Boolean,
     pathFilter: Boolean,
+    scalafmtConfig: String,
   ) extends ScalafixRule {
     override def documentClass: String = "SemanticDocument"
     override def ruleClass: String = "SemanticRule"

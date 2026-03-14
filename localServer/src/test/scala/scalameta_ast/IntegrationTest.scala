@@ -548,10 +548,11 @@ abstract class IntegrationTest(
       check(
         scalafmt = Seq(
           """maxColumn = 50""",
-          """runner.dialect = "Scala3"""",
           """align.preset = "none"""",
           """continuationIndent.defnSite = 2""",
           """continuationIndent.extendSite = 2""",
+          """runner.dialect = "Scala3"""",
+          """runner.dialectOverride.allowCaptureChecking = true""",
         ).mkString("\n"),
         formatOut = true,
         wildcard = false,
