@@ -11,6 +11,46 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
   "ScalametaAST" - {
     val main = new ScalametaAST
 
+    "dialectOverride" in {
+      val result = main.convert(
+        src = "type A = B^ => C",
+        outputType = "raw",
+        packageName = None,
+        wildcardImport = false,
+        ruleNameOption = None,
+        dialect = None,
+        patch = None,
+        removeNewFields = true,
+        initialExtractor = false,
+        explanation = true,
+        pathFilter = false,
+        scalafmtConfig = "runner.dialectOverride.allowCaptureChecking = true",
+      )
+      val expect =
+        """|Defn.Type.After_4_6_0(
+           |  Nil,
+           |  Type.Name("A"),
+           |  Type.ParamClause(Nil),
+           |  Type.Function.After_4_6_0(
+           |    Type.FuncParamClause(List(
+           |      Type.Capturing(
+           |        Type.Name("B"),
+           |        Type.CapturesAny()
+           |      )
+           |    )),
+           |    Type.Name("C")
+           |  ),
+           |  Type.Bounds.After_4_12_3(
+           |    None,
+           |    None,
+           |    Nil,
+           |    Nil
+           |  )
+           |)""".stripMargin
+      println(result.result)
+      assert(result.result == expect)
+    }
+
     "convert" in {
       val result = main.convert(
         src = "val x = ((), null)",
@@ -24,6 +64,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
         initialExtractor = false,
         explanation = true,
         pathFilter = false,
+        scalafmtConfig = "",
       )
       val expect =
         s"""package package_name
@@ -101,6 +142,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
         initialExtractor = false,
         explanation = true,
         pathFilter = false,
+        scalafmtConfig = "",
       )
       val expect =
         s"""package package_name
@@ -184,6 +226,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
         initialExtractor = false,
         explanation = true,
         pathFilter = false,
+        scalafmtConfig = "",
       )
       assert(result.result == expect)
     }
@@ -218,6 +261,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
         initialExtractor = false,
         explanation = true,
         pathFilter = false,
+        scalafmtConfig = "",
       )
       assert(result.result == expect)
     }
@@ -250,6 +294,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
         initialExtractor = false,
         explanation = true,
         pathFilter = false,
+        scalafmtConfig = "",
       )
       assert(result.result == expect)
     }
@@ -281,6 +326,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
         initialExtractor = false,
         explanation = true,
         pathFilter = false,
+        scalafmtConfig = "",
       )
       assert(result.result == expect)
     }
@@ -298,6 +344,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
         initialExtractor = false,
         explanation = true,
         pathFilter = false,
+        scalafmtConfig = "",
       )
 
       val expect =
@@ -329,6 +376,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
         initialExtractor = false,
         explanation = true,
         pathFilter = false,
+        scalafmtConfig = "",
       )
 
       val expect =

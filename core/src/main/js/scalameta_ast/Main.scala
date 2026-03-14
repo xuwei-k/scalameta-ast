@@ -20,6 +20,7 @@ object Main extends MainCompat {
       initialExtractor = false,
       explanation = true,
       pathFilter = false,
+      scalafmtConfig = "",
     )
   }
 
@@ -37,6 +38,7 @@ object Main extends MainCompat {
     initialExtractor: Boolean,
     explanation: Boolean,
     pathFilter: Boolean,
+    scalafmtConfig: String,
   ): js.Object = {
     try {
       val output =
@@ -52,6 +54,7 @@ object Main extends MainCompat {
           initialExtractor = initialExtractor,
           explanation = explanation,
           pathFilter = pathFilter,
+          scalafmtConfig = scalafmtConfig,
         )
       new js.Object {
         val ast = output.result

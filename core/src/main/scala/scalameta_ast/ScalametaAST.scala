@@ -141,6 +141,7 @@ class ScalametaAST {
     initialExtractor: Boolean,
     explanation: Boolean,
     pathFilter: Boolean,
+    scalafmtConfig: String,
   ): Output[String] = {
     convert(
       outputType match {
@@ -148,6 +149,7 @@ class ScalametaAST {
           Args.Token(
             src = src,
             dialect = dialect,
+            scalafmtConfig = scalafmtConfig,
           )
         case "syntactic" =>
           Args.Syntactic(
@@ -161,6 +163,7 @@ class ScalametaAST {
             initialExtractor = initialExtractor,
             explanation = explanation,
             pathFilter = pathFilter,
+            scalafmtConfig = scalafmtConfig,
           )
         case "semantic" =>
           Args.Semantic(
@@ -174,11 +177,13 @@ class ScalametaAST {
             initialExtractor = initialExtractor,
             explanation = explanation,
             pathFilter = pathFilter,
+            scalafmtConfig = scalafmtConfig,
           )
         case "comment" =>
           Args.Comment(
             src = src,
             dialect = dialect,
+            scalafmtConfig = scalafmtConfig,
           )
         case _ =>
           Args.Raw(
@@ -186,6 +191,7 @@ class ScalametaAST {
             dialect = dialect,
             removeNewFields = removeNewFields,
             initialExtractor = initialExtractor,
+            scalafmtConfig = scalafmtConfig,
           )
       }
     )
@@ -195,14 +201,16 @@ class ScalametaAST {
   ): Output[String] = {
     lazy val input = convert.apply(args.src)
     val result = ScalametaAST.stopwatch {
-      val dialects = args.dialect.fold(dialectsDefault) { x =>
-        stringToDialects.getOrElse(
-          x, {
-            Console.err.println(s"invalid dialct ${x}")
-            dialectsDefault
-          }
-        )
-      }
+      val dialects = args.dialect
+        .fold(dialectsDefault) { x =>
+          stringToDialects.getOrElse(
+            x, {
+              Console.err.println(s"invalid dialct ${x}")
+              dialectsDefault
+            }
+          )
+        }
+        .map(ApplyDialectOverride.patch(_, args.scalafmtConfig))
 
       args match {
         case _: Args.Token =>

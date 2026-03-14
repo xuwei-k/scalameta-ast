@@ -26,6 +26,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
         initialExtractor = false,
         explanation = true,
         pathFilter = false,
+        scalafmtConfig = "",
       )
       val expect =
         s"""package package_name
@@ -93,6 +94,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
         initialExtractor = false,
         explanation = true,
         pathFilter = false,
+        scalafmtConfig = "",
       )
       val expect =
         s"""package package_name
@@ -141,6 +143,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
             initialExtractor = arg.initial,
             explanation = true,
             pathFilter = false,
+            scalafmtConfig = "",
           )
           assert(result.result == expect, arg)
         }
@@ -173,6 +176,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
             initialExtractor = arg.initial,
             explanation = true,
             pathFilter = false,
+            scalafmtConfig = "",
           )
           assert(result.result == expect, arg)
         }
@@ -205,6 +209,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
             initialExtractor = arg.initial,
             explanation = true,
             pathFilter = false,
+            scalafmtConfig = "",
           )
           assert(result.result == expect, arg)
         }
@@ -237,6 +242,7 @@ class ScalametaASTSpec2 extends AnyFreeSpec {
             initialExtractor = arg.initial,
             explanation = true,
             pathFilter = false,
+            scalafmtConfig = "",
           )
           assert(result.result == expect, arg)
         }

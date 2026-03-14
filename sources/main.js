@@ -93,10 +93,11 @@ if (screenWidth >= 1500) {
 
 const defaultScalafmtConfig = `
         maxColumn = ${defaultMaxColumn}
-        runner.dialect = "Scala3"
         align.preset = "none"
         continuationIndent.defnSite = 2
         continuationIndent.extendSite = 2
+        runner.dialect = "Scala3"
+        runner.dialectOverride.allowCaptureChecking = true
       `
   .split("\n")
   .map((c) => c.trim())
@@ -205,6 +206,7 @@ const App = () => {
     initialExtractor,
     explanation,
     pathFilter,
+    scalafmtConfig,
   );
 
   if (r.ast == null || format === false) {

@@ -51,7 +51,7 @@ trait MainCompat {
         }
     }
 
-  private[this] def hoconToMetaConfig(config: String): Conf =
+  def hoconToMetaConfig(config: String): Conf =
     convertSConfigToMetaConfig(ConfigFactory.parseString(config))
 
   private[this] def convertSConfigToMetaConfig(config: Config): Conf =
@@ -77,3 +77,5 @@ trait MainCompat {
   }
 
 }
+
+object MainCompat extends MainCompat
