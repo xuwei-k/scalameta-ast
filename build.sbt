@@ -43,6 +43,7 @@ lazy val dialectGenTask = {
 
 lazy val `scalameta-ast` = projectMatrix
   .in(file("core"))
+  .defaultAxes(VirtualAxis.scalaABIVersion(Scala213))
   .settings(
     name := "scalameta-ast",
     commonSettings,
