@@ -109,7 +109,7 @@ lazy val testBuildInfo = {
           |}
           |""".stripMargin
     )
-    f :: Nil
+    Seq(f)
   }
 }
 
