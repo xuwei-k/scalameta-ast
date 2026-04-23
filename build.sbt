@@ -58,7 +58,7 @@ lazy val `scalameta-ast` = projectMatrix
       testBuildInfo,
       commonLatest,
       dialectGenTask,
-      libraryDependencies += "org.scalameta" %%% "scalameta" % "4.15.2",
+      libraryDependencies += "org.scalameta" %%% "scalameta" % "4.16.1",
       libraryDependencies += "org.scalameta" %%% "scalafmt-core" % "3.10.7",
       libraryDependencies += "com.google.inject" % "guice" % "7.0.0" % Test,
       Test / resourceGenerators += Def.task {
