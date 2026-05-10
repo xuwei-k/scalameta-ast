@@ -5,7 +5,7 @@ import scala.meta.tokens.Token
 
 object TokensToString {
   def tokensToString(tokens: Tokens): String = {
-    tokens.tokens.map { x =>
+    tokens.map { (x: Token) =>
       val n = x.getClass.getSimpleName
       def q(a: String): String = s"(${scala.meta.Lit.String(a)})"
 
