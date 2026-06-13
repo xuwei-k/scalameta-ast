@@ -12,6 +12,8 @@ import scala.scalajs.js.annotation._
 import scala.util.control.NonFatal
 
 trait MainCompat {
+  scala.meta.internal.tokenizers.ScalametaTokenizer.register()
+
   def runFormat(source: String, scalafmtConfig: Conf): Output[String] = {
     ScalametaAST.stopwatch {
       runFormat(
