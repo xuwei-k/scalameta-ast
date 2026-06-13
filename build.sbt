@@ -58,7 +58,7 @@ lazy val `scalameta-ast` = projectMatrix
       testBuildInfo,
       commonLatest,
       dialectGenTask,
-      libraryDependencies += "org.scalameta" %%% "scalameta" % "4.15.2",
+      libraryDependencies += "org.scalameta" %%% "scalameta" % "4.17.0",
       libraryDependencies += "org.scalameta" %%% "scalafmt-core" % "3.10.7",
       libraryDependencies += "com.google.inject" % "guice" % "7.0.0" % Test,
       Test / resourceGenerators += Def.task {
@@ -90,7 +90,7 @@ lazy val `scalameta-ast` = projectMatrix
       dialectGenTask,
       commonLatest,
       libraryDependencies += "org.ekrich" %%% "sconfig" % "1.12.4",
-      libraryDependencies += ("com.github.xuwei-k" %%% "scalafmt-core" % "3.10.7-fork-1").withSources(),
+      libraryDependencies += ("com.github.xuwei-k" %%% "scalafmt-core" % "3.11.1-fork-1").withSources(),
     )
   )
 
@@ -136,7 +136,12 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
   metaTreesSource := {
     val v = metaVersion.value
     val s = scalaBinaryVersion.value
-    val p = s"https/repo1.maven.org/maven2/org/scalameta/trees_sjs1_${s}/${v}/trees_sjs1_${s}-${v}-sources.jar"
+    val artifact = v match {
+      case "4.6.0" => "trees"
+      case _ => "trees2"
+    }
+    val p =
+      s"https/repo1.maven.org/maven2/org/scalameta/${artifact}_sjs1_${s}/${v}/${artifact}_sjs1_${s}-${v}-sources.jar"
     val sourceJar = csrCacheDirectory.value / p
     IO.withTemporaryDirectory { dir =>
       val file :: Nil = IO.unzip(sourceJar, dir, _ == "scala/meta/Trees.scala").toList
@@ -173,7 +178,7 @@ lazy val dialectOverrideCodeGen = project
   .settings(
     commonSettings,
     run / fork := true,
-    libraryDependencies += "org.scalameta" %%% "scalameta" % "4.15.0",
+    libraryDependencies += "org.scalameta" %%% "scalameta" % "4.17.0",
   )
 
 lazy val localServer = project.settings(
