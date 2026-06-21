@@ -28,6 +28,7 @@ jobs:
     - uses: sbt/setup-sbt@v1
     - uses: coursier/cache-action@v8
     - run: sbt -v
+           --server
            scalafmtSbtCheck
            scalafmtCheckAll
            updateClassifiers
