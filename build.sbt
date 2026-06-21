@@ -94,7 +94,9 @@ lazy val `scalameta-ast` = projectMatrix
     )
   )
 
+@transient
 lazy val metaVersion = taskKey[String]("")
+@transient
 lazy val metaTreesSource = taskKey[String]("")
 
 lazy val testBuildInfo = {
@@ -171,6 +173,7 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
   },
 )
 
+@transient
 val genBuildInfo = taskKey[String]("")
 
 lazy val dialectOverrideCodeGen = project
@@ -232,6 +235,7 @@ def cp(
   }
 }
 
+@transient
 val copyFilesFull = taskKey[Unit]("")
 
 lazy val root = project
