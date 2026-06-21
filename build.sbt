@@ -48,7 +48,7 @@ lazy val `scalameta-ast` = projectMatrix
     name := "scalameta-ast",
     commonSettings,
     libraryDependencies ++= Seq(
-      "org.scalatest" %%% "scalatest-freespec" % "3.2.20" % Test,
+      "org.scalatest" %% "scalatest-freespec" % "3.2.20" % Test,
     ),
   )
   .jvmPlatform(
@@ -58,8 +58,8 @@ lazy val `scalameta-ast` = projectMatrix
       testBuildInfo,
       commonLatest,
       dialectGenTask,
-      libraryDependencies += "org.scalameta" %%% "scalameta" % "4.17.0",
-      libraryDependencies += "org.scalameta" %%% "scalafmt-core" % "3.10.7",
+      libraryDependencies += "org.scalameta" %% "scalameta" % "4.17.0",
+      libraryDependencies += "org.scalameta" %% "scalafmt-core" % "3.10.7",
       libraryDependencies += "com.google.inject" % "guice" % "7.0.0" % Test,
       Test / resourceGenerators += Def.task {
         val v1 = (LocalProject("scalameta-ast-latestJS") / metaTreesSource).value
@@ -78,7 +78,7 @@ lazy val `scalameta-ast` = projectMatrix
     settings = Def.settings(
       jsProjectSettings,
       libraryDependencies += {
-        ("org.scalameta" %%% "scalameta" % "4.6.0").withSources() // scala-steward:off
+        ("org.scalameta" %% "scalameta" % "4.6.0").withSources() // scala-steward:off
       }
     )
   )
@@ -89,8 +89,8 @@ lazy val `scalameta-ast` = projectMatrix
       jsProjectSettings,
       dialectGenTask,
       commonLatest,
-      libraryDependencies += "org.ekrich" %%% "sconfig" % "1.12.4",
-      libraryDependencies += ("com.github.xuwei-k" %%% "scalafmt-core" % "3.11.1-fork-1").withSources(),
+      libraryDependencies += "org.ekrich" %% "sconfig" % "1.12.4",
+      libraryDependencies += ("com.github.xuwei-k" %% "scalafmt-core" % "3.11.1-fork-1").withSources(),
     )
   )
 
@@ -122,7 +122,7 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
   },
   scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) },
   genBuildInfo := {
-    val hash = sys.process.Process("git rev-parse HEAD").lineStream_!.head
+    val hash = sys.process.Process("git rev-parse HEAD").lazyLines_!.head
     s"""export default {
        |  "gitHash" : "$hash",
        |  "scalametaVersion" : "${metaVersion.value}"
@@ -134,7 +134,7 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
       (x / scalaSource).value / ".." / "js"
     }
   },
-  libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.5.0",
+  libraryDependencies += "org.ekrich" %% "sjavatime" % "1.5.0",
   metaTreesSource := {
     val v = metaVersion.value
     val s = scalaBinaryVersion.value
@@ -146,7 +146,7 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
       s"https/repo1.maven.org/maven2/org/scalameta/${artifact}_sjs1_${s}/${v}/${artifact}_sjs1_${s}-${v}-sources.jar"
     val sourceJar = csrCacheDirectory.value / p
     IO.withTemporaryDirectory { dir =>
-      val file :: Nil = IO.unzip(sourceJar, dir, _ == "scala/meta/Trees.scala").toList
+      val file :: Nil = IO.unzip(sourceJar, dir, _ == "scala/meta/Trees.scala").toList.runtimeChecked
       IO.read(file)
     }
   },
@@ -156,7 +156,7 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
     val x1 = s"https/repo1.maven.org/maven2/org/scalameta/parsers_sjs1_${s}/"
     val x2 = s"/parsers_sjs1_${s}-"
     val Seq(jarPath) = (Compile / externalDependencyClasspath).value
-      .map(_.data.getAbsolutePath)
+      .map(x => fileConverter.value.toPath(x.data).toFile.getAbsolutePath)
       .filter(path => path.contains(x1) && path.contains(x2))
     jarPath.split(x1).last.split(x2).head
   },
@@ -167,7 +167,7 @@ lazy val jsProjectSettings: Def.SettingsDefinition = Def.settings(
     val a = (LocalRootProject / baseDirectory).value.toURI.toString
     val g = "https://raw.githubusercontent.com/xuwei-k/scalameta-ast/" + sys.process
       .Process("git rev-parse HEAD")
-      .lineStream_!
+      .lazyLines_!
       .head
     s"-P:scalajs:mapSourceURI:$a->$g/"
   },
@@ -181,7 +181,7 @@ lazy val dialectOverrideCodeGen = project
   .settings(
     commonSettings,
     run / fork := true,
-    libraryDependencies += "org.scalameta" %%% "scalameta" % "4.17.0",
+    libraryDependencies += "org.scalameta" %% "scalameta" % "4.17.0",
   )
 
 lazy val localServer = project.settings(
@@ -189,7 +189,7 @@ lazy val localServer = project.settings(
   run / fork := true,
   run / baseDirectory := (LocalRootProject / baseDirectory).value,
   Test / testOptions += Tests.Argument("-oDF"),
-  Test / test := (Test / test).dependsOn(LocalRootProject / copyFilesFull).value,
+  Test / testFull := Def.uncached((Test / testFull).dependsOn(LocalRootProject / copyFilesFull).value),
   Test / testOptions ++= {
     if (scala.util.Properties.isMac) {
       Nil
@@ -207,7 +207,7 @@ lazy val localServer = project.settings(
     "org.slf4j" % "slf4j-simple" % "2.0.18" % Runtime,
     "ws.unfiltered" %% "unfiltered-filter" % "0.12.1",
     "ws.unfiltered" %% "unfiltered-jetty" % "0.12.1",
-    "org.scalatest" %%% "scalatest-freespec" % "3.2.20" % Test,
+    "org.scalatest" %% "scalatest-freespec" % "3.2.20" % Test,
     "com.microsoft.playwright" % "playwright" % "1.60.0" % Test,
   )
 )
@@ -238,27 +238,18 @@ def cp(
 @transient
 val copyFilesFull = taskKey[Unit]("")
 
-lazy val root = project
-  .in(file("."))
-  .settings(
-    commonSettings,
-    cleanFiles += scalafixCompatOutJSDir.value,
-    cleanFiles += latestOutJSDir.value,
-    TaskKey[Unit]("copyFilesFast") := {
-      cp(metaScalafixCompat, scalafixCompatOutJSDir, fastLinkJS, fastLinkJSOutput).value
-      cp(metaLatest, latestOutJSDir, fastLinkJS, fastLinkJSOutput).value
-    },
-    copyFilesFull := {
-      cp(metaScalafixCompat, scalafixCompatOutJSDir, fullLinkJS, fullLinkJSOutput).value
-      cp(metaLatest, latestOutJSDir, fullLinkJS, fullLinkJSOutput).value
-    },
-    publish := {},
-    publishLocal := {}
-  )
-  .aggregate(
-    localServer,
-    dialectOverrideCodeGen,
-  )
-  .aggregate(
-    `scalameta-ast`.projectRefs *
-  )
+lazy val scalametaAstRoot = rootProject.autoAggregate.settings(
+  commonSettings,
+  cleanFiles += scalafixCompatOutJSDir.value,
+  cleanFiles += latestOutJSDir.value,
+  TaskKey[Unit]("copyFilesFast") := {
+    cp(metaScalafixCompat, scalafixCompatOutJSDir, fastLinkJS, fastLinkJSOutput).value
+    cp(metaLatest, latestOutJSDir, fastLinkJS, fastLinkJSOutput).value
+  },
+  copyFilesFull := {
+    cp(metaScalafixCompat, scalafixCompatOutJSDir, fullLinkJS, fullLinkJSOutput).value
+    cp(metaLatest, latestOutJSDir, fullLinkJS, fullLinkJSOutput).value
+  },
+  publish := {},
+  publishLocal := {}
+)
