@@ -89,7 +89,7 @@ lazy val `scalameta-ast` = projectMatrix
       jsProjectSettings,
       dialectGenTask,
       commonLatest,
-      libraryDependencies += "org.ekrich" %% "sconfig" % "1.12.4",
+      libraryDependencies += "org.ekrich" %% "sconfig" % "2.0.0",
       libraryDependencies += ("com.github.xuwei-k" %% "scalafmt-core" % "3.11.1-fork-1").withSources(),
     )
   )
