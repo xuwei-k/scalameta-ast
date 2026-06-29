@@ -500,12 +500,16 @@ const App = () => {
                 onChange=${(e) => setScalameta(e.target.value)}
               >
                 <option value="scalafix">
-                  ${"scalafix 0.10.x compatible " +
-                  scalafixCompatBuildInfo.scalametaVersion}
+                  ${
+                    "scalafix 0.10.x compatible " +
+                    scalafixCompatBuildInfo.scalametaVersion
+                  }
                 </option>
                 <option value="latest">
-                  ${"scalafix 0.14.x compatible " +
-                  latestBuildInfo.scalametaVersion}
+                  ${
+                    "scalafix 0.14.x compatible " +
+                    latestBuildInfo.scalametaVersion
+                  }
                 </option>
               </select>
             </div>
