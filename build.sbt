@@ -41,6 +41,8 @@ lazy val dialectGenTask = {
   }.taskValue
 }
 
+val scalafix = "ch.epfl.scala" %% "scalafix-core" % "0.14.7"
+
 lazy val `scalameta-ast` = projectMatrix
   .in(file("core"))
   .defaultAxes(VirtualAxis.scalaABIVersion(Scala213))
@@ -58,7 +60,7 @@ lazy val `scalameta-ast` = projectMatrix
       testBuildInfo,
       commonLatest,
       dialectGenTask,
-      libraryDependencies += "org.scalameta" %% "scalameta" % "4.17.0",
+      libraryDependencies += scalafix,
       libraryDependencies += "org.scalameta" %% "scalafmt-core" % "3.10.7",
       libraryDependencies += "com.google.inject" % "guice" % "7.0.0" % Test,
       Test / resourceGenerators += Def.task {
@@ -88,6 +90,23 @@ lazy val `scalameta-ast` = projectMatrix
     settings = Def.settings(
       jsProjectSettings,
       dialectGenTask,
+      Compile / sourceGenerators += Def.task {
+        val f = (Compile / sourceManaged).value / "ScalafixVersion.scala"
+        IO.write(
+          f,
+          Seq(
+            """package scalameta_ast""",
+            """""",
+            """import scala.scalajs.js.annotation._""",
+            """""",
+            """@JSExportTopLevel("ScalafixVersion")""",
+            """object ScalafixVersion {""",
+            s"""  @JSExport def scalafixVersion: String = "${scalafix.revision}"""",
+            """}""",
+          ).mkString("", "\n", "\n")
+        )
+        Seq(f)
+      },
       commonLatest,
       libraryDependencies += "org.ekrich" %% "sconfig" % "1.12.4",
       libraryDependencies += ("com.github.xuwei-k" %% "scalafmt-core" % "3.11.1-fork-1").withSources(),
@@ -181,7 +200,7 @@ lazy val dialectOverrideCodeGen = project
   .settings(
     commonSettings,
     run / fork := true,
-    libraryDependencies += "org.scalameta" %% "scalameta" % "4.17.0",
+    libraryDependencies += scalafix
   )
 
 lazy val localServer = project.settings(
