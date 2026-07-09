@@ -58,7 +58,7 @@ lazy val `scalameta-ast` = projectMatrix
       testBuildInfo,
       commonLatest,
       dialectGenTask,
-      libraryDependencies += "org.scalameta" %% "scalameta" % "4.17.0",
+      libraryDependencies += "org.scalameta" %% "scalameta" % "4.17.2",
       libraryDependencies += "org.scalameta" %% "scalafmt-core" % "3.10.7",
       libraryDependencies += "com.google.inject" % "guice" % "7.0.0" % Test,
       Test / resourceGenerators += Def.task {
@@ -181,7 +181,7 @@ lazy val dialectOverrideCodeGen = project
   .settings(
     commonSettings,
     run / fork := true,
-    libraryDependencies += "org.scalameta" %% "scalameta" % "4.17.0",
+    libraryDependencies += "org.scalameta" %% "scalameta" % "4.17.2",
   )
 
 lazy val localServer = project.settings(
