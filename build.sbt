@@ -261,7 +261,7 @@ lazy val scalametaAstRoot = rootProject.autoAggregate.settings(
   commonSettings,
   cleanFiles += scalafixCompatOutJSDir.value,
   cleanFiles += latestOutJSDir.value,
-  TaskKey[Unit]("copyFilesFast") := {
+  TaskKey[Unit]("copyFilesFast") := Def.uncached {
     cp(metaScalafixCompat, scalafixCompatOutJSDir, fastLinkJS, fastLinkJSOutput).value
     cp(metaLatest, latestOutJSDir, fastLinkJS, fastLinkJSOutput).value
   },
