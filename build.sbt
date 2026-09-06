@@ -41,7 +41,7 @@ lazy val dialectGenTask = {
   }.taskValue
 }
 
-val scalafix = "ch.epfl.scala" %% "scalafix-core" % "0.14.7"
+val scalafix = "ch.epfl.scala" %% "scalafix-core" % "0.14.8"
 
 lazy val `scalameta-ast` = projectMatrix
   .in(file("core"))
