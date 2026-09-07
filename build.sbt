@@ -12,7 +12,7 @@ val metaLatest = MetaCross("-latest", "-latest")
 
 lazy val commonSettings = Def.settings(
   scalaVersion := Scala213,
-  licenses := Seq("MIT License" -> url("https://opensource.org/licenses/mit-license")),
+  licenses := Seq("MIT License" -> uri("https://opensource.org/license/mit")),
   scalacOptions ++= Seq(
     "-deprecation",
     "-unchecked",
