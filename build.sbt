@@ -246,10 +246,10 @@ def cp(
     val v = (p / Compile / k).value
     val Seq(m) = v.data.publicModules.toSeq
     val src = (p / Compile / originalOutputDir).value
-    val f = src / m.jsFileName
+    val f = src / m.moduleFileName
     val srcMap = src / m.sourceMapName.getOrElse(sys.error("source map not found"))
     IO.write(d.value / "build_info.js", (p / genBuildInfo).value)
-    IO.copyFile(f, d.value / m.jsFileName)
+    IO.copyFile(f, d.value / m.moduleFileName)
     IO.copyFile(srcMap, d.value / srcMap.getName)
   }
 }
